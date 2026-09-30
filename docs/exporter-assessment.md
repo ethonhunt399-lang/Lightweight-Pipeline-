@@ -62,3 +62,10 @@
 ## 6. 待确认
 
 - 改造后的导出工具以本仓库为唯一源码，还是改动合并回 `G:\SLBH_DEV` 的原工作区？建议以本仓库 `revit/exporter/` 为准，避免两份源码分叉。
+
+## 7. 实现状态（v0.4.0）
+
+- 以本仓库 `revit/exporter/` 为唯一源码。
+- 已新增“导出管综数据”命令：`MepExportCommand.cs`、`MepDataCollector.cs`、`MepModels.cs`，覆盖 G1–G11。
+- 已在开发环境用 Revit 2019 / 2020 API 引用程序集完成编译检查；尚待在 Revit 2020 中实际运行验证（见 `MANUAL_TEST_CHECKLIST_v0.4.0.md`）。
+- 导出包检查脚本：`tools/inspect_mep_package.py`。

@@ -9,10 +9,10 @@ namespace SLBH.RevitBridge
         public BridgeProject()
         {
             SchemaVersion = "0.3.6";
-            ExporterVersion = "0.3.7";
+            ExporterVersion = "0.4.0";
             ImporterVersion = "0.3.6";
             MinImporterVersion = "0.3.0";
-            BridgeVersion = "0.3.7";
+            BridgeVersion = "0.4.0";
             ExportProfile = "STANDARD";
             Unit = "meter";
             Elements = new List<BridgeElement>();
@@ -63,6 +63,10 @@ namespace SLBH.RevitBridge
         [DataMember(Name = "link_organization")] public string LinkOrganization { get; set; }
         [DataMember(Name = "link_detail_policy")] public string LinkDetailPolicy { get; set; }
         public Dictionary<string, string> FamilyActions { get; set; }
+
+        // Set by the MEP coordination export: every element is written as its own mesh so that
+        // downstream tools do not need to expand prototype instances. Not serialized.
+        public bool DisablePrototypes { get; set; }
     }
 
     [DataContract]

@@ -97,9 +97,9 @@ namespace SLBH.RevitBridge
             _elementTransformInverse = Transform.Identity;
             _modelWriter = new StreamWriter(modelPath, false, new UTF8Encoding(false));
             _prototypeWriter = new StreamWriter(prototypesPath, false, new UTF8Encoding(false));
-            _modelWriter.WriteLine("# SLBH Revit Bridge v0.3.7 unique geometry");
+            _modelWriter.WriteLine("# SLBH Revit Bridge v0.4.0 unique geometry");
             _modelWriter.WriteLine("# Units: meter");
-            _prototypeWriter.WriteLine("# SLBH Revit Bridge v0.3.7 prototypes");
+            _prototypeWriter.WriteLine("# SLBH Revit Bridge v0.4.0 prototypes");
             _prototypeWriter.WriteLine("# Units: meter; prototype local coordinates");
             _transforms.Push(Transform.Identity);
             EnsureDefaultMaterial();
@@ -532,7 +532,7 @@ namespace SLBH.RevitBridge
         {
             try
             {
-                if (ViewHasActiveSectionBox())
+                if (_options.DisablePrototypes || ViewHasActiveSectionBox())
                     return false;
                 if (instance.Symbol == null || instance.Symbol.Family == null || instance.Symbol.Family.IsInPlace)
                     return false;
@@ -1537,7 +1537,7 @@ namespace SLBH.RevitBridge
             return "其他";
         }
 
-        private static string ClassifySystemCode(string name, string typeName, string abbreviation, string classification)
+        internal static string ClassifySystemCode(string name, string typeName, string abbreviation, string classification)
         {
             string text = string.Join(" ", new[] { name, typeName, abbreviation, classification }).ToLowerInvariant();
 
@@ -1606,7 +1606,7 @@ namespace SLBH.RevitBridge
             return link.SourceModelKey + "|" + link.LinkInstanceId.ToString(CultureInfo.InvariantCulture) + "|" + uniqueId;
         }
 
-        private static string StableDocumentId(Document document)
+        internal static string StableDocumentId(Document document)
         {
             string value = "";
             if (document != null)
@@ -1653,12 +1653,12 @@ namespace SLBH.RevitBridge
             catch { return false; }
         }
 
-        private static string SafeObjToken(string value)
+        internal static string SafeObjToken(string value)
         {
             return ShortHash(value ?? "");
         }
 
-        private static string ShortHash(string value)
+        internal static string ShortHash(string value)
         {
             byte[] hash = Hasher.ComputeHash(Encoding.UTF8.GetBytes(value ?? ""));
             var result = new StringBuilder(24);

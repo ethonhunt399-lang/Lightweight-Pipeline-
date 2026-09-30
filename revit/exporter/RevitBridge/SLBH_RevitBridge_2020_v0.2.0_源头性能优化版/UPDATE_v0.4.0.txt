@@ -1,0 +1,18 @@
+SLBH Revit Bridge v0.4.0
+
+新增
+- Ribbon“SLBH工具 > Blender桥接”增加按钮“导出管综数据”（MepExportCommand）。
+- 导出包 <name>.slbh/ 在原有 project.json、model.obj、prototypes.obj 之外新增：
+  manifest.json  范围（剖面框）、项目坐标、基点、标高、轴网、房间、链接、统计、耗时、诊断
+  mep.json       管线参数（截面尺寸、外径、保温、坡度、中心线、截面朝向、参照标高与偏移）、
+                 管件/附件/设备/支架（管件类型、角度、变换）、连接件与连接关系、构件指纹
+- 构件 key 与 project.json 的 stable_element_key 一致，可互相对应。
+- 管综导出不做原型实例化，每个构件单独输出网格；不弹族规则窗口。
+
+不变
+- “导出到Blender”按钮的行为、project.json 结构（schema 0.3.6）不变。
+- 只读导出，不修改模型。
+
+说明
+- 当前视图（剖面框、隐藏、过滤器）决定宿主模型的导出范围；链接模型按剖面框范围读取全部机电构件。
+- 所有长度单位为米，坐标为宿主模型的 Revit 内部坐标（链接变换已应用），角度为弧度。

@@ -44,6 +44,14 @@ namespace SLBH.RevitBridge
                 data.ToolTip = "将当前非透视三维视图以重复族原型共享方式导出为SLBH桥接包，供Blender导入和管理。";
                 panel.AddItem(data);
 
+                PushButtonData mepData = new PushButtonData(
+                    "SLBH_RevitBridge_MepExport",
+                    "导出\n管综数据",
+                    assemblyPath,
+                    "SLBH.RevitBridge.MepExportCommand");
+                mepData.ToolTip = "导出当前三维视图的管线参数、保温、连接关系、管件、标高、轴网、房间和坐标信息，供管综排布工具使用。模型不会被修改。";
+                panel.AddItem(mepData);
+
                 return Result.Succeeded;
             }
             catch (Exception ex)

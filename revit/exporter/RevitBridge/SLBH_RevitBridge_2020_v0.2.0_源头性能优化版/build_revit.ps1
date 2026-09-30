@@ -34,6 +34,9 @@ function Build-RevitVersion([string]$targetYear) {
         'Source\Revit\AssemblyInfo.cs',
         'Source\Revit\BridgeModels.cs',
         'Source\Revit\ExportCommand.cs',
+        'Source\Revit\MepDataCollector.cs',
+        'Source\Revit\MepExportCommand.cs',
+        'Source\Revit\MepModels.cs',
         'Source\Revit\ObjExportContext.cs',
         'Source\Revit\RevitApiCompat.cs'
     ) | ForEach-Object { Join-Path $root $_ }

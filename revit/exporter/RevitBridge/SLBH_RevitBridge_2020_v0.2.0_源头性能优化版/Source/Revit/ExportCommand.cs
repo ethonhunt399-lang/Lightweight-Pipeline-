@@ -572,7 +572,7 @@ namespace SLBH.RevitBridge
             }
         }
 
-        private static string GetUniqueDirectory(string requested)
+        internal static string GetUniqueDirectory(string requested)
         {
             if (!Directory.Exists(requested) && !File.Exists(requested))
                 return requested;
@@ -595,7 +595,7 @@ namespace SLBH.RevitBridge
                 serializer.WriteObject(stream, project);
         }
 
-        private static string SanitizeFileName(string input)
+        internal static string SanitizeFileName(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return "RevitProject";
             var invalid = Path.GetInvalidFileNameChars();
