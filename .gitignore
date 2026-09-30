@@ -1,0 +1,30 @@
+# Visual Studio / C# 编译产物
+bin/
+obj/
+.vs/
+packages/
+*.user
+*.suo
+*.pdb
+*.cache
+TestResults/
+
+# Autodesk 自带程序集不入库（从本机 Revit 安装目录引用）
+RevitAPI.dll
+RevitAPIUI.dll
+AdWindows.dll
+
+# 模型与大数据文件：走 GitHub Release 附件，不进 git 历史
+*.rvt
+*.rfa
+*.nwd
+*.nwc
+*.zip
+*.7z
+data/raw/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
