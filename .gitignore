@@ -28,3 +28,7 @@ __pycache__/
 *.pyc
 .venv/
 .pytest_cache/
+
+# Toolbox caches and outputs
+*.lwpcache.npz
+*.lwp/
