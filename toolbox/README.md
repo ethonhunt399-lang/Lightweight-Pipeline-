@@ -1,6 +1,6 @@
 # lwp 管综工具箱
 
-Python 3.11+，依赖由 uv 管理。当前实现 R0：导入、体检、碰撞 / 净距 / 净高检测，以及只读三维预览。
+Python 3.11+，依赖由 uv 管理。当前实现 R0（导入、体检、碰撞 / 净距 / 净高检测、只读三维预览）和 R1 v0（直走廊单断面分层求解，见 docs/r1-v0-results.md）。
 
 ## 安装与运行
 
@@ -11,6 +11,8 @@ uv run lwp check path/to/项目_视图_管综.slbh            # 默认规则：�
 uv run lwp check path/to/xxx.slbh --rules my_rules.yaml --out out_dir
 uv run lwp view path/to/xxx.slbh                       # 只生成三维预览（含碰撞检测）
 uv run lwp check 调整后.slbh --compare 调整前.slbh       # 预览中加入调整前后对比
+uv run lwp corridors 调整前.slbh                        # 列出直走廊候选
+uv run lwp solve 调整前.slbh --corridor C --gold 调整后.slbh --out solve_C   # 分层排布三方案 + 对比
 uv run pytest                                          # 单元测试
 LWP_SAMPLE=path/to/xxx.slbh uv run pytest              # 加上真实导出包的端到端测试
 ```
@@ -68,5 +70,11 @@ LWP_SAMPLE=path/to/xxx.slbh uv run pytest              # 加上真实导出包�
 | grids.py | 轴网定位 |
 | report.py | 报告输出 |
 | headroom_map.py | 净高分区图（网格化最低遮挡） |
+| corridor.py | 走廊定义与候选 |
+| section.py | 走廊断面：管线归并、梁柱墙限制、横穿、出线方向 |
+| solver.py | CP-SAT 分层求解、三方案、无解诊断 |
+| plan.py | 方案应用、方案 JSON、走廊评估 |
+| section_svg.py | 断面图 |
+| solve_cmd.py | corridors / solve 命令与结果页 |
 | viewer/ | 三维预览（数据生成 + HTML 模板 + three.js） |
 | cli.py | 命令行 |

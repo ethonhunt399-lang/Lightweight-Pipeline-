@@ -82,6 +82,25 @@ class Headroom(_Strict):
     note: str | None = None
 
 
+class LayoutPreferences(_Strict):
+    trays_above_water: int = 50
+    ducts_top: int = 30
+    system_together: int = 20
+    exit_side: int = 40
+
+
+class Layout(_Strict):
+    max_layers: int = 4
+    support_reserve_mm: float = 100
+    layer_gap_min_mm: float = 100
+    beam_clearance_mm: float = 50
+    moved_threshold_mm: float = 20
+    crossing_zone: str = "top"
+    crossing_zone_max_mm: float = 250
+    confirmed: bool = False
+    preferences: LayoutPreferences = LayoutPreferences()
+
+
 class RuleSet(_Strict):
     name: str
     version: str
@@ -91,6 +110,7 @@ class RuleSet(_Strict):
     headroom: Headroom
     obstacles: dict[str, list[str]]
     connected_hops_ignored: int = 3
+    layout: Layout = Layout()
     source: str = ""
 
     def obstacle_kind(self, category: str) -> str | None:

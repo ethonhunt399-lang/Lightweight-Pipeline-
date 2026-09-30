@@ -1,0 +1,57 @@
+{
+ "original": {
+  "name": "原模型",
+  "hard": 218,
+  "clearance": 101,
+  "hard_structure": 4,
+  "stations": 31,
+  "lowest_mm": 2498,
+  "median_lowest_mm": 2498,
+  "median_levels": 3.0,
+  "max_levels": 4
+ },
+ "headroom": {
+  "name": "净高最优",
+  "hard": 34,
+  "clearance": 139,
+  "hard_structure": 3,
+  "stations": 31,
+  "lowest_mm": 2495,
+  "median_lowest_mm": 2495,
+  "median_levels": 1.0,
+  "max_levels": 2
+ },
+ "changes": {
+  "name": "改动最少",
+  "hard": 40,
+  "clearance": 133,
+  "hard_structure": 3,
+  "stations": 31,
+  "lowest_mm": 2495,
+  "median_lowest_mm": 2495,
+  "median_levels": 1.0,
+  "max_levels": 2
+ },
+ "supports": {
+  "name": "支吊架最省",
+  "hard": 43,
+  "clearance": 147,
+  "hard_structure": 3,
+  "stations": 31,
+  "lowest_mm": 2495,
+  "median_lowest_mm": 2495,
+  "median_levels": 1.0,
+  "max_levels": 2
+ },
+ "gold": {
+  "name": "人工排布",
+  "hard": 12,
+  "clearance": 164,
+  "hard_structure": 7,
+  "stations": 31,
+  "lowest_mm": 2616,
+  "median_lowest_mm": 2616,
+  "median_levels": 2.0,
+  "max_levels": 7
+ }
+}

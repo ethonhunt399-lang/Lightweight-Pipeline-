@@ -13,6 +13,7 @@ from .package import load_package
 from .report import write_outputs
 from .rules import load_rules
 from .viewer import build_data, write_viewer
+from .solve_cmd import cmd_corridors, cmd_solve
 
 
 def cmd_check(args) -> int:
@@ -64,6 +65,20 @@ def main(argv=None) -> int:
     v.add_argument("--compare", help="对比参照包（如管综调整前的导出包）")
     v.add_argument("--compare-name", default="调整前", help="参照包在预览中的名称")
     v.set_defaults(func=cmd_view)
+    c = sub.add_parser("corridors", help="列出平行管线密集的直线走廊候选")
+    c.add_argument("package")
+    c.add_argument("--rules")
+    c.add_argument("--out", help="写出候选走廊 YAML")
+    c.set_defaults(func=cmd_corridors)
+    s = sub.add_parser("solve", help="走廊分层排布：三方案、断面图、三维预览、与人工排布对比")
+    s.add_argument("package", help="排布前的导出包")
+    s.add_argument("--corridor", required=True, help="走廊名称（lwp corridors 列出的 A、B…）或走廊 YAML")
+    s.add_argument("--gold", help="人工排布后的导出包（用于对比）")
+    s.add_argument("--rules")
+    s.add_argument("--schemes", help="逗号分隔：headroom,changes,supports（默认全部）")
+    s.add_argument("--effort", type=float, default=2.0, help="每阶段求解的确定性时间上限（默认 2）")
+    s.add_argument("--out", help="输出目录")
+    s.set_defaults(func=cmd_solve)
     args = parser.parse_args(argv)
     return args.func(args)
 

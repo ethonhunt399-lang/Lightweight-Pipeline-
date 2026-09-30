@@ -33,8 +33,17 @@ MOVED_MM = 20.0   # displacement below this counts as unchanged in the compariso
 
 def build_data(package: Package, rules: RuleSet, conflicts: list[Conflict] | None = None,
                headroom: list[HeadroomItem] | None = None, reference: Package | None = None,
-               reference_name: str = "调整前") -> dict:
-    elements = [e for e in package.elements.values() if e.solid is not None]
+               reference_name: str = "调整前", region: tuple[float, float, float, float] | None = None,
+               title_suffix: str = "") -> dict:
+    """region: (xmin, ymin, xmax, ymax) in mm — show only elements whose plan extent touches it."""
+
+    def inside(e) -> bool:
+        if region is None:
+            return True
+        lo, hi = e.solid.aabb()
+        return hi[0] >= region[0] and lo[0] <= region[2] and hi[1] >= region[1] and lo[1] <= region[3]
+
+    elements = [e for e in package.elements.values() if e.solid is not None and inside(e)]
     if not elements:
         raise ValueError("package has no geometry")
     lows = np.array([e.solid.aabb()[0] for e in elements])
@@ -108,7 +117,7 @@ def build_data(package: Package, rules: RuleSet, conflicts: list[Conflict] | Non
     ref_items = []
     if reference is not None:
         for e in reference.mep():
-            if e.solid is None:
+            if e.solid is None or not inside(e):
                 continue
             ref_items.append({**geometry(e.solid), "c": e.cls, "l": e.label(),
                               "st": "kept" if e.key in package.elements else "removed"})
@@ -126,7 +135,7 @@ def build_data(package: Package, rules: RuleSet, conflicts: list[Conflict] | Non
     m_ = package.manifest
     return {
         "meta": {
-            "project": m_.get("project_name", ""), "view": m_.get("view_name", ""),
+            "project": m_.get("project_name", ""), "view": m_.get("view_name", "") + title_suffix,
             "exported": m_.get("created_at_utc", ""), "generated": datetime.now().strftime("%Y-%m-%d %H:%M"),
             "rules": f"{rules.name} {rules.version}", "min_clear": rules.headroom.min_clear_mm,
             "floor_z": round((floor_z - origin[2]) / 1000, 4), "origin_mm": [float(v) for v in origin],
