@@ -1,0 +1,34 @@
+SLBH Revit Bridge v0.3.5
+
+Scope
+- Blender multi-package import isolation fix.
+- Revit round pipe/round column parameterization fallback fix.
+- Keeps v0.3.3 overall display proxy features and v0.3.4 lower circular segment counts.
+
+Blender
+- Fixed importing multiple packages exported from the same Revit file.
+- Each import now creates an independent project root collection using project name, view name and package folder name.
+- The importer no longer reuses the old root collection only by project_name.
+- Imported objects now store:
+  - slbh.import_id
+  - slbh.import_package_path
+- This prevents different exports from the same Revit file from being mixed into one source model tree.
+
+Revit exporter
+- Round pipes, round ducts and round structural members no longer fall back to dense Revit mesh only because the active 3D view has a section box.
+- If both endpoints of a straight round member are inside the active section box, it is exported as a parametric straight_round_curve.
+- If either endpoint is outside the section box, it still falls back to Revit mesh to preserve clipped geometry correctness.
+- Point-based vertical round columns now prefer uncropped bounding boxes for height/diameter checks.
+
+Why an imported round pipe may still show triangles
+- Existing packages exported before this fix still contain Revit triangulated mesh.
+- Pipe fittings, elbows, tees, reducers and valves are intentionally mesh unless a safe parametric rule exists.
+- A pipe clipped by a section box still falls back to mesh.
+- In Blender, check the selected object custom property:
+  - slbh.geometry_mode = straight_round_curve means it used the optimized parametric path.
+  - slbh.geometry_mode = mesh means it came from Revit triangulated OBJ geometry.
+
+Validation required
+- Re-export from Revit with the v0.3.5 add-in.
+- Re-import with the v0.3.5 Blender add-on.
+- Do not judge old .slbh packages exported by earlier versions.

@@ -1,0 +1,52 @@
+SLBH Revit Bridge v0.3.3
+
+Scope
+- First phase of the BIM source model + lightweight overall display proxy workflow.
+- No realtime sync and no Blender-to-Revit writeback.
+- System diagram proxy and Revit package splitting remain second-phase work.
+
+Blender
+- Added project layer structure under each imported project root:
+  - 00_BIM源模型
+  - 10_整体展示代理
+  - 20_系统图代理
+  - 30_局部精细模型
+  - 灯光
+  - 相机
+  - 出图场景
+- Imported BIM objects are marked with slbh.is_source_object = true and remain independently selectable.
+- Added overall display proxy tools:
+  - Scan current source model.
+  - Create/update overall display proxy.
+  - Delete overall display proxy.
+  - Show source only, proxy only, both, or hide all.
+  - Enter large model work mode.
+- Overall display proxies are created by merging evaluated source meshes into grouped proxy objects.
+- Default grouping is source model + level + discipline + system series + final display material.
+- Optional grouping rules include level+discipline, level+system, level+discipline+system, level+system+material, discipline+system, and project+system.
+- Default small-component rules:
+  - Sprinklers, hangers, bolts and fasteners are excluded from the overall display proxy.
+  - Air terminals, diffusers, valves, dampers and lights become low-box proxy geometry.
+  - Main ducts, pipes, cable trays, conduits and equipment are retained.
+- Source BIM objects are not deleted or modified when creating proxies.
+- Rebuilding proxies removes previous overall display proxy objects before creating new ones.
+- Proxy statistics are written to a Blender text block:
+  - source object count
+  - visible source object count
+  - unique mesh count
+  - source polygon count
+  - proxy object count
+  - proxy polygon count
+  - filtered object count
+  - low-proxy and point-proxy counts
+  - object and polygon reduction ratio
+- Existing v0.3.1 level/type merge proxies remain available.
+
+Revit
+- Version synchronized to 0.3.3 and compiled for Revit 2019 and 2020.
+- No Revit package splitting is implemented in this first phase.
+
+Notes
+- Geometry Nodes instance proxies are not used in this first phase; the delivered implementation uses stable merged mesh proxies.
+- System diagram proxy is intentionally not delivered in this build.
+- Real Revit and Blender validation is still required on production models.

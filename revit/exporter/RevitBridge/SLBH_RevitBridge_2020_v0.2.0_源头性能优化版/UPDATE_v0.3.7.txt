@@ -1,0 +1,26 @@
+SLBH Revit Bridge v0.3.7
+
+Scope
+- Revit 2019 / 2020 exporter (source review fixes). Bridge schema unchanged (0.3.6).
+- Blender import: use the SLBH Toolbox revit_bridge module. The standalone
+  slbh_revit_bridge add-on (0.3.6) is frozen and no longer packaged.
+
+Fixes
+- Linked elements no longer pick up host-view element overrides or selection-filter
+  colors of unrelated host elements that share the same integer ElementId.
+- Section-box clipping for parametric round pipes/ducts/columns now tests endpoints in
+  host coordinates (link transform applied first). Linked round pipes crossing the
+  section box fall back to the clipped Revit mesh instead of exporting full length.
+- Workset names of linked elements are read from the link document.
+- LOD hints are computed for linked elements (host view is no longer passed to
+  get_BoundingBox of a link element).
+- Round pipes use the outside diameter (RBS_PIPE_OUTER_DIAMETER) when larger than the
+  nominal MEPCurve.Diameter.
+- Failed exports write EXPORT_FAILED.txt into the package folder.
+
+Performance
+- MEP system info computed once per element (was twice).
+- View filter list cached per export.
+- One SHA256 instance reused for all hashes.
+- OBJ vertices written with 6 decimals (1 micron) instead of 17-digit round-trip
+  strings: smaller model.obj / prototypes.obj and faster Blender parsing.

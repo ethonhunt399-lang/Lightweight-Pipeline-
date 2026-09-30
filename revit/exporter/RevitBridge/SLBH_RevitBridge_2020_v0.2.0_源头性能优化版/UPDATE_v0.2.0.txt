@@ -1,0 +1,15 @@
+SLBH Revit Bridge v0.2.0 更新说明
+================================
+
+核心升级：
+- 重复FamilyInstance源头实例化：prototypes.obj只保存唯一原型。
+- project.json新增 prototypes、prototype_id、transform、lod_hint、performance。
+- Blender直接按原型创建共享Mesh，不再先导入几千份重复喷头网格再去重。
+- 保持每个BIM实例独立对象，ElementId、系统、楼层和材质信息不丢失。
+- 自定义导出名称，同名自动递增，不静默覆盖。
+- 快速/标准/精细导出预设。
+
+兼容与限制：
+- 旧v0.1包仍可由v0.2 Blender端导入。
+- v0.2包若包含prototype_instance，必须使用v0.2 Blender端。
+- 当前仍使用OBJ+JSON，下一阶段再评估二进制/GLB及Geometry Nodes渲染代理。

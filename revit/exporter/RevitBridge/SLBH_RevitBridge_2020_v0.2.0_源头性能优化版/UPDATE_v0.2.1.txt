@@ -1,0 +1,31 @@
+SLBH Revit -> Blender Bridge v0.2.1
+===================================
+
+First-round update scope
+------------------------
+1. Added independent Revit 2019 and Revit 2020 builds.
+2. Added versioned DLL outputs:
+   - SLBH.RevitBridge.2019.dll
+   - SLBH.RevitBridge.2020.dll
+3. Added versioned ADDIN manifests:
+   - SLBH.RevitBridge.2019.addin
+   - SLBH.RevitBridge.2020.addin
+4. Added independent installer, uninstaller, and install-check CMD/PS1 scripts for 2019 and 2020.
+5. Added a small API compatibility layer for CustomExporter view export differences.
+6. Added schema_version, exporter_version, min_importer_version, and revit_version support in exported JSON.
+7. Added Blender importer schema compatibility checks.
+8. Fixed Blender 4.5 string membership checks that could trigger bpy_prop_collection.__contains__ type errors.
+9. Added release packaging script that creates separate Revit 2019, Revit 2020, and Blender add-on ZIP files.
+
+Generated packages
+------------------
+Dist/SLBH_RevitBridge_Revit2019_v0.2.1.zip
+Dist/SLBH_RevitBridge_Revit2020_v0.2.1.zip
+Dist/slbh_revit_bridge_blender_v0_2_1.zip
+
+Important test note
+-------------------
+The DLLs were compiled against the local Revit 2019 and Revit 2020 API assemblies.
+They have not been loaded inside real Revit 2019 or Revit 2020 in this automated pass.
+The Blender add-on Python syntax and registration structure were checked statically.
+It has not been enabled inside a real Blender 4.5 session in this automated pass.

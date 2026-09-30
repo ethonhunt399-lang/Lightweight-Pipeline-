@@ -1,0 +1,31 @@
+# IDE and compiler output
+.vs/
+**/bin/
+**/obj/
+*.user
+*.suo
+*.pdb
+TestResults/
+packages/
+
+# Generated release/build artifacts
+SLBH_RevitBridge_2020_v0.2.0_源头性能优化版/Build/
+SLBH_RevitBridge_2020_v0.2.0_源头性能优化版/Dist/
+SLBH_RevitBridge_2020_v0.2.0_源头性能优化版/Blender_Addon/*.zip
+SLBH_RevitBridge_2020_v0.2.0_源头性能优化版/SLBH.RevitBridge*.dll
+SLBH_RevitBridge_2020_v0.2.0_源头性能优化版/install_log*.txt
+
+# Python caches
+**/__pycache__/
+*.py[cod]
+
+# Revit journals and local validation/export artifacts
+journal.*.txt
+**/_task1_test/
+*.slbh
+
+# Common temporary files
+*.tmp
+*.bak
+*.log
+~$*

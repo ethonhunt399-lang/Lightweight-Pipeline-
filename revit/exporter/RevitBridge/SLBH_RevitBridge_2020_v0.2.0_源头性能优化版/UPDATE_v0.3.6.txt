@@ -1,0 +1,27 @@
+SLBH Revit Bridge v0.3.6
+
+Scope
+- Revit 2019 exporter
+- Revit 2020 exporter
+- Blender 4.5 LTS add-on package version sync
+
+Fixes
+- Prevented structural steel beams and non-round framing from being exported as round cylinders.
+- Round structural parameterization now requires an explicit round/circular/tube/pipe/rod/CHS/HSS-style hint.
+- I-beam, H-beam, W-shape, rectangular, square, box, angle, channel, and matching Chinese type hints are kept as original Revit mesh.
+- Link model detail policy is now recorded in project.json warnings.
+- Exported project metadata now records the active 3D view detail level.
+- The linked model export dialog now states that link detail follows the active 3D view and Revit Link Display Settings.
+
+Notes
+- Round pipe and round duct optimization remains enabled through the dedicated MEP pipe/duct logic.
+- Round optimization lowers faces only when replacing high-density Revit round meshes with controlled 12/16/24-sided primitives.
+- Non-round steel members are never converted to round primitives for performance.
+- Straightened low-detail steel beam proxies are not enabled by default in this release; they should be implemented as an optional proxy path with strict validation.
+
+Required manual checks
+- Re-export models with the v0.3.6 Revit add-in.
+- Import with the v0.3.6 Blender add-on.
+- Confirm H/I/box/rectangular steel beams keep their source mesh shape.
+- Confirm true round pipes and ducts still import as low-segment round primitives.
+- Confirm linked models follow the active Revit view and link display detail settings.

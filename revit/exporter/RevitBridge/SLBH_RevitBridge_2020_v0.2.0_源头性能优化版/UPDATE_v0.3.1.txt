@@ -1,0 +1,13 @@
+SLBH Revit Bridge Blender Add-on v0.3.1
+
+Blender-side performance update:
+- Added level/type merge render proxies.
+- Proxies group imported BIM objects by source model, level, category, family, type, system series, and base material.
+- Original BIM objects are preserved with ElementId, UniqueId, source model, level, system, family, and type data.
+- Users can rebuild proxies, delete proxies, show original objects, show proxy objects, or show both.
+- Proxy objects store member ElementIds, UniqueIds, stable keys, source documents, and original object names.
+
+Notes:
+- Revit exporter was not changed in this update.
+- Merge proxies are optional and are not created automatically during import.
+- This is intended to reduce Blender viewport/render object overhead while preserving original BIM objects.

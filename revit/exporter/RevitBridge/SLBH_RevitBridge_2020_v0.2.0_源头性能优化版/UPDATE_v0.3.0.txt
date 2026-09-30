@@ -1,0 +1,35 @@
+SLBH Revit Bridge v0.3.0
+
+Focus: complete Revit linked model export support for Revit 2019/2020 and Blender 4.5 LTS.
+
+Revit exporter
+- Added linked model export option, enabled by default.
+- Added link organization option: merged, by source model, or by link instance.
+- CustomExporter link nodes now enter a link document context and restore host context on exit.
+- Linked elements are read from their LinkDocument instead of the host Document.
+- Link transforms are preserved for translation, rotation, mirror, and shared/project coordinate placement.
+- Element identity now includes source_model_key, link_instance_id, and UniqueId to avoid ElementId collisions.
+- Prototype IDs include source model information to avoid cross-link family/type merges.
+- Linked materials, system data, type/family/category, level, display color, and lightweight round curves use the same rules as host elements.
+- Unloaded/unreadable links are skipped with report entries instead of failing the whole export.
+- Nested links are explicitly skipped and reported in this version.
+- Linked round ducts/pipes fall back to exported mesh when the current 3D view has an active section box.
+
+Blender importer
+- Schema/importer version updated to 0.3.0.
+- Added source model and link instance properties on imported objects.
+- Added source-model collection organization modes.
+- Added selection by source model and by link instance.
+- Added isolate current source model command.
+- Import report now includes host/link/skipped statistics.
+- Mesh sharing signatures include source_model_key.
+
+Automatic checks completed in this build
+- Revit 2019 C# build passed.
+- Revit 2020 C# build passed.
+- Blender add-on Python syntax check passed.
+
+Manual checks still required in real applications
+- Load in Revit 2019 and Revit 2020, export from real 3D views with linked models.
+- Load the generated add-on ZIP in Blender 4.5 LTS and test register/unregister from Blender preferences.
+- Verify linked model visibility, link display settings, section box clipping, shared coordinates, and unloaded link reporting with real projects.

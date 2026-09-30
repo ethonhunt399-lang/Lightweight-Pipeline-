@@ -1,0 +1,27 @@
+SLBH Revit Bridge v0.3.4
+
+Scope
+- Circular element source optimization fix.
+- Keeps v0.3.3 overall display proxy features.
+
+Revit exporter
+- Improved round structural member parameterization.
+- Line-based round structural columns, framing and braces continue to export as straight_round_curve.
+- Added conservative support for common point-based vertical round steel columns:
+  - no active section box
+  - readable diameter or safe bounding-box diameter estimate
+  - bounding-box horizontal extents match the detected diameter
+  - height is clearly larger than diameter
+- Unreliable, cut, non-round, short, or complex members still fall back to Revit mesh export.
+- Added bounding-box based diameter fallback for round members with missing diameter parameters.
+
+Blender importer
+- Reduced circular reconstruction segment counts:
+  - Fast: 8 sides for <= 300 mm, 12 sides above 300 mm
+  - Standard: 12 sides for <= 300 mm, 16 sides above 300 mm
+  - Fine: 16 sides for <= 300 mm, 24 sides above 300 mm
+- This reduces polygon count for straight round pipes, round ducts and round structural columns generated from Revit parametric records.
+
+Notes
+- The exporter still prioritizes model correctness. If a round-looking family cannot be proven to be a simple straight round member, it remains a mesh.
+- Real Revit 2019/2020 and Blender 4.5 LTS validation is required on production models.

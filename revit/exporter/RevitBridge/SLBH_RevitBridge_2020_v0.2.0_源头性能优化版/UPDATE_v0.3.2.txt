@@ -1,0 +1,33 @@
+SLBH Revit Bridge v0.3.2
+
+Scope
+- Revit exporter source-performance pass after v0.3.0 linked-model support and v0.3.1 Blender merge proxies.
+- Blender importer metadata/version compatibility update.
+
+Revit exporter
+- Added pre-export family/type load scan for the active 3D view.
+- The scan lists category, family, type, visible count, estimated triangles per item, estimated total triangles, max bounding-box size, instancing suitability, recommended action, and final user action.
+- Supported actions in this build:
+  - FULL: export as unique mesh.
+  - PROTOTYPE: allow source prototype + instance export when geometry/material/transform checks pass.
+  - SKIP: do not export the selected family/type.
+- Rules are written to project.json as family_rules.
+- Each element now records export_action and family_rule_key.
+- Added conservative prototype safety guards:
+  - Active section box disables FamilyInstance prototype sharing.
+  - Invalid or singular transforms are rejected.
+  - FULL rules force unique mesh export.
+  - SKIP rules are counted in performance.rule_skipped_elements.
+- Linked model source keys now include a transform fingerprint when the RevitLinkInstance cannot be resolved, avoiding collisions for repeated placements.
+- Added reliable straight round structural member parameterization for line-based round columns/framing/braces when diameter is readable.
+- schema_version/exporter_version/bridge_version/importer_version updated to 0.3.2.
+
+Blender importer
+- Importer version updated to 0.3.2.
+- Stores importer_version, primitive_type, export_action, and family_rule_key as object custom properties.
+- Existing source prototype instances and v0.3.1 level/type merge proxies remain available.
+
+Notes
+- LOW_PROXY and POINT export actions are not enabled in this build because they require a separate validated proxy geometry schema.
+- Round structural parameterization is intentionally conservative; point-based or heavily cut custom columns fall back to Revit mesh export.
+- Real Revit/Blender visual validation is still required on production models.

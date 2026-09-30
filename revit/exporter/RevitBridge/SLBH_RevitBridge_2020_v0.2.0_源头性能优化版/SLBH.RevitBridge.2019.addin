@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>SLBH Revit Bridge 2019</Name>
+    <Assembly>C:\Users\24155\AppData\Local\SLBH\RevitBridge2019\SLBH.RevitBridge.2019.dll</Assembly>
+    <AddInId>8D5A706F-352B-4B86-91E0-573A47772019</AddInId>
+    <FullClassName>SLBH.RevitBridge.App</FullClassName>
+    <VendorId>SLBH</VendorId>
+    <VendorDescription>SLBH BIM Tools</VendorDescription>
+  </AddIn>
+</RevitAddIns>
