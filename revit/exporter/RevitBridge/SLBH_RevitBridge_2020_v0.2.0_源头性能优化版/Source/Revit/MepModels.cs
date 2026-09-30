@@ -10,7 +10,7 @@ namespace SLBH.RevitBridge
     [DataContract]
     public sealed class MepManifest
     {
-        public const string CurrentSchemaVersion = "0.1.0";
+        public const string CurrentSchemaVersion = "0.2.0";
 
         public MepManifest()
         {
@@ -112,7 +112,7 @@ namespace SLBH.RevitBridge
         [DataMember(Name = "unique_id", Order = 1)] public string UniqueId { get; set; }
         [DataMember(Name = "name", Order = 2)] public string Name { get; set; }
         [DataMember(Name = "elevation_m", Order = 3)] public double ElevationMeters { get; set; }
-        [DataMember(Name = "project_elevation_m", Order = 4)] public double ProjectElevationMeters { get; set; }
+        [DataMember(Name = "display_elevation_m", Order = 4)] public double DisplayElevationMeters { get; set; }
     }
 
     [DataContract]

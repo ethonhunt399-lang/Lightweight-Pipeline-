@@ -1,0 +1,8 @@
+SLBH Revit Bridge v0.4.1（管综导出 schema 0.2.0）
+
+修复（来自雍景致臻江东地下室首轮导出）
+- 标高：elevation_m 改为按内部原点计算（Level.ProjectElevation，已应用链接变换），与几何一致；
+  原 Level.Elevation（相对高程基准的显示值）改名为 display_elevation_m。
+  旧版在链接模型中得到的 B1F 为 -5.05 m，实际应为 1.6 m。
+- 保温：只对管道、风管及其管件、附件读取保温构件，不再对桥架等产生上千条无效诊断。
+- 管件类型：桥架配件、线管配件、附件从族参数读取 part_type（弯头、三通等）。

@@ -19,7 +19,7 @@ namespace SLBH.RevitBridge
     [Transaction(TransactionMode.Manual)]
     public sealed class MepExportCommand : IExternalCommand
     {
-        public const string ExporterVersion = "0.4.0";
+        public const string ExporterVersion = "0.4.1";
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {

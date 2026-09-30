@@ -469,6 +469,8 @@ namespace SLBH.RevitBridge
                     record.PartType = fitting.PartType.ToString();
             }
             catch (Exception ex) { Diag(key, "part_type", ex.Message); }
+            if (string.IsNullOrEmpty(record.PartType))
+                record.PartType = FamilyPartType(instance);
 
             record.AngleRadians = ParamByName(instance, "Angle", "角度");
 
@@ -562,6 +564,22 @@ namespace SLBH.RevitBridge
                 return true;
             string text = (category + " " + family + " " + type).ToLowerInvariant();
             return ContainsAny(text, "hanger", "support", "支吊架", "吊架", "支架", "托架", "抗震");
+        }
+
+        // Cable tray / conduit fittings and accessories do not expose MechanicalFitting;
+        // the part type is stored on the family.
+        private static string FamilyPartType(FamilyInstance instance)
+        {
+            try
+            {
+                Family family = instance.Symbol != null ? instance.Symbol.Family : null;
+                Parameter parameter = family != null ? family.get_Parameter(BuiltInParameter.FAMILY_CONTENT_PART_TYPE) : null;
+                if (parameter == null || !parameter.HasValue || parameter.StorageType != StorageType.Integer)
+                    return "";
+                PartType partType = (PartType)parameter.AsInteger();
+                return partType == PartType.Undefined || partType == PartType.Normal ? "" : partType.ToString();
+            }
+            catch { return ""; }
         }
 
         private static IList<XYZ> FlexPoints(MEPCurve curve)
@@ -663,7 +681,7 @@ namespace SLBH.RevitBridge
             record.InsulationType = Text(element, BuiltInParameter.RBS_REFERENCE_INSULATION_TYPE);
             record.LiningThicknessMeters = Param(element, BuiltInParameter.RBS_REFERENCE_LINING_THICKNESS) * FeetToMeters;
 
-            if (record.InsulationThicknessMeters > 0)
+            if (record.InsulationThicknessMeters > 0 || !CanHostInsulation(element))
                 return;
 
             // Fallback: read the insulation elements hosted by this element.
@@ -684,7 +702,19 @@ namespace SLBH.RevitBridge
                     }
                 }
             }
+            catch (ArgumentException) { } // not a valid insulation host
             catch (Exception ex) { Diag(key, "insulation", ex.Message); }
+        }
+
+        private static bool CanHostInsulation(Element element)
+        {
+            if (element is Pipe || element is Duct || element is FlexPipe || element is FlexDuct)
+                return true;
+            int categoryId = element.Category != null ? element.Category.Id.IntegerValue : 0;
+            return categoryId == (int)BuiltInCategory.OST_PipeFitting
+                || categoryId == (int)BuiltInCategory.OST_DuctFitting
+                || categoryId == (int)BuiltInCategory.OST_PipeAccessory
+                || categoryId == (int)BuiltInCategory.OST_DuctAccessory;
         }
 
         private void ReadSystem(Element element, Document doc, MepElementRecord record)
@@ -914,16 +944,19 @@ namespace SLBH.RevitBridge
             {
                 foreach (Level level in new FilteredElementCollector(source.Document).OfClass(typeof(Level)).Cast<Level>())
                 {
-                    double elevation = level.Elevation;
+                    // ProjectElevation is measured from the internal origin and matches the geometry.
+                    // Elevation is relative to the level type's elevation base (project base point or
+                    // survey point) and is only the value displayed in Revit.
+                    double internalElevation = level.ProjectElevation;
                     // Levels are horizontal planes: only the Z of the link transform applies.
-                    double hostElevation = source.Transform.OfPoint(new XYZ(0, 0, elevation)).Z;
+                    double hostElevation = source.Transform.OfPoint(new XYZ(0, 0, internalElevation)).Z;
                     _manifest.Levels.Add(new MepLevel
                     {
                         SourceModelKey = source.ModelKey,
                         UniqueId = Safe(() => level.UniqueId),
                         Name = Safe(() => level.Name),
-                        ElevationMeters = hostElevation * FeetToMeters,
-                        ProjectElevationMeters = SafeDouble(() => level.ProjectElevation) * FeetToMeters
+                        ElevationMeters = Round(hostElevation * FeetToMeters),
+                        DisplayElevationMeters = Round(SafeDouble(() => level.Elevation) * FeetToMeters)
                     });
                 }
             }
