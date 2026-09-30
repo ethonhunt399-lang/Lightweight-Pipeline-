@@ -7,7 +7,8 @@
 <style>
   :root {
     --bg: #1c2026; --panel: rgba(30, 35, 42, 0.94); --panel-border: #343b46; --text: #e6e8eb;
-    --muted: #9aa3ad; --accent: #4ea1ff; --hard: #ff4d4f; --clear: #ffa940; --pen: #b37feb; --row: #262c34;
+    --muted: #9aa3ad; --accent: #4ea1ff; --row: #262c34;
+    --hard: #ff4d4f; --clear: #ffa940; --pen: #b37feb; --joint: #36cfc9; --overlap: #bfbfbf;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
@@ -15,9 +16,9 @@
   #view { position: fixed; inset: 0; }
   .panel { position: fixed; background: var(--panel); border: 1px solid var(--panel-border); border-radius: 8px;
     box-shadow: 0 6px 24px rgba(0,0,0,.35); }
-  #left { top: 12px; left: 12px; width: 268px; max-height: calc(100% - 24px); overflow: auto; padding: 12px; }
-  #right { top: 12px; right: 12px; width: 360px; max-height: calc(100% - 24px); display: flex; flex-direction: column; }
-  #info { left: 292px; bottom: 12px; width: 380px; padding: 12px; display: none; }
+  #left { top: 12px; left: 12px; width: 276px; max-height: calc(100% - 24px); overflow: auto; padding: 12px; }
+  #right { top: 12px; right: 12px; width: 370px; max-height: calc(100% - 24px); display: flex; flex-direction: column; }
+  #info { left: 300px; bottom: 12px; width: 390px; padding: 12px; display: none; max-height: 60%; overflow: auto; }
   h1 { font-size: 14px; margin: 0 0 2px; font-weight: 600; }
   h2 { font-size: 12px; margin: 14px 0 6px; color: var(--muted); font-weight: 600; letter-spacing: .04em; }
   .sub { color: var(--muted); font-size: 12px; }
@@ -34,6 +35,10 @@
   .slider { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; align-items: center; }
   .slider label { grid-column: 1 / -1; color: var(--muted); font-size: 12px; }
   .val { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; min-width: 60px; text-align: right; }
+  .legend { margin-top: 6px; }
+  .legend .row { cursor: default; }
+  .ramp { height: 10px; border-radius: 3px; margin: 4px 0 2px; }
+  .ramp-labels { display: flex; justify-content: space-between; color: var(--muted); font-size: 11px; }
   #right header { padding: 12px 12px 8px; border-bottom: 1px solid var(--panel-border); }
   #list { overflow: auto; flex: 1; }
   .item { padding: 7px 12px; border-bottom: 1px solid #2b313a; cursor: pointer; }
@@ -42,6 +47,7 @@
   .item .top { display: flex; gap: 8px; align-items: baseline; }
   .tag { font-size: 11px; padding: 0 6px; border-radius: 4px; color: #111; font-weight: 600; flex: none; }
   .t-hard { background: var(--hard); } .t-clearance { background: var(--clear); } .t-penetration { background: var(--pen); }
+  .t-joint { background: var(--joint); } .t-overlap { background: var(--overlap); }
   .item .d { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); }
   .item .ab { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   table { border-collapse: collapse; width: 100%; }
@@ -50,7 +56,12 @@
   .key { font-family: ui-monospace, Consolas, monospace; font-size: 11px; color: var(--muted); word-break: break-all; }
   #hint { position: fixed; bottom: 12px; right: 12px; color: var(--muted); font-size: 12px; background: var(--panel);
     padding: 6px 10px; border-radius: 6px; border: 1px solid var(--panel-border); }
+  #hint.roam { color: var(--text); border-color: var(--accent); right: 50%; transform: translateX(50%); bottom: 20px; }
   #close { float: right; background: none; border: none; color: var(--muted); font-size: 16px; padding: 0 2px; }
+  #crosshair { position: fixed; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; display: none;
+    pointer-events: none; }
+  #crosshair::before, #crosshair::after { content: ""; position: absolute; background: rgba(255,255,255,.7); }
+  #crosshair::before { left: 6px; top: 0; width: 2px; height: 14px; } #crosshair::after { top: 6px; left: 0; height: 2px; width: 14px; }
   @media (max-width: 900px) {
     #right { top: auto; bottom: 12px; left: 12px; right: 12px; width: auto; max-height: 38%; }
     #left { width: calc(100% - 24px); max-height: 40%; }
@@ -61,15 +72,36 @@
 </head>
 <body>
 <div id="view"></div>
+<div id="crosshair"></div>
 
 <div id="left" class="panel">
   <h1 id="title"></h1>
   <div class="sub" id="subtitle"></div>
+
   <h2>视图</h2>
   <div class="btns">
     <button data-view="iso">轴测</button><button data-view="top">顶视</button>
     <button data-view="front">正视</button><button data-view="side">侧视</button><button data-view="fit">全部</button>
+    <button id="roamBtn" title="车库人视角漫游">漫游</button>
   </div>
+
+  <h2>着色</h2>
+  <div class="btns" id="colorModes"></div>
+  <div class="legend" id="legend"></div>
+
+  <div id="compareBox" style="display:none">
+    <h2 id="compareTitle">对比</h2>
+    <label class="row"><input type="checkbox" id="showRef">显示<span id="refName"></span>（半透明）</label>
+    <div class="sub" id="compareStats"></div>
+  </div>
+
+  <h2>净高</h2>
+  <label class="row"><input type="checkbox" id="showHeadroom">净高分区图</label>
+  <label class="row"><input type="checkbox" id="onlyHeadroom">只看分区图（隐藏构件）</label>
+  <div class="legend" id="hmLegend" style="display:none"></div>
+  <div class="sub" id="lowestText" style="margin:4px 0"></div>
+  <div class="btns"><button id="lowestBtn">定位最低点</button></div>
+
   <h2>剖切</h2>
   <div class="slider">
     <label>顶部剖切高度（相对楼层）</label>
@@ -80,6 +112,7 @@
   <div class="btns" style="margin-top:6px">
     <button id="cutAxis">沿 X 剖切</button><button id="cutFlip">翻转</button>
   </div>
+
   <h2>机电系统</h2>
   <div id="mepLayers"></div>
   <h2>土建</h2>
@@ -98,7 +131,7 @@
 </div>
 
 <div id="info" class="panel"><button id="close" title="关闭">×</button><div id="infoBody"></div></div>
-<div id="hint">左键旋转 · 右键平移 · 滚轮缩放 · 单击选择 · 双击设为旋转中心</div>
+<div id="hint"></div>
 
 <script>/*__THREE__*/</script>
 <script id="data" type="application/json">__DATA__</script>
@@ -107,7 +140,13 @@
   "use strict";
   const DATA = JSON.parse(document.getElementById("data").textContent);
   const META = DATA.meta;
+  const REF = DATA.reference;
+  const HM = DATA.headroom;
   const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const MIN_CLEAR = META.min_clear;
+  const HINT_ORBIT = "左键旋转 · 右键平移 · 滚轮缩放 · 单击选择 · 双击设为旋转中心";
+  const HINT_ROAM = "漫游：W/S 前后 · A/D 左右 · Q/E 升降 · 拖动鼠标转向 · 滚轮调速度 · Shift 加速 · Esc 退出";
 
   // ------------------------------------------------------------------ scene
   const container = $("view");
@@ -117,23 +156,18 @@
   container.appendChild(renderer.domElement);
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x1c2026);
-  const camera = new THREE.PerspectiveCamera(45, 1, 0.05, 5000);
+  const camera = new THREE.PerspectiveCamera(50, 1, 0.05, 5000);
   camera.up.set(0, 0, 1);
   scene.add(new THREE.HemisphereLight(0xffffff, 0x445566, 1.1));
   const sun = new THREE.DirectionalLight(0xffffff, 1.2);
   sun.position.set(0.6, -0.8, 1.4);
   scene.add(sun);
 
-  // ------------------------------------------------------------------ bounds
   const box = new THREE.Box3();
   const tmp = new THREE.Vector3();
   for (const e of DATA.elements) {
-    if (e.t === "cyl") {
-      box.expandByPoint(tmp.set(e.g[0], e.g[1], e.g[2]));
-      box.expandByPoint(tmp.set(e.g[3], e.g[4], e.g[5]));
-    } else {
-      box.expandByPoint(tmp.set(e.g[0], e.g[1], e.g[2]));
-    }
+    box.expandByPoint(tmp.set(e.g[0], e.g[1], e.g[2]));
+    if (e.t === "cyl") box.expandByPoint(tmp.set(e.g[3], e.g[4], e.g[5]));
   }
   const floorZ = META.floor_z;
   const topZ = box.max.z + 0.5;
@@ -144,14 +178,13 @@
   const planes = [clipTop, clipCut];
   let cutAxis = "x", cutFlip = false;
 
-  // ------------------------------------------------------------------ geometry
+  // ------------------------------------------------------------------ element meshes
   const cylGeo = new THREE.CylinderGeometry(1, 1, 1, 18, 1, false);
   const boxGeo = new THREE.BoxGeometry(1, 1, 1);
-  const materials = {};
-  const groups = {};           // class → [InstancedMesh]
-  const lookup = [];           // mesh.id → { mesh, indices[] }
+  const groups = {};
   const pickables = [];
   const Y = new THREE.Vector3(0, 1, 0);
+  const m4 = new THREE.Matrix4();
 
   function matrixFor(e, out) {
     const g = e.g;
@@ -163,40 +196,124 @@
       return out.compose(a.add(b).multiplyScalar(0.5), q, new THREE.Vector3(g[6], len, g[6]));
     }
     const ax = [0, 1, 2].map(i => new THREE.Vector3(g[3 + 3 * i], g[4 + 3 * i], g[5 + 3 * i]));
-    const h = [g[12], g[13], g[14]];
-    out.makeBasis(ax[0].multiplyScalar(2 * h[0]), ax[1].multiplyScalar(2 * h[1]), ax[2].multiplyScalar(2 * h[2]));
+    out.makeBasis(ax[0].multiplyScalar(2 * g[12]), ax[1].multiplyScalar(2 * g[13]), ax[2].multiplyScalar(2 * g[14]));
     out.setPosition(g[0], g[1], g[2]);
+    return out;
+  }
+
+  function instanced(list, material, onEach) {
+    const out = [];
+    for (const shape of ["cyl", "box"]) {
+      const idx = [];
+      list.forEach((e, i) => { if (e.t === shape) idx.push(i); });
+      if (!idx.length) continue;
+      const mesh = new THREE.InstancedMesh(shape === "cyl" ? cylGeo : boxGeo, material, idx.length);
+      idx.forEach((ei, k) => { mesh.setMatrixAt(k, matrixFor(list[ei], m4)); onEach && onEach(mesh, k, ei); });
+      mesh.instanceMatrix.needsUpdate = true;
+      mesh.computeBoundingSphere();
+      mesh.userData.idx = idx;
+      out.push(mesh);
+    }
     return out;
   }
 
   for (const [cls, info] of Object.entries(DATA.classes)) {
     const obstacle = info.kind === "obstacle";
-    const mat = new THREE.MeshLambertMaterial({
-      color: 0xffffff, clippingPlanes: planes,
-      transparent: obstacle, opacity: cls === "wall" ? 0.12 : obstacle ? 0.35 : 1, depthWrite: !obstacle,
+    const mat = new THREE.MeshLambertMaterial({ color: 0xffffff, clippingPlanes: planes, transparent: obstacle,
+      opacity: cls === "wall" ? 0.12 : obstacle ? 0.35 : 1, depthWrite: !obstacle });
+    const members = [];
+    DATA.elements.forEach((e, i) => { if (e.c === cls) members.push(i); });
+    const list = members.map(i => DATA.elements[i]);
+    groups[cls] = instanced(list, mat, (mesh, k, li) => {
+      const e = list[li];
+      e._mesh = mesh; e._k = k; e._i = members[li];
+      mesh.setColorAt(k, new THREE.Color(info.color));
     });
-    materials[cls] = mat;
-    groups[cls] = [];
-    for (const shape of ["cyl", "box"]) {
-      const idx = [];
-      DATA.elements.forEach((e, i) => { if (e.c === cls && e.t === shape) idx.push(i); });
-      if (!idx.length) continue;
-      const mesh = new THREE.InstancedMesh(shape === "cyl" ? cylGeo : boxGeo, mat, idx.length);
-      const m4 = new THREE.Matrix4();
-      const color = new THREE.Color(info.color);
-      idx.forEach((ei, k) => {
-        mesh.setMatrixAt(k, matrixFor(DATA.elements[ei], m4));
-        mesh.setColorAt(k, color);
-        DATA.elements[ei]._mesh = mesh; DATA.elements[ei]._k = k;
-      });
-      mesh.instanceMatrix.needsUpdate = true;
-      mesh.instanceColor.needsUpdate = true;
-      mesh.computeBoundingSphere();
-      mesh.userData = { cls, idx, color };
+    groups[cls].forEach(mesh => {
+      mesh.userData.idx = mesh.userData.idx.map(li => members[li]);
       if (obstacle) mesh.renderOrder = 2;
       scene.add(mesh);
-      groups[cls].push(mesh);
       pickables.push(mesh);
+    });
+  }
+
+  // ------------------------------------------------------------------ reference (e.g. before coordination)
+  const refGroup = new THREE.Group();
+  if (REF) {
+    const kept = REF.elements.filter(e => e.st === "kept"), removed = REF.elements.filter(e => e.st !== "kept");
+    const ghost = new THREE.MeshBasicMaterial({ color: 0xcfd6df, transparent: true, opacity: 0.16, depthWrite: false, clippingPlanes: planes });
+    const gone = new THREE.MeshBasicMaterial({ color: 0xff6b6b, transparent: true, opacity: 0.35, depthWrite: false, clippingPlanes: planes });
+    instanced(kept, ghost).forEach(m => refGroup.add(m));
+    instanced(removed, gone).forEach(m => refGroup.add(m));
+    refGroup.visible = false;
+    refGroup.renderOrder = 3;
+    scene.add(refGroup);
+  }
+
+  // ------------------------------------------------------------------ colour modes
+  const COLOR_SAME = new THREE.Color(0x6b7280), COLOR_NEW = new THREE.Color(0x22c55e), COLOR_UP = new THREE.Color(0x3b82f6),
+        COLOR_DOWN = new THREE.Color(0xf97316), COLOR_SIDE = new THREE.Color(0xa855f7), COLOR_NEW_FIT = new THREE.Color(0x86efac);
+  const RAMP = ["#d7191c", "#fdae61", "#ffffbf", "#a6d96a", "#1a9641"];   // low → high clearance
+  const RAMP_MIN = 2.0, RAMP_MAX = 4.5;
+  function rampColor(v) {
+    const t = Math.min(Math.max((v - RAMP_MIN) / (RAMP_MAX - RAMP_MIN), 0), 1) * (RAMP.length - 1);
+    const i = Math.min(Math.floor(t), RAMP.length - 2);
+    return new THREE.Color(RAMP[i]).lerp(new THREE.Color(RAMP[i + 1]), t - i);
+  }
+  function colorFor(e, mode) {
+    const cls = DATA.classes[e.c];
+    if (cls.kind === "obstacle" || mode === "system") return new THREE.Color(cls.color);
+    if (mode === "elev") return e.clr == null ? new THREE.Color(0x6b7280) : rampColor(e.clr / 1000);
+    if (mode === "compare") {
+      if (e.st === "new") return e.o === "f" ? COLOR_NEW_FIT : COLOR_NEW;
+      if (e.st !== "moved") return COLOR_SAME;
+      if (e.dz > 20) return COLOR_UP;
+      if (e.dz < -20) return COLOR_DOWN;
+      return COLOR_SIDE;
+    }
+    return new THREE.Color(cls.color);
+  }
+  let colorMode = "system";
+  function applyColors() {
+    for (const e of DATA.elements) {
+      e._color = colorFor(e, colorMode);
+      e._mesh.setColorAt(e._k, e._color);
+    }
+    for (const list of Object.values(groups)) list.forEach(m => m.instanceColor.needsUpdate = true);
+    highlighted.forEach((i, n) => paint(i, HL[n % 2]));
+    renderLegend();
+    requestRender();
+  }
+  const MODES = [["system", "系统"], ["elev", "底部净高"]];
+  if (REF) MODES.push(["compare", "调整对比"]);
+  MODES.forEach(([mode, name]) => {
+    const b = document.createElement("button");
+    b.textContent = name;
+    b.dataset.mode = mode;
+    b.addEventListener("click", () => {
+      colorMode = mode;
+      document.querySelectorAll("#colorModes button").forEach(x => x.classList.toggle("on", x.dataset.mode === mode));
+      applyColors();
+    });
+    $("colorModes").appendChild(b);
+  });
+  function renderLegend() {
+    const el = $("legend");
+    if (colorMode === "elev") {
+      el.innerHTML = '<div class="ramp" style="background:linear-gradient(90deg,' + RAMP.join(",") + ')"></div>'
+        + '<div class="ramp-labels"><span>≤' + RAMP_MIN.toFixed(1) + " m</span><span>构件底距楼面</span><span>≥" + RAMP_MAX.toFixed(1) + " m</span></div>";
+    } else if (colorMode === "compare") {
+      const c = { same: 0, new: 0, newf: 0, up: 0, down: 0, side: 0 };
+      for (const e of DATA.elements) {
+        if (DATA.classes[e.c].kind !== "mep") continue;
+        if (e.st === "new") e.o === "f" ? c.newf++ : c.new++; else if (e.st !== "moved") c.same++;
+        else if (e.dz > 20) c.up++; else if (e.dz < -20) c.down++; else c.side++;
+      }
+      const rows = [["#3b82f6", "上移", c.up], ["#f97316", "下移", c.down], ["#a855f7", "水平移动", c.side],
+                    ["#22c55e", "新增管线（翻弯竖段、新增系统）", c.new], ["#86efac", "新增管件（弯头等）", c.newf], ["#6b7280", "未变", c.same]];
+      el.innerHTML = '<div class="sub" style="margin-bottom:4px">与' + esc(REF.name) + '同一构件（UniqueId）比较；被打断或重画的管线按位置匹配。</div>' + rows.map(r => '<div class="row"><span class="sw" style="background:' + r[0] + '"></span>' + r[1] + '<span class="cnt">' + r[2] + "</span></div>").join("");
+    } else {
+      el.innerHTML = "";
     }
   }
 
@@ -212,7 +329,7 @@
         const key = g.n + "@" + Math.round(p[0]) + "," + Math.round(p[1]);
         if (labelled.has(key)) continue;
         labelled.add(key);
-        gridGroup.add(label(g.n, p[0], p[1], gridZ));
+        gridGroup.add(bubble(g.n, p[0], p[1], gridZ));
       }
     }
     const geo = new THREE.BufferGeometry();
@@ -223,7 +340,7 @@
   }
   scene.add(gridGroup);
 
-  function label(text, x, y, z) {
+  function bubble(text, x, y, z) {
     const canvas = document.createElement("canvas");
     const size = 128;
     canvas.width = canvas.height = size;
@@ -232,8 +349,7 @@
     ctx.strokeStyle = "#9aa3ad"; ctx.lineWidth = 6;
     ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = "#e6e8eb";
-    const fs = text.length > 3 ? 34 : 46;
-    ctx.font = "600 " + fs + "px system-ui, 'Microsoft YaHei', sans-serif";
+    ctx.font = "600 " + (text.length > 3 ? 34 : 46) + "px system-ui, 'Microsoft YaHei', sans-serif";
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillText(text, size / 2, size / 2 + 2);
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), depthTest: false }));
@@ -243,64 +359,210 @@
     return sprite;
   }
 
+  function tagSprite(text, color) {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    ctx.font = "600 44px system-ui, 'Microsoft YaHei', sans-serif";
+    const w = Math.ceil(ctx.measureText(text).width) + 40;
+    canvas.width = w; canvas.height = 72;
+    ctx.fillStyle = color; ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(0, 0, w, 72, 14) : ctx.rect(0, 0, w, 72); ctx.fill();
+    ctx.fillStyle = "#111"; ctx.font = "600 44px system-ui, 'Microsoft YaHei', sans-serif";
+    ctx.textBaseline = "middle"; ctx.fillText(text, 20, 38);
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), depthTest: false }));
+    sprite.scale.set(w / 72 * 0.7, 0.7, 1);
+    sprite.renderOrder = 12;
+    return sprite;
+  }
+
+  // ------------------------------------------------------------------ headroom map
+  const BANDS = [
+    [MIN_CLEAR, "#ef4444", "< " + (MIN_CLEAR / 1000).toFixed(1) + " m"],
+    [MIN_CLEAR + 200, "#f97316", (MIN_CLEAR / 1000).toFixed(1) + "–" + ((MIN_CLEAR + 200) / 1000).toFixed(1) + " m"],
+    [MIN_CLEAR + 400, "#eab308", ((MIN_CLEAR + 200) / 1000).toFixed(1) + "–" + ((MIN_CLEAR + 400) / 1000).toFixed(1) + " m"],
+    [MIN_CLEAR + 800, "#84cc16", ((MIN_CLEAR + 400) / 1000).toFixed(1) + "–" + ((MIN_CLEAR + 800) / 1000).toFixed(1) + " m"],
+    [Infinity, "#22c55e", "≥ " + ((MIN_CLEAR + 800) / 1000).toFixed(1) + " m"],
+  ];
+  const hmGroup = new THREE.Group();
+  let hmPlane = null;
+  if (HM && HM.nx) {
+    const canvas = document.createElement("canvas");
+    canvas.width = HM.nx; canvas.height = HM.ny;
+    const ctx = canvas.getContext("2d");
+    const img = ctx.createImageData(HM.nx, HM.ny);
+    const counts = BANDS.map(() => 0);
+    for (let j = 0; j < HM.ny; j++) for (let i = 0; i < HM.nx; i++) {
+      const v = HM.cm[j * HM.nx + i];
+      const o = ((HM.ny - 1 - j) * HM.nx + i) * 4;
+      if (v < 0) { img.data[o + 3] = 0; continue; }
+      const b = BANDS.findIndex(x => v * 10 < x[0]);
+      counts[b]++;
+      const c = new THREE.Color(BANDS[b][1]);
+      img.data[o] = c.r * 255; img.data[o + 1] = c.g * 255; img.data[o + 2] = c.b * 255; img.data[o + 3] = 190;
+    }
+    ctx.putImageData(img, 0, 0);
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter;
+    hmPlane = new THREE.Mesh(new THREE.PlaneGeometry(HM.nx * HM.cell, HM.ny * HM.cell),
+      new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, side: THREE.DoubleSide }));
+    hmPlane.position.set(HM.x0 + HM.nx * HM.cell / 2, HM.y0 + HM.ny * HM.cell / 2, floorZ + 0.03);
+    hmGroup.add(hmPlane);
+    const total = counts.reduce((a, b) => a + b, 0) || 1;
+    $("hmLegend").innerHTML = BANDS.map((b, k) => '<div class="row"><span class="sw" style="background:' + b[1] + '"></span>' + b[2]
+      + '<span class="cnt">' + (counts[k] * HM.cell * HM.cell).toFixed(0) + " m² · " + Math.round(counts[k] * 100 / total) + "%</span></div>").join("")
+      + '<div class="sub">按 ' + HM.cell + " m 网格统计构件或梁底距楼面的最小值；点击分区图查看数值和控制构件。</div>";
+    if (HM.lowest) {
+      const L = HM.lowest;
+      const tag = tagSprite("最低 " + (L.clear / 1000).toFixed(2) + " m", "#ffd166");
+      const e = L.e >= 0 ? DATA.elements[L.e] : null;
+      const z = e ? floorZ + L.clear / 1000 : floorZ + 1;
+      tag.position.set(L.p[0], L.p[1], z + 0.6);
+      const stem = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(L.p[0], L.p[1], floorZ), new THREE.Vector3(L.p[0], L.p[1], z)]),
+        new THREE.LineBasicMaterial({ color: 0xffd166, depthTest: false }));
+      stem.renderOrder = 11;
+      hmGroup.add(tag, stem);
+      $("lowestText").textContent = "最低点 " + (L.clear / 1000).toFixed(2) + " m · " + L.g + (e ? " · " + e.l : "");
+    }
+  }
+  hmGroup.visible = false;
+  scene.add(hmGroup);
+
   // ------------------------------------------------------------------ conflict markers
-  const markerColors = { hard: 0xff4d4f, clearance: 0xffa940, penetration: 0xb37feb };
+  const TYPES = [["hard", "硬碰撞", 0xff4d4f], ["clearance", "净距不足", 0xffa940], ["joint", "未连接接驳", 0x36cfc9],
+                 ["overlap", "同系统重叠", 0xbfbfbf], ["penetration", "穿墙", 0xb37feb]];
+  const TYPE_NAME = Object.fromEntries(TYPES.map(t => [t[0], t[1]]));
+  const TYPE_COLOR = Object.fromEntries(TYPES.map(t => [t[0], t[2]]));
   const markers = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 12, 8),
-    new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, transparent: true, opacity: 0.9 }), Math.max(DATA.conflicts.length, 1));
+    new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, transparent: true, opacity: 0.85 }), Math.max(DATA.conflicts.length, 1));
   markers.renderOrder = 10;
   scene.add(markers);
+  let markerItems = [];
+  let selectedConflict = null;
+  function updateMarkers() {
+    let k = 0;
+    for (const c of markerItems) {
+      const r = c === selectedConflict ? 0.16 : 0.06;
+      markers.setMatrixAt(k, m4.makeScale(r, r, r).setPosition(c.p[0], c.p[1], c.p[2]));
+      markers.setColorAt(k, new THREE.Color(TYPE_COLOR[c.t]));
+      k++;
+    }
+    markers.count = k;
+    markers.instanceMatrix.needsUpdate = true;
+    if (markers.instanceColor) markers.instanceColor.needsUpdate = true;
+    requestRender();
+  }
 
-  // ------------------------------------------------------------------ camera controls
+  // ------------------------------------------------------------------ camera: orbit and roam
   const target = box.getCenter(new THREE.Vector3());
   let radius = box.getSize(new THREE.Vector3()).length() * 0.8;
   let azimuth = -Math.PI / 4, polar = Math.PI / 3.2;
+  let roam = false, yaw = 0, pitch = 0, speed = 4;
+  const keys = new Set();
   function updateCamera() {
-    polar = Math.min(Math.max(polar, 0.001), Math.PI - 0.001);
-    camera.position.set(
-      target.x + radius * Math.sin(polar) * Math.cos(azimuth),
-      target.y + radius * Math.sin(polar) * Math.sin(azimuth),
-      target.z + radius * Math.cos(polar));
-    camera.lookAt(target);
+    if (roam) {
+      const dir = new THREE.Vector3(Math.cos(pitch) * Math.cos(yaw), Math.cos(pitch) * Math.sin(yaw), Math.sin(pitch));
+      camera.lookAt(camera.position.clone().add(dir));
+    } else {
+      polar = Math.min(Math.max(polar, 0.001), Math.PI - 0.001);
+      camera.position.set(
+        target.x + radius * Math.sin(polar) * Math.cos(azimuth),
+        target.y + radius * Math.sin(polar) * Math.sin(azimuth),
+        target.z + radius * Math.cos(polar));
+      camera.lookAt(target);
+    }
     requestRender();
   }
-  let drag = null;
-  renderer.domElement.addEventListener("contextmenu", (ev) => ev.preventDefault());
-  renderer.domElement.addEventListener("pointerdown", (ev) => {
-    drag = { x: ev.clientX, y: ev.clientY, button: ev.button, shift: ev.shiftKey, moved: false };
-    renderer.domElement.setPointerCapture(ev.pointerId);
+  function setRoam(on) {
+    roam = on;
+    gridGroup.children.forEach(c => { if (c.isSprite) c.visible = !on; });
+    $("roamBtn").classList.toggle("on", on);
+    $("crosshair").style.display = on ? "block" : "none";
+    $("hint").textContent = on ? HINT_ROAM : HINT_ORBIT;
+    $("hint").classList.toggle("roam", on);
+    if (on) {
+      const look = target.clone().sub(camera.position);
+      yaw = Math.atan2(look.y, look.x); pitch = 0;
+      camera.position.set(target.x, target.y, floorZ + 1.6);
+      camera.near = 0.02; camera.fov = 70;
+    } else {
+      const dir = new THREE.Vector3(Math.cos(yaw), Math.sin(yaw), 0);
+      target.copy(camera.position).addScaledVector(dir, 6);
+      radius = 6; azimuth = Math.atan2(-dir.y, -dir.x); polar = Math.PI / 2.4;
+      camera.near = 0.05; camera.fov = 50;
+    }
+    camera.updateProjectionMatrix();
+    updateCamera();
+    if (on) tick();
+  }
+  $("roamBtn").addEventListener("click", () => setRoam(!roam));
+  let last = 0;
+  function tick(now) {
+    if (!roam) return;
+    const dt = last && now ? Math.min((now - last) / 1000, 0.1) : 0;
+    last = now || 0;
+    if (keys.size && dt) {
+      const v = speed * (keys.has("Shift") ? 3 : 1) * dt;
+      const fwd = new THREE.Vector3(Math.cos(yaw), Math.sin(yaw), 0), side = new THREE.Vector3(Math.sin(yaw), -Math.cos(yaw), 0);
+      if (keys.has("w") || keys.has("ArrowUp")) camera.position.addScaledVector(fwd, v);
+      if (keys.has("s") || keys.has("ArrowDown")) camera.position.addScaledVector(fwd, -v);
+      if (keys.has("d") || keys.has("ArrowRight")) camera.position.addScaledVector(side, v);
+      if (keys.has("a") || keys.has("ArrowLeft")) camera.position.addScaledVector(side, -v);
+      if (keys.has("e")) camera.position.z += v;
+      if (keys.has("q")) camera.position.z -= v;
+      updateCamera();
+    }
+    requestAnimationFrame(tick);
+  }
+  window.addEventListener("keydown", (ev) => {
+    if (ev.target.tagName === "INPUT") return;
+    if (ev.key === "Escape" && roam) { setRoam(false); return; }
+    keys.add(ev.key.length === 1 ? ev.key.toLowerCase() : ev.key);
   });
-  renderer.domElement.addEventListener("pointermove", (ev) => {
+  window.addEventListener("keyup", (ev) => keys.delete(ev.key.length === 1 ? ev.key.toLowerCase() : ev.key));
+  window.addEventListener("blur", () => keys.clear());
+
+  let drag = null;
+  const el = renderer.domElement;
+  el.addEventListener("contextmenu", (ev) => ev.preventDefault());
+  el.addEventListener("pointerdown", (ev) => {
+    drag = { x: ev.clientX, y: ev.clientY, button: ev.button, shift: ev.shiftKey, moved: false };
+    el.setPointerCapture(ev.pointerId);
+  });
+  el.addEventListener("pointermove", (ev) => {
     if (!drag) return;
     const dx = ev.clientX - drag.x, dy = ev.clientY - drag.y;
     if (Math.abs(dx) + Math.abs(dy) > 2) drag.moved = true;
     drag.x = ev.clientX; drag.y = ev.clientY;
-    if (drag.button === 2 || drag.button === 1 || drag.shift) {
-      const scale = radius * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / renderer.domElement.clientHeight;
+    if (roam) {
+      yaw -= dx * 0.004; pitch = Math.min(Math.max(pitch - dy * 0.004, -1.4), 1.4);
+    } else if (drag.button === 2 || drag.button === 1 || drag.shift) {
+      const scale = radius * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / el.clientHeight;
       const right = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 0);
       const up = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 1);
       target.addScaledVector(right, -dx * scale).addScaledVector(up, dy * scale);
     } else {
-      azimuth -= dx * 0.006;
-      polar -= dy * 0.006;
+      azimuth -= dx * 0.006; polar -= dy * 0.006;
     }
     updateCamera();
   });
-  renderer.domElement.addEventListener("pointerup", (ev) => {
+  el.addEventListener("pointerup", (ev) => {
     if (drag && !drag.moved && drag.button === 0) pick(ev);
     drag = null;
   });
-  renderer.domElement.addEventListener("dblclick", (ev) => {
+  el.addEventListener("dblclick", (ev) => {
+    if (roam) return;
     const hit = raycast(ev);
     if (hit) { target.copy(hit.point); updateCamera(); }
   });
-  renderer.domElement.addEventListener("wheel", (ev) => {
+  el.addEventListener("wheel", (ev) => {
     ev.preventDefault();
-    radius *= Math.exp(ev.deltaY * 0.0012);
-    radius = Math.min(Math.max(radius, 0.3), 5000);
+    if (roam) { speed = Math.min(Math.max(speed * Math.exp(-ev.deltaY * 0.001), 0.5), 40); $("hint").textContent = HINT_ROAM + " · 速度 " + speed.toFixed(1) + " m/s"; return; }
+    radius = Math.min(Math.max(radius * Math.exp(ev.deltaY * 0.0012), 0.3), 5000);
     updateCamera();
   }, { passive: false });
 
   function setView(name) {
+    if (roam) setRoam(false);
     const size = box.getSize(new THREE.Vector3());
     if (name === "fit" || name === "iso") { box.getCenter(target); radius = size.length() * 0.8; }
     if (name === "iso") { azimuth = -Math.PI / 4; polar = Math.PI / 3.2; }
@@ -310,57 +572,62 @@
     updateCamera();
   }
   document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
-
   function focusOn(point, dist) {
-    target.copy(point);
-    radius = dist || 6;
-    updateCamera();
+    if (roam) setRoam(false);
+    target.copy(point); radius = dist || 6; updateCamera();
   }
 
   // ------------------------------------------------------------------ picking and highlight
   const raycaster = new THREE.Raycaster();
+  function ndcOf(ev) {
+    if (roam) return new THREE.Vector2(0, 0);   // roam picks what the crosshair points at
+    const rect = el.getBoundingClientRect();
+    return new THREE.Vector2(((ev.clientX - rect.left) / rect.width) * 2 - 1, -((ev.clientY - rect.top) / rect.height) * 2 + 1);
+  }
   function raycast(ev) {
-    const rect = renderer.domElement.getBoundingClientRect();
-    const ndc = new THREE.Vector2(((ev.clientX - rect.left) / rect.width) * 2 - 1, -((ev.clientY - rect.top) / rect.height) * 2 + 1);
-    raycaster.setFromCamera(ndc, camera);
+    raycaster.setFromCamera(ndcOf(ev), camera);
     const hits = raycaster.intersectObjects(pickables.filter(m => m.visible), false);
-    for (const h of hits) {
-      if (planes.some(p => p.distanceToPoint(h.point) < 0)) continue;   // clipped away
-      if (h.object.material.transparent && hits.some(o => !o.object.material.transparent)) continue;
-      return h;
-    }
-    return null;
+    const solid = hits.find(h => !h.object.material.transparent && planes.every(p => p.distanceToPoint(h.point) >= 0));
+    if (solid) return solid;
+    return hits.find(h => planes.every(p => p.distanceToPoint(h.point) >= 0)) || null;
   }
   let highlighted = [];
   const HL = [new THREE.Color(0xffff00), new THREE.Color(0xff00ff)];
+  function paint(i, color) {
+    const e = DATA.elements[i];
+    e._mesh.setColorAt(e._k, color);
+    e._mesh.instanceColor.needsUpdate = true;
+  }
   function highlight(indices) {
-    for (const i of highlighted) {
-      const e = DATA.elements[i];
-      e._mesh.setColorAt(e._k, e._mesh.userData.color);
-      e._mesh.instanceColor.needsUpdate = true;
-    }
+    for (const i of highlighted) paint(i, DATA.elements[i]._color);
     highlighted = indices;
-    indices.forEach((i, n) => {
-      const e = DATA.elements[i];
-      e._mesh.setColorAt(e._k, HL[n % 2]);
-      e._mesh.instanceColor.needsUpdate = true;
-    });
+    indices.forEach((i, n) => paint(i, HL[n % 2]));
     requestRender();
   }
   function pick(ev) {
     const hit = raycast(ev);
-    if (!hit) { highlight([]); $("info").style.display = "none"; return; }
-    const ei = hit.object.userData.idx[hit.instanceId];
-    highlight([ei]);
-    showInfo([ei]);
+    if (hit) {
+      const ei = hit.object.userData.idx[hit.instanceId];
+      highlight([ei]); showInfo([ei]);
+      return;
+    }
+    if (hmGroup.visible && hmPlane) {
+      const h = raycaster.intersectObject(hmPlane)[0];
+      if (h) {
+        const i = Math.floor((h.point.x - HM.x0) / HM.cell), j = Math.floor((h.point.y - HM.y0) / HM.cell);
+        const v = HM.cm[j * HM.nx + i], src = HM.src[j * HM.nx + i];
+        if (v >= 0) {
+          highlight(src >= 0 ? [src] : []);
+          $("infoBody").innerHTML = "<div><b>净高 " + (v / 100).toFixed(2) + " m</b>" + (v * 10 < MIN_CLEAR ? " ⚠ 低于 " + (MIN_CLEAR / 1000).toFixed(1) + " m" : "")
+            + '</div><div class="sub" style="margin-bottom:6px">控制构件（黄色）</div>' + (src >= 0 ? describe(src) : "");
+          $("info").style.display = "block";
+          return;
+        }
+      }
+    }
+    highlight([]); $("info").style.display = "none";
   }
 
-  function fmtClr(e) {
-    if (e.clr == null) return "—";
-    const warn = e.clr < META.min_clear ? " ⚠" : "";
-    return (e.clr / 1000).toFixed(2) + " m（" + e.lv + "）" + warn;
-  }
-  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
   function describe(ei) {
     const e = DATA.elements[ei];
     const cls = DATA.classes[e.c];
@@ -368,17 +635,23 @@
       ["构件", esc(e.l)], ["系统分类", esc(cls ? cls.label : e.c)], ["族 / 类型", esc(e.fam + " / " + e.typ)],
       ["保温", e.ins ? e.ins + " mm（" + ({ modeled: "模型", default: "默认" }[e.insrc] || e.insrc) + "）" : "无"],
       ["底 / 顶标高", (e.bot / 1000).toFixed(2) + " / " + (e.top / 1000).toFixed(2) + " m"],
-      ["净高", fmtClr(e)], ["几何", e.ex ? "参数化（精确）" : "包围盒（近似）"],
+      ["底部净高", e.clr == null ? "—" : (e.clr / 1000).toFixed(2) + " m（" + esc(e.lv) + "）" + (e.clr < MIN_CLEAR ? " ⚠" : "")],
     ];
+    if (REF && cls && cls.kind === "mep") {
+      let text = { new: "新增（调整前无此构件）", same: "未变" }[e.st] || "";
+      if (e.st === "moved") text = (e.dz > 0 ? "上移 " : e.dz < 0 ? "下移 " : "竖向不变 ") + Math.abs(e.dz) + " mm，水平 " + e.dh + " mm";
+      if (e.pm) text += "（按位置匹配：调整时被打断或重画）";
+      rows.push(["相对" + esc(REF.name), text]);
+    }
+    rows.push(["几何", e.ex ? "参数化（精确）" : "包围盒（近似）"]);
     return "<table>" + rows.map(r => "<tr><td>" + r[0] + "</td><td>" + r[1] + "</td></tr>").join("") + "</table>"
       + '<div class="key">' + esc(e.k) + "</div>";
   }
   function showInfo(indices, conflict) {
     let html = "";
     if (conflict) {
-      const name = { hard: "硬碰撞", clearance: "净距不足", penetration: "穿墙" }[conflict.t];
-      html += '<div style="margin-bottom:8px"><span class="tag t-' + conflict.t + '">' + name + "</span> "
-        + "距离 " + conflict.d + " mm" + (conflict.t === "clearance" ? "，要求 " + conflict.r + " mm" : "")
+      html += '<div style="margin-bottom:8px"><span class="tag t-' + conflict.t + '">' + TYPE_NAME[conflict.t] + "</span> "
+        + (conflict.d < 0 ? "重叠 " + (-conflict.d) + " mm" : "净距 " + conflict.d + " mm") + (conflict.t === "clearance" ? "，要求 " + conflict.r + " mm" : "")
         + '<div class="sub">' + esc(conflict.g) + "</div></div>";
     }
     html += indices.map((i, n) => (indices.length > 1 ? '<div class="sub" style="margin-top:6px">' + (n ? "B（洋红）" : "A（黄色）") + "</div>" : "") + describe(i)).join("");
@@ -387,35 +660,64 @@
   }
   $("close").addEventListener("click", () => { $("info").style.display = "none"; highlight([]); });
 
-  // ------------------------------------------------------------------ layers
+  // ------------------------------------------------------------------ layers and toggles
+  const layerBoxes = {};
   function layerRow(cls, info, parent) {
     const row = document.createElement("label");
     row.className = "row";
     row.innerHTML = '<input type="checkbox" checked><span class="sw" style="background:' + info.color + '"></span>'
       + esc(info.label) + '<span class="cnt">' + info.count + "</span>";
-    row.querySelector("input").addEventListener("change", (ev) => {
-      groups[cls].forEach(m => m.visible = ev.target.checked);
-      requestRender();
+    layerBoxes[cls] = row.querySelector("input");
+    layerBoxes[cls].addEventListener("change", (ev) => {
+      groups[cls].forEach(m => m.visible = ev.target.checked && !$("onlyHeadroom").checked); requestRender();
     });
     parent.appendChild(row);
   }
   for (const [cls, info] of Object.entries(DATA.classes)) layerRow(cls, info, info.kind === "obstacle" ? $("obsLayers") : $("mepLayers"));
   $("showGrids").addEventListener("change", (ev) => { gridGroup.visible = ev.target.checked; requestRender(); });
   $("showMarkers").addEventListener("change", (ev) => { markers.visible = ev.target.checked; requestRender(); });
+  $("showHeadroom").addEventListener("change", (ev) => {
+    hmGroup.visible = ev.target.checked; $("hmLegend").style.display = ev.target.checked ? "block" : "none"; requestRender();
+  });
+  $("onlyHeadroom").addEventListener("change", (ev) => {
+    const hide = ev.target.checked;
+    if (hide && !$("showHeadroom").checked) $("showHeadroom").click();
+    for (const [cls, list] of Object.entries(groups)) list.forEach(m => m.visible = !hide && layerBoxes[cls].checked);
+    if (hide) refGroup.visible = false; else refGroup.visible = REF ? $("showRef").checked : false;
+    requestRender();
+  });
+  $("lowestBtn").addEventListener("click", () => {
+    if (!HM || !HM.lowest) return;
+    $("showHeadroom").checked = true; hmGroup.visible = true; $("hmLegend").style.display = "block";
+    const L = HM.lowest;
+    if (L.e >= 0) { highlight([L.e]); showInfo([L.e]); }
+    focusOn(new THREE.Vector3(L.p[0], L.p[1], floorZ + L.clear / 1000), 9);
+  });
+  if (REF) {
+    $("compareBox").style.display = "block";
+    $("refName").textContent = REF.name;
+    $("compareTitle").textContent = "对比：" + REF.name;
+    const removed = REF.elements.filter(e => e.st !== "kept").length;
+    $("compareStats").textContent = REF.name + "机电 " + REF.elements.length + "，其中已删除或替换 " + removed + "（红色）";
+    $("showRef").addEventListener("change", (ev) => { refGroup.visible = ev.target.checked; requestRender(); });
+  }
 
   // ------------------------------------------------------------------ clipping controls
   function applyClip() {
     const t = +$("clipTop").value / 1000;
     const z = floorZ + t * (topZ - floorZ);
     clipTop.constant = z;
-    $("clipTopVal").textContent = t >= 0.999 ? "不剖切" : ((z - floorZ)).toFixed(2) + " m";
+    $("clipTopVal").textContent = t >= 0.999 ? "不剖切" : (z - floorZ).toFixed(2) + " m";
     const c = +$("clipCut").value / 1000;
     const lo = cutAxis === "x" ? box.min.x : box.min.y, hi = cutAxis === "x" ? box.max.x : box.max.y;
     const pos = lo + c * (hi - lo);
-    const n = cutAxis === "x" ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
-    if (cutFlip) n.negate();
     if (c <= 0.001) { clipCut.set(new THREE.Vector3(1, 0, 0), 1e6); $("clipCutVal").textContent = "不剖切"; }
-    else { clipCut.normal.copy(n); clipCut.constant = cutFlip ? pos : -pos; $("clipCutVal").textContent = cutAxis.toUpperCase() + " " + (pos - lo).toFixed(1) + " m"; }
+    else {
+      const n = cutAxis === "x" ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
+      if (cutFlip) n.negate();
+      clipCut.normal.copy(n); clipCut.constant = cutFlip ? pos : -pos;
+      $("clipCutVal").textContent = cutAxis.toUpperCase() + " " + (pos - lo).toFixed(1) + " m";
+    }
     requestRender();
   }
   $("clipTop").addEventListener("input", applyClip);
@@ -424,10 +726,10 @@
   $("cutFlip").addEventListener("click", () => { cutFlip = !cutFlip; applyClip(); });
 
   // ------------------------------------------------------------------ conflict list
-  const TYPES = [["hard", "硬碰撞"], ["clearance", "净距不足"], ["penetration", "穿墙"]];
   const active = new Set(["hard"]);
   TYPES.forEach(([t, name]) => {
     const n = DATA.conflicts.filter(c => c.t === t).length;
+    if (!n) return;
     const b = document.createElement("button");
     b.textContent = name + " " + n;
     if (active.has(t)) b.classList.add("on");
@@ -446,12 +748,14 @@
       const a = DATA.elements[c.a], b = DATA.elements[c.b];
       const div = document.createElement("div");
       div.className = "item";
-      div.innerHTML = '<div class="top"><span class="tag t-' + c.t + '">' + ({ hard: "碰撞", clearance: "净距", penetration: "穿墙" }[c.t])
-        + "</span><span>" + esc(c.g) + '</span><span class="d">' + c.d + (c.t === "clearance" ? "/" + c.r : "") + " mm</span></div>"
+      div.innerHTML = '<div class="top"><span class="tag t-' + c.t + '">' + TYPE_NAME[c.t] + "</span><span>" + esc(c.g)
+        + '</span><span class="d">' + c.d + (c.t === "clearance" ? "/" + c.r : "") + " mm</span></div>"
         + '<div class="ab">' + esc(a.l) + " ↔ " + esc(b.l) + "</div>";
       div.addEventListener("click", () => {
         if (selectedRow) selectedRow.classList.remove("sel");
         div.classList.add("sel"); selectedRow = div;
+        selectedConflict = c;
+        updateMarkers();
         highlight([c.a, c.b]);
         showInfo([c.a, c.b], c);
         focusOn(new THREE.Vector3(c.p[0], c.p[1], c.p[2]), 7);
@@ -459,27 +763,16 @@
       frag.appendChild(div);
     });
     list.appendChild(frag);
-    // markers follow the active filter
-    const m4 = new THREE.Matrix4();
-    let k = 0;
-    items.forEach(c => {
-      m4.makeScale(0.12, 0.12, 0.12).setPosition(c.p[0], c.p[1], c.p[2]);
-      markers.setMatrixAt(k, m4);
-      markers.setColorAt(k, new THREE.Color(markerColors[c.t]));
-      k++;
-    });
-    markers.count = k;
-    markers.instanceMatrix.needsUpdate = true;
-    if (markers.instanceColor) markers.instanceColor.needsUpdate = true;
-    requestRender();
+    markerItems = items;
+    updateMarkers();
   }
 
-  // ------------------------------------------------------------------ header
+  // ------------------------------------------------------------------ header and start
   $("title").textContent = META.project || "管综预览";
-  const nMep = DATA.elements.filter(e => DATA.classes[e.c] && DATA.classes[e.c].kind === "mep").length;
+  const nMep = DATA.elements.filter(e => DATA.classes[e.c].kind === "mep").length;
   $("subtitle").textContent = META.view + " · 机电 " + nMep + " · " + META.rules;
+  $("hint").textContent = HINT_ORBIT;
 
-  // ------------------------------------------------------------------ render loop (on demand)
   let pending = false;
   function requestRender() {
     if (pending) return;
@@ -495,10 +788,16 @@
   }
   window.addEventListener("resize", resize);
   resize();
+  document.querySelector('#colorModes button[data-mode="system"]').classList.add("on");
+  applyColors();
   applyClip();
   renderList();
   setView("iso");
-  window.__viewer = { setView, focusOn, DATA, select: (i) => { highlight([i]); showInfo([i]); } };
+  window.__viewer = {
+    setView, focusOn, DATA, setRoam,
+    colorMode: (m) => document.querySelector('#colorModes button[data-mode="' + m + '"]').click(),
+    select: (i) => { highlight([i]); showInfo([i]); },
+  };
 })();
 </script>
 </body>

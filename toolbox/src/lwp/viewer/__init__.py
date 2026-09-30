@@ -8,6 +8,7 @@ from pathlib import Path
 
 import numpy as np
 
+from .. import headroom_map
 from ..detect import Conflict, HeadroomItem, floor_level
 from ..grids import GridLocator
 from ..package import Package
@@ -27,8 +28,12 @@ COLORS = {
 OBSTACLE_LABELS = {"beam": "梁", "column": "柱", "foundation": "基础", "wall": "墙"}
 
 
+MOVED_MM = 20.0   # displacement below this counts as unchanged in the comparison
+
+
 def build_data(package: Package, rules: RuleSet, conflicts: list[Conflict] | None = None,
-               headroom: list[HeadroomItem] | None = None) -> dict:
+               headroom: list[HeadroomItem] | None = None, reference: Package | None = None,
+               reference_name: str = "调整前") -> dict:
     elements = [e for e in package.elements.values() if e.solid is not None]
     if not elements:
         raise ValueError("package has no geometry")
@@ -40,16 +45,19 @@ def build_data(package: Package, rules: RuleSet, conflicts: list[Conflict] | Non
     def m(p) -> list[float]:
         return [round(float(v) / 1000, 4) for v in (np.asarray(p) - origin)]
 
+    def geometry(s) -> dict:
+        if s.is_capsule:
+            return {"t": "cyl", "g": m(s.segment[0]) + m(s.segment[1]) + [round(s.radius / 1000, 4)]}
+        return {"t": "box", "g": m(s.center) + [round(float(v), 5) for v in s.axes.ravel()]
+                + [round(float(v) / 1000, 4) for v in s.half]}
+
+    matcher = _RunMatcher(reference) if reference is not None else None
     index: dict[str, int] = {}
     items = []
     for e in elements:
         s = e.solid
         cls = e.cls if e.is_mep else e.kind
-        if s.is_capsule:
-            geom = {"t": "cyl", "g": m(s.segment[0]) + m(s.segment[1]) + [round(s.radius / 1000, 4)]}
-        else:
-            geom = {"t": "box", "g": m(s.center) + [round(float(v), 5) for v in s.axes.ravel()]
-                    + [round(float(v) / 1000, 4) for v in s.half]}
+        geom = geometry(s)
         lo, hi = s.aabb()
         level = floor_level(package, rules, float(lo[2]))
         index[e.key] = len(items)
@@ -58,8 +66,10 @@ def build_data(package: Package, rules: RuleSet, conflicts: list[Conflict] | Non
             "sys": e.system_type or e.system_name, "ins": round(e.insulation_mm), "insrc": e.insulation_source,
             "bot": round(float(lo[2])), "top": round(float(hi[2])),
             "lv": level.name if level else "", "clr": round(float(lo[2]) - level.elevation) if level else None,
-            "ex": s.exact,
+            "ex": s.exact, "o": {"mep_curve": "c", "mep_family": "f"}.get(e.origin, "x"),
         })
+        if reference is not None and e.is_mep:
+            items[-1].update(_compare(e, reference.elements.get(e.key), matcher))
 
     classes = {}
     for cls, count in _count(items).items():
@@ -81,6 +91,27 @@ def build_data(package: Package, rules: RuleSet, conflicts: list[Conflict] | Non
     for lv in host_levels:
         if lv.elevation <= float(np.median(lows[:, 2])):
             floor_z = lv.elevation
+
+    hmap = headroom_map.build(package, floor_z)
+    lowest = hmap.lowest()
+    clear_cells = np.where(np.isnan(hmap.clear), -1, np.round(hmap.clear / 10)).astype(int)   # centimetres
+    hm = {
+        "x0": round((hmap.x0 - origin[0]) / 1000, 4), "y0": round((hmap.y0 - origin[1]) / 1000, 4),
+        "cell": hmap.cell / 1000, "nx": hmap.nx, "ny": hmap.ny, "cm": clear_cells.ravel().tolist(),
+        "src": [index.get(hmap.keys[k], -1) if k >= 0 else -1 for k in hmap.source.ravel().tolist()],
+        "lowest": None if lowest is None else {
+            "clear": round(lowest[0]), "p": m([lowest[1], lowest[2], floor_z])[:2],
+            "e": index.get(lowest[3], -1), "g": GridLocator(package.grids).describe((lowest[1], lowest[2])),
+        },
+    }
+
+    ref_items = []
+    if reference is not None:
+        for e in reference.mep():
+            if e.solid is None:
+                continue
+            ref_items.append({**geometry(e.solid), "c": e.cls, "l": e.label(),
+                              "st": "kept" if e.key in package.elements else "removed"})
     # Grid lines span the whole building: clip them to the exported range plus a margin.
     margin = 3000.0
     rect = (lows[:, 0].min() - margin, lows[:, 1].min() - margin, highs[:, 0].max() + margin, highs[:, 1].max() + margin)
@@ -105,7 +136,77 @@ def build_data(package: Package, rules: RuleSet, conflicts: list[Conflict] | Non
         "conflicts": out_conflicts,
         "grids": grids,
         "levels": [{"n": lv.name, "z": round((lv.elevation - origin[2]) / 1000, 4)} for lv in host_levels],
+        "headroom": hm,
+        "reference": {"name": reference_name, "elements": ref_items} if reference is not None else None,
     }
+
+
+class _RunMatcher:
+    """Finds the reference run a new run was cut from: same system and kind, parallel, within 150 mm in plan."""
+
+    CELL = 5000.0
+
+    def __init__(self, reference: Package):
+        self.buckets: dict[tuple, list] = {}
+        for e in reference.mep():
+            r = e.record
+            if e.origin != "mep_curve" or not r.get("start") or not r.get("end"):
+                continue
+            a, b = np.array(r["start"]) * 1000, np.array(r["end"]) * 1000
+            lo, hi = np.minimum(a, b)[:2], np.maximum(a, b)[:2]
+            for i in range(int(lo[0] // self.CELL), int(hi[0] // self.CELL) + 1):
+                for j in range(int(lo[1] // self.CELL), int(hi[1] // self.CELL) + 1):
+                    self.buckets.setdefault((i, j), []).append((e, a, b))
+
+    def match(self, e, mid: np.ndarray, direction: np.ndarray):
+        best = None
+        for other, a, b in self.buckets.get((int(mid[0] // self.CELL), int(mid[1] // self.CELL)), []):
+            if other.kind != e.kind or (other.system_type or other.system_name) != (e.system_type or e.system_name):
+                continue
+            d = b - a
+            n = float(np.linalg.norm(d[:2]))
+            if n < 1e-6 or abs(float(np.dot(d[:2] / n, direction[:2]))) < 0.98:
+                continue
+            t = float(np.clip(np.dot(mid[:2] - a[:2], d[:2]) / (n * n), 0, 1))
+            p = a + t * d
+            plan = float(np.linalg.norm(mid[:2] - p[:2]))
+            if plan <= 150 and (best is None or plan < best[0]):
+                best = (plan, mid - p)
+        return best
+
+
+def _compare(e, before, matcher: _RunMatcher | None = None) -> dict:
+    """Movement of an element relative to the same element (UniqueId) in the reference model.
+
+    Runs without a UniqueId match (split or re-drawn during coordination) are matched by position.
+    """
+    if before is None or before.solid is None:
+        r = e.record
+        if matcher is not None and e.origin == "mep_curve" and r.get("start") and r.get("end"):
+            a, b = np.array(r["start"]) * 1000, np.array(r["end"]) * 1000
+            direction = b - a
+            if np.linalg.norm(direction[:2]) > 1e-6:
+                found = matcher.match(e, (a + b) / 2, direction / np.linalg.norm(direction))
+                if found is not None:
+                    _, delta = found
+                    if float(np.linalg.norm(delta)) < MOVED_MM:
+                        return {"st": "same", "dz": 0, "dh": 0, "pm": 1}
+                    return {"st": "moved", "dz": round(float(delta[2])), "dh": round(float(np.hypot(delta[0], delta[1]))), "pm": 1}
+        return {"st": "new"}
+    if e.record.get("start") and e.record.get("end") and before.record.get("start") and before.record.get("end"):
+        # Runs may be split or extended: measure the new midpoint against the old centreline.
+        mid = (np.array(e.record["start"]) + np.array(e.record["end"])) * 500
+        a, b = np.array(before.record["start"]) * 1000, np.array(before.record["end"]) * 1000
+        ab = b - a
+        t = float(np.clip(np.dot(mid - a, ab) / max(float(ab @ ab), 1e-9), 0, 1))
+        closest = a + t * ab
+        delta = mid - closest
+    else:
+        delta = e.solid.center - before.solid.center
+    disp = float(np.linalg.norm(delta))
+    if disp < MOVED_MM:
+        return {"st": "same", "dz": 0, "dh": 0}
+    return {"st": "moved", "dz": round(float(delta[2])), "dh": round(float(np.hypot(delta[0], delta[1])))}
 
 
 def write_viewer(path: Path, data: dict, title: str | None = None) -> Path:

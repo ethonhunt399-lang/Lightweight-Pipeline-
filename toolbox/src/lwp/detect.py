@@ -14,6 +14,9 @@ from .rules import RuleSet
 HARD = "hard"                # solids overlap
 CLEARANCE = "clearance"      # clear distance below the required value
 PENETRATION = "penetration"  # MEP passes through a wall (normally sleeved, listed separately)
+JOINT = "joint"              # same system, an open end sits inside the other element: unconnected junction
+OVERLAP = "overlap"          # same system, overlapping but not connected: modelling issue to review
+MODEL_ISSUES = (JOINT, OVERLAP)
 
 TOLERANCE_MM = 1.0
 IGNORED_KINDS = {"support"}  # supports touch what they carry by design
@@ -125,12 +128,32 @@ def detect_conflicts(package: Package, rules: RuleSet) -> list[Conflict]:
             if d < -TOLERANCE_MM:
                 conflicts.append(Conflict(PENETRATION, a.key, b.key, d, 0.0, where, a.solid.exact and b.solid.exact))
             continue
+        kind = CLEARANCE
+        if d < -TOLERANCE_MM:
+            kind = same_system_issue(a, b) or HARD
         conflicts.append(Conflict(
-            HARD if d < -TOLERANCE_MM else CLEARANCE, a.key, b.key, d, required, where,
+            kind, a.key, b.key, d, required, where,
             a.solid.exact and b.solid.exact, (pair_rule.note or "") if pair_rule else "",
         ))
-    conflicts.sort(key=lambda c: (c.type != HARD, c.distance_mm))
+    order = {HARD: 0, CLEARANCE: 1, JOINT: 2, OVERLAP: 3, PENETRATION: 4}
+    conflicts.sort(key=lambda c: (order[c.type], c.distance_mm))
     return conflicts
+
+
+def same_system_issue(a: Element, b: Element) -> str | None:
+    """Overlaps inside one system are modelling issues, not coordination clashes."""
+    if not (a.is_mep and b.is_mep) or a.cls != b.cls:
+        return None
+    if (a.system_type or a.system_name) != (b.system_type or b.system_name):
+        return None
+    for x, y in ((a, b), (b, a)):
+        for c in x.connectors:
+            if c.get("connector_type") != "End" or c.get("connected") or not c.get("origin"):
+                continue
+            p = np.array(c["origin"]) * 1000
+            if np.linalg.norm(y.solid.project(p) - p) <= 50:
+                return JOINT
+    return OVERLAP
 
 
 def scope_test(package: Package):

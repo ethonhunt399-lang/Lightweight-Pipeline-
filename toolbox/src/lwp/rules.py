@@ -90,7 +90,7 @@ class RuleSet(_Strict):
     clearance_mm: Clearance
     headroom: Headroom
     obstacles: dict[str, list[str]]
-    connected_hops_ignored: int = 2
+    connected_hops_ignored: int = 3
     source: str = ""
 
     def obstacle_kind(self, category: str) -> str | None:

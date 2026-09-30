@@ -7,7 +7,7 @@ from collections import Counter
 from pathlib import Path
 
 from . import __version__
-from .detect import CLEARANCE, HARD, PENETRATION, Conflict, HeadroomItem, cluster_points
+from .detect import CLEARANCE, HARD, JOINT, OVERLAP, PENETRATION, Conflict, HeadroomItem, cluster_points
 from .grids import GridLocator
 from .health import Health, summarize_open_ends
 from .package import Package
@@ -72,6 +72,8 @@ def render(package: Package, rules: RuleSet, health: Health, conflicts: list[Con
     hard = [c for c in conflicts if c.type == HARD]
     clear = [c for c in conflicts if c.type == CLEARANCE]
     pen = [c for c in conflicts if c.type == PENETRATION]
+    joints = [c for c in conflicts if c.type == JOINT]
+    overlaps = [c for c in conflicts if c.type == OVERLAP]
     low = [h for h in headroom if h.clear_mm < rules.headroom.min_clear_mm]
     w("\n## 1. 摘要\n")
     w(_table(["项", "数量"], [
@@ -80,6 +82,8 @@ def render(package: Package, rules: RuleSet, health: Health, conflicts: list[Con
         ["硬碰撞（构件对 / 碰撞点）", f"{len(hard)} / {cluster_points(hard)}"],
         ["净距不足（构件对 / 位置）", f"{len(clear)} / {cluster_points(clear)}"],
         ["穿墙", len(pen)],
+        ["未连接接驳（同系统，端口插入另一构件未连接）", len(joints)],
+        ["同系统重叠（未连接）", len(overlaps)],
         [f"净高低于 {rules.headroom.min_clear_mm / 1000:.1f} m 的水平管段", len(low)],
         ["未识别系统的构件", sum(n for (cls, _), n in health.classes.items() if cls == "unknown")],
         ["管线内部未连接端口", len(health.open_ends)],
@@ -142,6 +146,13 @@ def render(package: Package, rules: RuleSet, health: Health, conflicts: list[Con
 
     # ------------------------------------------------------------------ model quality
     w("\n## 5. 模型质量\n")
+    w("同一系统内的重叠不计入硬碰撞：端口插入另一构件而未连接的记为“未连接接驳”，其余记为“同系统重叠”，需在模型中修正。\n")
+    for title, items in (("未连接接驳", joints), ("同系统重叠", overlaps)):
+        rows = [[i, locator.describe(c.location), package.elements[c.a].label(), package.elements[c.b].label(), _mm(c.distance_mm)]
+                for i, c in enumerate(items[:30], 1)]
+        w(f"\n### {title}（{len(items)}，列出前 {min(len(items), 30)} 条）\n")
+        w(_table(["#", "位置", "构件 A", "构件 B", "重叠"], rows) if rows else "无。")
+    w("")
     oe = summarize_open_ends(health.open_ends, package)
     w(f"管线内部未连接的端口 {len(health.open_ends)} 处（另有 {health.open_ends_at_boundary} 处位于范围边界，属正常）。\n")
     if oe:

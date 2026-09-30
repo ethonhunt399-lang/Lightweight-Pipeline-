@@ -90,5 +90,5 @@ obstacles:
   foundation: ["结构基础", "Structural Foundations"]
   wall:       ["墙", "Walls"]          # 机电穿墙单独列为“穿墙”，不计入碰撞
 
-# 两个构件在连接关系中相距不超过该跳数时不做检测（管段与其管件、管件两侧的管段）
-connected_hops_ignored: 2
+# 两个构件在连接关系中相距不超过该跳数时不做检测（管段与其管件、管件两侧的管段、变径加弯头等组合）
+connected_hops_ignored: 3
