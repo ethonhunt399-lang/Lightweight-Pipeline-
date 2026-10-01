@@ -132,14 +132,14 @@ def _page(sec: Section, rules: RuleSet, layouts: dict[str, Layout], ev: dict, ha
         rows.append("<tr>" + "".join(f"<td>{x}</td>" for x in [
             f"<b>{escape(r['name'])}</b>",
             r["hard"], (f"{r['hard'] - r['hard_node']} / {r['hard_node']}" if key in layouts else "—"),
-            r["hard_structure"], r["clearance"], r.get("water_over_tray", "—"),
+            r["hard_structure"], r["clearance"], f"{r.get('water_parallel_tray', '—')} / {r.get('water_leak_tray', '—')} / {r.get('water_crossing_tray', '—')}",
             (f"{r['n2_nodes']} / {r['n0_repairs']}" if "n2_nodes" in r else "—"),
             _m(r.get("lowest_mm")), _m(r.get("median_lowest_mm")), r.get("median_levels", "—"),
             m.get("layers", "—"), m.get("moved", "—"),
             f"{m['support_length_mm'] / 1000:.1f} m" if m else "—",
             m.get("tray_below_water", "—"),
         ]) + "</tr>")
-    table = ("<table><tr><th>方案</th><th>硬碰撞</th><th>排布 / 待节点</th><th>其中与梁柱</th><th>净距不足</th><th>水在电上</th><th>引出 / 接驳</th><th>最低管底</th>"
+    table = ("<table><tr><th>方案</th><th>硬碰撞</th><th>排布 / 待节点</th><th>其中与梁柱</th><th>净距不足</th><th>水在电上：平行 / 易漏 / 交叉</th><th>引出 / 接驳</th><th>最低管底</th>"
              "<th>管底中位</th><th>断面层数中位</th><th>排布层数</th><th>移动管线</th><th>横担总长</th><th>电在水下</th></tr>"
              + "".join(rows) + "</table>")
     sections = [("原模型", "section_original.svg", None)]
@@ -161,6 +161,7 @@ def _page(sec: Section, rules: RuleSet, layouts: dict[str, Layout], ev: dict, ha
     notes = "".join(f"<li>{escape(n)}</li>" for n in sec.notes)
     diag = "".join(f"<li>{escape(SCHEMES[k])}：{escape(d)}</li>" for k, l in layouts.items() for d in l.diagnosis)
     lay = rules.layout
+    tw = lay.tray_water
     return f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>走廊 {escape(c.name)} 分层排布</title>
 <style>
@@ -178,7 +179,7 @@ th,td{{border:1px solid #e5e7eb;padding:4px 6px;text-align:left}} th{{background
 <p class="sub">“排布 / 待节点”：自动方案只做平移，不建模翻弯；管线三通、弯头向侧面引出跨过相邻管线、大尺寸横穿管、
 横穿管与其自身管件的冲突属于节点工作（N1 交叉翻弯、N2 侧向引出），单独计数。碰撞与净距只统计走廊范围内；最低管底、层数为沿走廊每 1 m 断面采样。横穿管线抬到其经过的管线上方；
 它们在走廊外的翻弯、以及管线拐出走廊处的冲突属于节点问题（N1、N2），在节点库中处理。
-“水在电上”：走廊内位于桥架正上方（平面重叠）的水管、管件数。电上水下为硬约束：桥架层位不低于水管，横穿水管从桥架下方通过；净空不够处才允许横穿水管跨越桥架（求解时最先压到最少），列为节点处理。
+“水在电上”：位于桥架正上方（平面重叠）的水管、管件数，分三类：沿桥架平行覆盖（重叠长度 > {tw.parallel_max_mm:.0f} mm，不允许）/ 易漏节点（法兰、阀门、活接、排气阀，不允许）/ 短距离交叉（允许）。
 “引出 / 接驳”：N2 侧向引出节点数 / 接驳过渡数（移动后断开的连接全部重新接上：直管伸缩，或加竖向、水平过渡段）。
 约束：同层外底平齐；层间净空 ≥ {lay.layer_gap_min_mm:.0f} mm 且满足分组净距；顶部距梁底 {lay.beam_clearance_mm:.0f} mm
 各梁只限制其下方（横向与沿走廊均重叠）的管线；{len(sec.zone_crossings)} 根横穿管线从管线束上方通过（其上方的顺走廊梁限制管线束高度）；

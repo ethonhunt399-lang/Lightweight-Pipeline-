@@ -87,6 +87,27 @@ def overlaps(a_lo: float, a_hi: float, b_lo: float, b_hi: float, margin: float =
 
 
 @dataclass
+class LeakItem:
+    """A flange, valve, union or air vent on water pipework (not part of a strand)."""
+    key: str
+    s: float
+    v_lo: float
+    v_hi: float
+    z_lo: float
+    z_hi: float
+    crossing: str | None = None   # the crossing service it sits on (moves with it)
+
+
+def is_leak_prone(e: Element, pattern: str) -> bool:
+    import re
+    if e.group != "water" or e.origin != "mep_family":
+        return False
+    if e.record.get("builtin_category") == "OST_PipeAccessory":
+        return True
+    return bool(pattern) and re.search(pattern, f"{e.family} {e.type_name}") is not None
+
+
+@dataclass
 class Section:
     corridor: Corridor
     floor_z: float
@@ -101,6 +122,7 @@ class Section:
     blocked: list[tuple[float, float, str]]          # v intervals blocked by columns / walls
     notes: list[str] = field(default_factory=list)
     ceiling_max: float = np.inf   # highest crossing-beam bottom: upper bound for any layer
+    leaks: list = field(default_factory=list)       # leak-prone water items not on a strand (LeakItem)
 
     crossing_limit: float = 250.0
 
@@ -280,10 +302,24 @@ def extract(package: Package, corridor: Corridor, rules: RuleSet) -> Section:
         under = [b.bottom for b in beams if not b.crossing and overlaps(b.v_lo, b.v_hi, c.v_lo, c.v_hi)
                  and b.s_lo - 1 <= c.s <= b.s_hi + 1]
         c.ceiling = min(under) if under else ceiling_max
+    members = {k for st in strands for k in st.segments + st.fittings}
+    pattern = rules.layout.tray_water.leak_prone_pattern
+    zone_keys = {c.key for c in crossings}
+    leaks = []
+    for e in package.mep():
+        if e.key in members or e.solid is None or not is_leak_prone(e, pattern):
+            continue
+        cpt = e.solid.center
+        if not (corridor.s0 <= corridor.s_of(cpt) <= corridor.s1 and corridor.v0 - 1000 <= corridor.v_of(cpt) <= corridor.v1 + 1000):
+            continue
+        lo, hi = e.solid.aabb()
+        _, _, lv, hv = _plan_extent(e, corridor)
+        on = next((k for k in graph.get(e.key, ()) if k in zone_keys), None)
+        leaks.append(LeakItem(e.key, corridor.s_of(cpt), lv, hv, float(lo[2]), float(hi[2]), on))
     sec = Section(corridor=corridor, floor_z=floor_z, floor_name=floor.name if floor else "", ceiling=ceiling,
                   ceiling_key=ceiling_key, v_lo=v_lo, v_hi=v_hi, strands=strands, beams=beams,
                   crossings=crossings, blocked=blocked, notes=notes, crossing_limit=rules.layout.crossing_zone_max_mm,
-                  ceiling_max=ceiling_max)
+                  ceiling_max=ceiling_max, leaks=leaks)
     if sec.large_crossings:
         sec.notes.append(f"{len(sec.large_crossings)} 根横穿管高度超过 {rules.layout.crossing_zone_max_mm:.0f} mm"
                          f"（{'、'.join(sorted({c.label for c in sec.large_crossings}))}），不从管线束上方通过，按节点冲突处理")

@@ -11,11 +11,11 @@ th,td{border:1px solid #e5e7eb;padding:4px 6px;text-align:left} th{background:#f
 <p class="sub">雍景致臻江东-机电（管综调整前）-地下室 · 沿 X 36.0 m ·
 断面宽 4.40 m · 楼面 B1F · 横跨梁底 +3.05～+4.50 m ·
 管线 26 条（可移动 26）· 横穿 50 根 · 规则 小区地下室默认规则 0.2.0</p>
-<h2>方案对比</h2><div class="wrap"><table><tr><th>方案</th><th>硬碰撞</th><th>排布 / 待节点</th><th>其中与梁柱</th><th>净距不足</th><th>水在电上</th><th>引出 / 接驳</th><th>最低管底</th><th>管底中位</th><th>断面层数中位</th><th>排布层数</th><th>移动管线</th><th>横担总长</th><th>电在水下</th></tr><tr><td><b>原模型</b></td><td>175</td><td>—</td><td>5</td><td>43</td><td>9</td><td>—</td><td>2.50 m</td><td>2.50 m</td><td>4.0</td><td>—</td><td>—</td><td>—</td><td>—</td></tr><tr><td><b>净高最优</b></td><td>32</td><td>21 / 11</td><td>3</td><td>19</td><td>7</td><td>29 / 64</td><td>2.32 m</td><td>2.32 m</td><td>2.0</td><td>3</td><td>26</td><td>5.9 m</td><td>0</td></tr><tr><td><b>改动最少</b></td><td>40</td><td>23 / 17</td><td>3</td><td>19</td><td>5</td><td>28 / 62</td><td>2.30 m</td><td>2.30 m</td><td>2.0</td><td>3</td><td>26</td><td>5.8 m</td><td>0</td></tr><tr><td><b>支吊架最省</b></td><td>42</td><td>25 / 17</td><td>3</td><td>14</td><td>5</td><td>28 / 63</td><td>2.30 m</td><td>2.30 m</td><td>2.0</td><td>3</td><td>26</td><td>5.8 m</td><td>0</td></tr><tr><td><b>人工方案</b></td><td>1</td><td>—</td><td>0</td><td>64</td><td>11</td><td>—</td><td>2.48 m</td><td>2.62 m</td><td>3.0</td><td>—</td><td>—</td><td>—</td><td>—</td></tr></table></div>
+<h2>方案对比</h2><div class="wrap"><table><tr><th>方案</th><th>硬碰撞</th><th>排布 / 待节点</th><th>其中与梁柱</th><th>净距不足</th><th>水在电上：平行 / 易漏 / 交叉</th><th>引出 / 接驳</th><th>最低管底</th><th>管底中位</th><th>断面层数中位</th><th>排布层数</th><th>移动管线</th><th>横担总长</th><th>电在水下</th></tr><tr><td><b>原模型</b></td><td>175</td><td>—</td><td>5</td><td>43</td><td>1 / 0 / 8</td><td>—</td><td>2.50 m</td><td>2.50 m</td><td>4.0</td><td>—</td><td>—</td><td>—</td><td>—</td></tr><tr><td><b>净高最优</b></td><td>37</td><td>23 / 14</td><td>3</td><td>26</td><td>0 / 0 / 25</td><td>30 / 63</td><td>2.40 m</td><td>2.40 m</td><td>1.5</td><td>2</td><td>26</td><td>5.0 m</td><td>0</td></tr><tr><td><b>改动最少</b></td><td>20</td><td>11 / 9</td><td>3</td><td>18</td><td>1 / 0 / 20</td><td>28 / 59</td><td>2.30 m</td><td>2.30 m</td><td>1.5</td><td>2</td><td>26</td><td>4.6 m</td><td>0</td></tr><tr><td><b>支吊架最省</b></td><td>37</td><td>25 / 12</td><td>3</td><td>22</td><td>2 / 0 / 22</td><td>30 / 58</td><td>2.30 m</td><td>2.30 m</td><td>1.0</td><td>1</td><td>26</td><td>4.4 m</td><td>0</td></tr><tr><td><b>人工方案</b></td><td>1</td><td>—</td><td>0</td><td>64</td><td>0 / 0 / 11</td><td>—</td><td>2.48 m</td><td>2.62 m</td><td>3.0</td><td>—</td><td>—</td><td>—</td><td>—</td></tr></table></div>
 <p class="sub">“排布 / 待节点”：自动方案只做平移，不建模翻弯；管线三通、弯头向侧面引出跨过相邻管线、大尺寸横穿管、
 横穿管与其自身管件的冲突属于节点工作（N1 交叉翻弯、N2 侧向引出），单独计数。碰撞与净距只统计走廊范围内；最低管底、层数为沿走廊每 1 m 断面采样。横穿管线抬到其经过的管线上方；
 它们在走廊外的翻弯、以及管线拐出走廊处的冲突属于节点问题（N1、N2），在节点库中处理。
-“水在电上”：走廊内位于桥架正上方（平面重叠）的水管、管件数。电上水下为硬约束：桥架层位不低于水管，横穿水管从桥架下方通过；净空不够处才允许横穿水管跨越桥架（求解时最先压到最少），列为节点处理。
+“水在电上”：位于桥架正上方（平面重叠）的水管、管件数，分三类：沿桥架平行覆盖（重叠长度 > 500 mm，不允许）/ 易漏节点（法兰、阀门、活接、排气阀，不允许）/ 短距离交叉（允许）。
 “引出 / 接驳”：N2 侧向引出节点数 / 接驳过渡数（移动后断开的连接全部重新接上：直管伸缩，或加竖向、水平过渡段）。
 约束：同层外底平齐；层间净空 ≥ 100 mm 且满足分组净距；顶部距梁底 50 mm
 各梁只限制其下方（横向与沿走廊均重叠）的管线；46 根横穿管线从管线束上方通过（其上方的顺走廊梁限制管线束高度）；
@@ -23,7 +23,7 @@ th,td{border:1px solid #e5e7eb;padding:4px 6px;text-align:left} th{background:#f
 <ul><li>4 根横穿管高度超过 250 mm（风管 排烟兼排风 1600x320、风管 排烟兼排风 1800x400、风管 排烟兼排风 2100x320），不从管线束上方通过，按节点冲突处理</li></ul>
 <h2>人工方案复核</h2>
 <p class="sub">人工方案不作为标准答案：硬规则以规范、图集和已确认的项目规则为准。以下用同一套规则检查人工方案，并与自动方案比较。</p>
-<ul><li>人工方案净高比自动方案高 156 mm（自动方案在此项不如人工）</li><li>人工方案管底有 11 个不同标高；净高最优方案只需 3 层，支吊架层数可减少、排布更规整</li><li>人工方案在走廊内仍有 1 处硬碰撞（见下表）</li><li>人工方案有 64 处净距低于规则要求（按已确认的校准净距）</li></ul>
+<ul><li>人工方案净高比自动方案高 80 mm（自动方案在此项不如人工）</li><li>人工方案管底有 11 个不同标高；支吊架最省方案只需 1 层，支吊架层数可减少、排布更规整</li><li>人工方案在走廊内仍有 1 处硬碰撞（见下表）</li><li>人工方案有 64 处净距低于规则要求（按已确认的校准净距）</li></ul>
 <h3>硬碰撞（1）</h3><div class='wrap'><table><tr><th>位置</th><th>构件 A</th><th>构件 B</th><th>距离 mm</th><th>要求 mm</th></tr><tr><td>14-A 轴 -1.3 m / 27 轴 +0.1 m</td><td>电缆桥架 消防广播 100 mmx100 mmø</td><td>管道 喷淋系统 50 mm</td><td>-30</td><td>60</td></tr></table></div>
 <h3>净距不足（64，列出相差最大的 15 条）</h3><div class='wrap'><table><tr><th>位置</th><th>构件 A</th><th>构件 B</th><th>距离 mm</th><th>要求 mm</th></tr><tr><td>X 轴 -2.1 m / 28 轴 -1.6 m</td><td>电缆桥架配件 充电桩桥架 400 mmx150 mmø-400 mmx150 mmø</td><td>管道 JZ2 25 mm</td><td>13</td><td>150</td></tr><tr><td>14-A 轴 -2.2 m / 28 轴 -1.6 m</td><td>电缆桥架 强电消防桥架 300 mmx100 mmø</td><td>管道 JZ2 25 mm</td><td>13</td><td>150</td></tr><tr><td>X 轴 -2.3 m / 28 轴 -1.7 m</td><td>管道 JZ2 25 mm</td><td>电缆桥架 充电桩桥架 400 mmx150 mmø</td><td>37</td><td>150</td></tr><tr><td>X 轴 -2.1 m / 28 轴 -1.6 m</td><td>电缆桥架 充电桩桥架 400 mmx150 mmø</td><td>管道 JZ2 25 mm</td><td>60</td><td>150</td></tr><tr><td>X 轴 -2.0 m / 28 轴 -1.6 m</td><td>电缆桥架 强电-非居 300 mmx100 mmø</td><td>管道 JZ2 25 mm</td><td>63</td><td>150</td></tr><tr><td>X 轴 -1.5 m / 28 轴 -1.6 m</td><td>电缆桥架 高压 400 mmx100 mmø</td><td>管道 JZ2 25 mm</td><td>63</td><td>150</td></tr><tr><td>X 轴 -1.1 m / 29 轴 -0.4 m</td><td>电缆桥架 高压 400 mmx100 mmø</td><td>管道 ZP1 150 mm</td><td>64</td><td>150</td></tr><tr><td>X 轴 -2.1 m / 28 轴 -1.0 m</td><td>电缆桥架 充电桩桥架 400 mmx150 mmø</td><td>管道 XW 150 mm</td><td>66</td><td>150</td></tr><tr><td>14-A 轴 -0.3 m / 28 轴 -3.9 m</td><td>管道 喷淋系统 150 mm</td><td>电缆桥架 充电桩桥架 600 mmx150 mmø</td><td>66</td><td>150</td></tr><tr><td>X 轴 -0.7 m / 28 轴 +0.8 m</td><td>管道 ZP1 150 mm</td><td>电缆桥架 高压 200 mmx100 mmø</td><td>66</td><td>150</td></tr><tr><td>14-A 轴 -0.3 m / 28 轴 +1.3 m</td><td>管道 喷淋系统 150 mm</td><td>电缆桥架 强电消防桥架 100 mmx100 mmø</td><td>66</td><td>150</td></tr><tr><td>X 轴 -0.7 m / 25 轴 +0.7 m</td><td>管道 ZP1 150 mm</td><td>电缆桥架 强电-非居 600 mmx100 mmø</td><td>66</td><td>150</td></tr><tr><td>X 轴 -0.7 m / 25 轴 +1.5 m</td><td>管道 ZP1 150 mm</td><td>电缆桥架 高压 400 mmx150 mmø</td><td>66</td><td>150</td></tr><tr><td>X 轴 -2.3 m / 28 轴 -1.2 m</td><td>管道 XW 150 mm</td><td>电缆桥架配件 充电桩桥架 400 mmx150 mmø-400 mmx150 mmø</td><td>66</td><td>150</td></tr><tr><td>X 轴 -0.7 m / 28 轴 +0.8 m</td><td>管道 ZP1 150 mm</td><td>电缆桥架配件 高压 400 mmx100 mmø-400 mmx100 mmø-200 mmx100 mmø</td><td>66</td><td>150</td></tr></table></div>
 <h3>桥架位于水管下方（0）</h3><p class='sub'>无。</p>
@@ -138,89 +138,87 @@ th,td{border:1px solid #e5e7eb;padding:4px 6px;text-align:left} th{background:#f
 <line x1="913.3" y1="388.0" x2="913.3" y2="49.4" stroke="#6b7280" stroke-width="1.5"/>
 <text x="110.7" y="382.0" fill="#92400e">46 根横穿管线从管线束上方通过（≤ 250 mm），4 根大尺寸横穿按节点处理</text>
 <ellipse cx="-124.7" cy="251.2" rx="5.5" ry="3.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="244.1" cy="324.8" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(247.1,318.4) rotate(-90)" font-size="9.5" fill="#111827">ZP DN50</text>
+<ellipse cx="302.8" cy="316.2" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(305.8,309.8) rotate(-90)" font-size="9.5" fill="#111827">ZP DN50</text>
 <ellipse cx="889.1" cy="251.2" rx="15.4" ry="9.6" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="782.0" cy="318.7" rx="15.4" ry="9.6" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(785.0,306.1) rotate(-90)" font-size="9.5" fill="#111827">ZP DN150</text>
+<ellipse cx="372.8" cy="310.0" rx="15.4" ry="9.6" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(375.8,297.4) rotate(-90)" font-size="9.5" fill="#111827">ZP DN150</text>
 <ellipse cx="2.7" cy="256.9" rx="15.4" ry="9.6" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="201.2" cy="318.7" rx="15.4" ry="9.6" fill="#e0342b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(204.2,306.1) rotate(-90)" font-size="9.5" fill="#111827">X DN150</text>
+<ellipse cx="336.5" cy="310.0" rx="15.4" ry="9.6" fill="#e0342b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(339.5,297.4) rotate(-90)" font-size="9.5" fill="#111827">X DN150</text>
 <rect x="119.7" y="285.4" width="73.3" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="419.4" y="316.9" width="73.3" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(459.0,313.9) rotate(-90)" font-size="9.5" fill="#111827">400×100</text>
+<rect x="839.6" y="308.2" width="73.3" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(879.3,305.2) rotate(-90)" font-size="9.5" fill="#111827">400×100</text>
 <rect x="274.3" y="285.4" width="18.3" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="465.9" y="245.5" width="18.3" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(478.1,242.5) rotate(-90)" font-size="9.5" fill="#111827">100×100</text>
+<rect x="106.6" y="308.2" width="18.3" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(118.8,305.2) rotate(-90)" font-size="9.5" fill="#111827">100×100</text>
 <rect x="228.5" y="274.0" width="110.0" height="22.8" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="586.9" y="305.5" width="110.0" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(644.9,302.5) rotate(-90)" font-size="9.5" fill="#111827">600×200</text>
+<rect x="724.1" y="296.8" width="110.0" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(782.1,293.8) rotate(-90)" font-size="9.5" fill="#111827">600×200</text>
 <rect x="409.2" y="285.4" width="55.0" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="641.9" y="245.5" width="55.0" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(672.4,242.5) rotate(-90)" font-size="9.5" fill="#111827">300×100</text>
+<rect x="466.1" y="308.2" width="55.0" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(496.6,305.2) rotate(-90)" font-size="9.5" fill="#111827">300×100</text>
 <rect x="381.7" y="285.4" width="110.0" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="260.6" y="316.9" width="110.0" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(318.6,313.9) rotate(-90)" font-size="9.5" fill="#111827">600×100</text>
+<rect x="130.4" y="308.2" width="110.0" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(188.4,305.2) rotate(-90)" font-size="9.5" fill="#111827">600×100</text>
 <rect x="487.9" y="279.7" width="73.3" height="17.1" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="563.1" y="239.8" width="73.3" height="17.1" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(602.8,236.8) rotate(-90)" font-size="9.5" fill="#111827">400×150</text>
+<rect x="574.1" y="302.5" width="73.3" height="17.1" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(613.8,299.5) rotate(-90)" font-size="9.5" fill="#111827">400×150</text>
 <rect x="519.3" y="274.0" width="36.7" height="22.8" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="544.8" y="305.5" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(566.1,302.5) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
+<rect x="500.8" y="296.8" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(522.1,293.8) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
 <rect x="625.8" y="274.0" width="36.7" height="22.8" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="702.4" y="305.5" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(723.8,302.5) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
+<rect x="585.1" y="296.8" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(606.4,293.8) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
 <rect x="656.6" y="285.4" width="36.7" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="493.4" y="245.5" width="36.7" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(514.8,242.5) rotate(-90)" font-size="9.5" fill="#111827">200×100</text>
+<rect x="249.6" y="308.2" width="36.7" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(270.9,305.2) rotate(-90)" font-size="9.5" fill="#111827">200×100</text>
 <rect x="638.2" y="285.4" width="73.3" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="835.2" y="268.3" width="73.3" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(874.9,265.3) rotate(-90)" font-size="9.5" fill="#111827">400×100</text>
+<rect x="733.2" y="268.3" width="73.3" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(772.9,265.3) rotate(-90)" font-size="9.5" fill="#111827">400×100</text>
 <rect x="710.0" y="274.0" width="36.7" height="22.8" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="376.1" y="305.5" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(397.4,302.5) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
+<rect x="458.6" y="296.8" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(479.9,293.8) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
 <rect x="777.6" y="285.4" width="18.3" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="535.6" y="245.5" width="18.3" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(547.8,242.5) rotate(-90)" font-size="9.5" fill="#111827">100×100</text>
+<rect x="546.6" y="308.2" width="18.3" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(558.8,305.2) rotate(-90)" font-size="9.5" fill="#111827">100×100</text>
 <rect x="768.4" y="285.4" width="36.7" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="793.0" y="268.3" width="36.7" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(814.4,265.3) rotate(-90)" font-size="9.5" fill="#111827">200×100</text>
+<rect x="812.1" y="268.3" width="36.7" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(833.4,265.3) rotate(-90)" font-size="9.5" fill="#111827">200×100</text>
 <rect x="835.0" y="274.0" width="36.7" height="22.8" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="498.2" y="305.5" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(519.5,302.5) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
+<rect x="542.9" y="296.8" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(564.3,293.8) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
 <ellipse cx="-159.1" cy="296.8" rx="5.5" ry="3.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="808.4" cy="324.8" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(811.4,318.4) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN50</text>
+<ellipse cx="273.4" cy="316.2" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(276.4,309.8) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN50</text>
 <ellipse cx="262.5" cy="296.8" rx="5.5" ry="3.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="227.6" cy="324.8" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(230.6,318.4) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN50</text>
+<ellipse cx="654.8" cy="316.2" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(657.8,309.8) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN50</text>
 <ellipse cx="280.8" cy="296.8" rx="5.5" ry="3.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="754.1" cy="324.8" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(757.1,318.4) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN50</text>
+<ellipse cx="157.9" cy="316.2" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(160.9,309.8) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN50</text>
 <ellipse cx="574.2" cy="296.8" rx="9.2" ry="5.7" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="128.2" cy="322.6" rx="9.2" ry="5.7" fill="#16a34a" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(131.2,313.9) rotate(-90)" font-size="9.5" fill="#111827">JZ2 DN50</text>
+<ellipse cx="306.4" cy="313.9" rx="9.2" ry="5.7" fill="#16a34a" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(309.4,305.2) rotate(-90)" font-size="9.5" fill="#111827">JZ2 DN50</text>
 <ellipse cx="500.8" cy="296.8" rx="15.1" ry="9.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="818.0" cy="318.9" rx="15.1" ry="9.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(821.0,306.5) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN150</text>
+<ellipse cx="336.1" cy="310.2" rx="15.1" ry="9.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(339.1,297.8) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN150</text>
 <ellipse cx="180.8" cy="296.8" rx="15.4" ry="9.6" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="201.2" cy="318.7" rx="15.4" ry="9.6" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(204.2,306.1) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN150</text>
+<ellipse cx="681.2" cy="310.0" rx="15.4" ry="9.6" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(684.2,297.4) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN150</text>
 <ellipse cx="322.2" cy="296.8" rx="15.4" ry="9.6" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="122.0" cy="318.7" rx="15.4" ry="9.6" fill="#be185d" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(125.0,306.1) rotate(-90)" font-size="9.5" fill="#111827">XW DN150</text>
+<ellipse cx="329.2" cy="310.0" rx="15.4" ry="9.6" fill="#be185d" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(332.2,297.4) rotate(-90)" font-size="9.5" fill="#111827">XW DN150</text>
 <ellipse cx="135.2" cy="296.8" rx="18.8" ry="11.7" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="161.6" cy="316.6" rx="18.8" ry="11.7" fill="#16a34a" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(164.6,301.9) rotate(-90)" font-size="9.5" fill="#111827">J0 DN150</text>
+<ellipse cx="412.4" cy="307.9" rx="18.8" ry="11.7" fill="#16a34a" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(415.4,293.2) rotate(-90)" font-size="9.5" fill="#111827">J0 DN150</text>
 <ellipse cx="181.1" cy="296.8" rx="18.8" ry="11.7" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="724.4" cy="316.6" rx="18.8" ry="11.7" fill="#16a34a" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(727.4,301.9) rotate(-90)" font-size="9.5" fill="#111827">J2 DN150</text>
-<line x1="456.8" y1="259.9" x2="706.1" y2="259.9" stroke="#374151" stroke-width="3"/>
-<text x="454.9" y="263.9" text-anchor="end" fill="#374151">第1层 底 +2.95</text>
-<line x1="783.9" y1="282.7" x2="917.7" y2="282.7" stroke="#374151" stroke-width="3"/>
-<text x="782.0" y="286.7" text-anchor="end" fill="#374151">第2层 底 +2.75</text>
-<line x1="97.4" y1="331.3" x2="842.2" y2="331.3" stroke="#374151" stroke-width="3"/>
-<text x="95.6" y="335.3" text-anchor="end" fill="#374151">第3层 底 +2.32</text>
+<ellipse cx="187.6" cy="307.9" rx="18.8" ry="11.7" fill="#16a34a" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(190.6,293.2) rotate(-90)" font-size="9.5" fill="#111827">J2 DN150</text>
+<line x1="724.1" y1="282.7" x2="857.9" y2="282.7" stroke="#374151" stroke-width="3"/>
+<text x="722.2" y="286.7" text-anchor="end" fill="#374151">第1层 底 +2.75</text>
+<line x1="97.4" y1="322.6" x2="922.1" y2="322.6" stroke="#374151" stroke-width="3"/>
+<text x="95.6" y="326.6" text-anchor="end" fill="#374151">第2层 底 +2.40</text>
 <line x1="70" y1="388" x2="950" y2="388" stroke="#d1d5db"/>
 <text x="101.5" y="402" text-anchor="middle" fill="#9ca3af" font-size="9">1.6</text>
 <text x="193.1" y="402" text-anchor="middle" fill="#9ca3af" font-size="9">2.1</text>
@@ -257,89 +255,87 @@ th,td{border:1px solid #e5e7eb;padding:4px 6px;text-align:left} th{background:#f
 <line x1="913.3" y1="388.0" x2="913.3" y2="49.4" stroke="#6b7280" stroke-width="1.5"/>
 <text x="110.7" y="382.0" fill="#92400e">46 根横穿管线从管线束上方通过（≤ 250 mm），4 根大尺寸横穿按节点处理</text>
 <ellipse cx="-124.7" cy="251.2" rx="5.5" ry="3.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="244.3" cy="327.6" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(247.3,321.2) rotate(-90)" font-size="9.5" fill="#111827">ZP DN50</text>
+<ellipse cx="212.9" cy="327.6" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(215.9,321.2) rotate(-90)" font-size="9.5" fill="#111827">ZP DN50</text>
 <ellipse cx="889.1" cy="251.2" rx="15.4" ry="9.6" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="786.8" cy="321.4" rx="15.4" ry="9.6" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(789.8,308.8) rotate(-90)" font-size="9.5" fill="#111827">ZP DN150</text>
+<ellipse cx="897.9" cy="321.4" rx="15.4" ry="9.6" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(900.9,308.8) rotate(-90)" font-size="9.5" fill="#111827">ZP DN150</text>
 <ellipse cx="2.7" cy="256.9" rx="15.4" ry="9.6" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="122.0" cy="321.4" rx="15.4" ry="9.6" fill="#e0342b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(125.0,308.8) rotate(-90)" font-size="9.5" fill="#111827">X DN150</text>
+<ellipse cx="338.5" cy="321.4" rx="15.4" ry="9.6" fill="#e0342b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(341.5,308.8) rotate(-90)" font-size="9.5" fill="#111827">X DN150</text>
 <rect x="119.7" y="285.4" width="73.3" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="460.6" y="319.6" width="73.3" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(500.3,316.6) rotate(-90)" font-size="9.5" fill="#111827">400×100</text>
+<rect x="106.6" y="319.6" width="73.3" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(146.3,316.6) rotate(-90)" font-size="9.5" fill="#111827">400×100</text>
 <rect x="274.3" y="285.4" width="18.3" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="502.8" y="245.6" width="18.3" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(515.0,242.6) rotate(-90)" font-size="9.5" fill="#111827">100×100</text>
+<rect x="388.2" y="319.6" width="18.3" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(400.4,316.6) rotate(-90)" font-size="9.5" fill="#111827">100×100</text>
 <rect x="228.5" y="274.0" width="110.0" height="22.8" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="633.7" y="308.2" width="110.0" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(691.7,305.2) rotate(-90)" font-size="9.5" fill="#111827">600×200</text>
+<rect x="378.1" y="308.2" width="110.0" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(436.1,305.2) rotate(-90)" font-size="9.5" fill="#111827">600×200</text>
 <rect x="409.2" y="285.4" width="55.0" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="600.5" y="245.6" width="55.0" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(631.0,242.6) rotate(-90)" font-size="9.5" fill="#111827">300×100</text>
+<rect x="418.5" y="319.6" width="55.0" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(449.0,316.6) rotate(-90)" font-size="9.5" fill="#111827">300×100</text>
 <rect x="381.7" y="285.4" width="110.0" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="303.0" y="319.6" width="110.0" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(361.0,316.6) rotate(-90)" font-size="9.5" fill="#111827">600×100</text>
+<rect x="493.6" y="319.6" width="110.0" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(551.6,316.6) rotate(-90)" font-size="9.5" fill="#111827">600×100</text>
 <rect x="487.9" y="279.7" width="73.3" height="17.1" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="661.0" y="239.9" width="73.3" height="17.1" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(700.7,236.9) rotate(-90)" font-size="9.5" fill="#111827">400×150</text>
+<rect x="488.1" y="313.9" width="73.3" height="17.1" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(527.8,310.9) rotate(-90)" font-size="9.5" fill="#111827">400×150</text>
 <rect x="519.3" y="274.0" width="36.7" height="22.8" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="581.6" y="308.2" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(603.0,305.2) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
+<rect x="710.1" y="308.2" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(731.5,305.2) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
 <rect x="625.8" y="274.0" width="36.7" height="22.8" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="418.5" y="308.2" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(439.8,305.2) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
+<rect x="651.3" y="308.2" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(672.6,305.2) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
 <rect x="656.6" y="285.4" width="36.7" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="530.3" y="245.6" width="36.7" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(551.6,242.6) rotate(-90)" font-size="9.5" fill="#111827">200×100</text>
+<rect x="656.6" y="319.6" width="36.7" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(677.9,316.6) rotate(-90)" font-size="9.5" fill="#111827">200×100</text>
 <rect x="638.2" y="285.4" width="73.3" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="797.8" y="271.0" width="73.3" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(837.5,268.0) rotate(-90)" font-size="9.5" fill="#111827">400×100</text>
+<rect x="798.2" y="319.6" width="73.3" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(837.8,316.6) rotate(-90)" font-size="9.5" fill="#111827">400×100</text>
 <rect x="710.0" y="274.0" width="36.7" height="22.8" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="260.8" y="308.2" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(282.1,305.2) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
+<rect x="609.1" y="308.2" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(630.5,305.2) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
 <rect x="777.6" y="285.4" width="18.3" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="572.5" y="245.6" width="18.3" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(584.6,242.6) rotate(-90)" font-size="9.5" fill="#111827">100×100</text>
+<rect x="774.3" y="319.6" width="18.3" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(786.5,316.6) rotate(-90)" font-size="9.5" fill="#111827">100×100</text>
 <rect x="768.4" y="285.4" width="36.7" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="876.6" y="271.0" width="36.7" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(898.0,268.0) rotate(-90)" font-size="9.5" fill="#111827">200×100</text>
+<rect x="768.5" y="279.7" width="36.7" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(789.8,276.7) rotate(-90)" font-size="9.5" fill="#111827">200×100</text>
 <rect x="835.0" y="274.0" width="36.7" height="22.8" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="539.5" y="308.2" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(560.8,305.2) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
+<rect x="752.3" y="308.2" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(773.7,305.2) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
 <ellipse cx="-159.1" cy="296.8" rx="5.5" ry="3.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="813.2" cy="327.6" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(816.2,321.2) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN50</text>
+<ellipse cx="212.9" cy="327.6" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(215.9,321.2) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN50</text>
 <ellipse cx="262.5" cy="296.8" rx="5.5" ry="3.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="227.8" cy="327.6" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(230.8,321.2) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN50</text>
+<ellipse cx="229.4" cy="327.6" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(232.4,321.2) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN50</text>
 <ellipse cx="280.8" cy="296.8" rx="5.5" ry="3.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="609.9" cy="327.6" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(612.9,321.2) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN50</text>
+<ellipse cx="255.8" cy="327.6" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(258.8,321.2) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN50</text>
 <ellipse cx="574.2" cy="296.8" rx="9.2" ry="5.7" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="630.0" cy="325.3" rx="9.2" ry="5.7" fill="#16a34a" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(633.0,316.6) rotate(-90)" font-size="9.5" fill="#111827">JZ2 DN50</text>
+<ellipse cx="713.4" cy="325.3" rx="9.2" ry="5.7" fill="#16a34a" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(716.4,316.6) rotate(-90)" font-size="9.5" fill="#111827">JZ2 DN50</text>
 <ellipse cx="500.8" cy="296.8" rx="15.1" ry="9.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="659.7" cy="321.6" rx="15.1" ry="9.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(662.7,309.2) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN150</text>
+<ellipse cx="604.0" cy="321.6" rx="15.1" ry="9.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(607.0,309.2) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN150</text>
 <ellipse cx="180.8" cy="296.8" rx="15.4" ry="9.6" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="201.2" cy="321.4" rx="15.4" ry="9.6" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(204.2,308.8) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN150</text>
+<ellipse cx="255.8" cy="321.4" rx="15.4" ry="9.6" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(258.8,308.8) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN150</text>
 <ellipse cx="322.2" cy="296.8" rx="15.4" ry="9.6" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="122.0" cy="321.4" rx="15.4" ry="9.6" fill="#be185d" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(125.0,308.8) rotate(-90)" font-size="9.5" fill="#111827">XW DN150</text>
+<ellipse cx="335.0" cy="321.4" rx="15.4" ry="9.6" fill="#be185d" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(338.0,308.8) rotate(-90)" font-size="9.5" fill="#111827">XW DN150</text>
 <ellipse cx="135.2" cy="296.8" rx="18.8" ry="11.7" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="161.6" cy="319.3" rx="18.8" ry="11.7" fill="#16a34a" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(164.6,304.6) rotate(-90)" font-size="9.5" fill="#111827">J0 DN150</text>
+<ellipse cx="295.4" cy="319.3" rx="18.8" ry="11.7" fill="#16a34a" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(298.4,304.6) rotate(-90)" font-size="9.5" fill="#111827">J0 DN150</text>
 <ellipse cx="181.1" cy="296.8" rx="18.8" ry="11.7" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="580.2" cy="319.3" rx="18.8" ry="11.7" fill="#16a34a" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(583.2,304.6) rotate(-90)" font-size="9.5" fill="#111827">J2 DN150</text>
-<line x1="493.6" y1="260.0" x2="743.5" y2="260.0" stroke="#374151" stroke-width="3"/>
-<text x="491.8" y="264.0" text-anchor="end" fill="#374151">第1层 底 +2.95</text>
-<line x1="788.6" y1="285.4" x2="922.5" y2="285.4" stroke="#374151" stroke-width="3"/>
-<text x="786.8" y="289.4" text-anchor="end" fill="#374151">第2层 底 +2.73</text>
-<line x1="97.4" y1="334.0" x2="827.9" y2="334.0" stroke="#374151" stroke-width="3"/>
-<text x="95.6" y="338.0" text-anchor="end" fill="#374151">第3层 底 +2.30</text>
+<ellipse cx="226.1" cy="319.3" rx="18.8" ry="11.7" fill="#16a34a" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(229.1,304.6) rotate(-90)" font-size="9.5" fill="#111827">J2 DN150</text>
+<line x1="759.3" y1="294.1" x2="814.3" y2="294.1" stroke="#374151" stroke-width="3"/>
+<text x="757.5" y="298.1" text-anchor="end" fill="#374151">第1层 底 +2.65</text>
+<line x1="97.4" y1="334.0" x2="922.5" y2="334.0" stroke="#374151" stroke-width="3"/>
+<text x="95.6" y="338.0" text-anchor="end" fill="#374151">第2层 底 +2.30</text>
 <line x1="70" y1="388" x2="950" y2="388" stroke="#d1d5db"/>
 <text x="101.5" y="402" text-anchor="middle" fill="#9ca3af" font-size="9">1.6</text>
 <text x="193.1" y="402" text-anchor="middle" fill="#9ca3af" font-size="9">2.1</text>
@@ -376,89 +372,85 @@ th,td{border:1px solid #e5e7eb;padding:4px 6px;text-align:left} th{background:#f
 <line x1="913.3" y1="388.0" x2="913.3" y2="49.4" stroke="#6b7280" stroke-width="1.5"/>
 <text x="110.7" y="382.0" fill="#92400e">46 根横穿管线从管线束上方通过（≤ 250 mm），4 根大尺寸横穿按节点处理</text>
 <ellipse cx="-124.7" cy="251.2" rx="5.5" ry="3.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="244.1" cy="327.6" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(247.1,321.2) rotate(-90)" font-size="9.5" fill="#111827">ZP DN50</text>
+<ellipse cx="113.2" cy="327.6" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(116.2,321.2) rotate(-90)" font-size="9.5" fill="#111827">ZP DN50</text>
 <ellipse cx="889.1" cy="251.2" rx="15.4" ry="9.6" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="786.8" cy="321.4" rx="15.4" ry="9.6" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(789.8,308.8) rotate(-90)" font-size="9.5" fill="#111827">ZP DN150</text>
+<ellipse cx="476.4" cy="321.4" rx="15.4" ry="9.6" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(479.4,308.8) rotate(-90)" font-size="9.5" fill="#111827">ZP DN150</text>
 <ellipse cx="2.7" cy="256.9" rx="15.4" ry="9.6" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="122.0" cy="321.4" rx="15.4" ry="9.6" fill="#e0342b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(125.0,308.8) rotate(-90)" font-size="9.5" fill="#111827">X DN150</text>
+<ellipse cx="424.3" cy="321.4" rx="15.4" ry="9.6" fill="#e0342b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(427.3,308.8) rotate(-90)" font-size="9.5" fill="#111827">X DN150</text>
 <rect x="119.7" y="285.4" width="73.3" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="460.4" y="319.6" width="73.3" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(500.1,316.6) rotate(-90)" font-size="9.5" fill="#111827">400×100</text>
+<rect x="224.9" y="319.6" width="73.3" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(264.5,316.6) rotate(-90)" font-size="9.5" fill="#111827">400×100</text>
 <rect x="274.3" y="285.4" width="18.3" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="552.1" y="242.1" width="18.3" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(564.3,239.1) rotate(-90)" font-size="9.5" fill="#111827">100×100</text>
+<rect x="303.7" y="319.6" width="18.3" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(315.9,316.6) rotate(-90)" font-size="9.5" fill="#111827">100×100</text>
 <rect x="228.5" y="274.0" width="110.0" height="22.8" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="633.9" y="308.2" width="110.0" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(691.9,305.2) rotate(-90)" font-size="9.5" fill="#111827">600×200</text>
+<rect x="803.1" y="308.2" width="110.0" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(861.1,305.2) rotate(-90)" font-size="9.5" fill="#111827">600×200</text>
 <rect x="409.2" y="285.4" width="55.0" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="607.1" y="242.1" width="55.0" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(637.6,239.1) rotate(-90)" font-size="9.5" fill="#111827">300×100</text>
+<rect x="749.9" y="319.6" width="55.0" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(780.4,316.6) rotate(-90)" font-size="9.5" fill="#111827">300×100</text>
 <rect x="381.7" y="285.4" width="110.0" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="260.6" y="319.6" width="110.0" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(318.6,316.6) rotate(-90)" font-size="9.5" fill="#111827">600×100</text>
+<rect x="109.4" y="319.6" width="110.0" height="11.4" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(167.4,316.6) rotate(-90)" font-size="9.5" fill="#111827">600×100</text>
 <rect x="487.9" y="279.7" width="73.3" height="17.1" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="667.6" y="236.4" width="73.3" height="17.1" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(707.3,233.4) rotate(-90)" font-size="9.5" fill="#111827">400×150</text>
+<rect x="146.0" y="313.9" width="73.3" height="17.1" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(185.7,310.9) rotate(-90)" font-size="9.5" fill="#111827">400×150</text>
 <rect x="519.3" y="274.0" width="36.7" height="22.8" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="591.7" y="308.2" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(613.0,305.2) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
+<rect x="760.9" y="308.2" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(782.3,305.2) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
 <rect x="625.8" y="274.0" width="36.7" height="22.8" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="418.3" y="308.2" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(439.6,305.2) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
+<rect x="676.6" y="308.2" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(697.9,305.2) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
 <rect x="656.6" y="285.4" width="36.7" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="506.3" y="242.1" width="36.7" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(527.6,239.1) rotate(-90)" font-size="9.5" fill="#111827">200×100</text>
+<rect x="638.1" y="319.6" width="36.7" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(659.4,316.6) rotate(-90)" font-size="9.5" fill="#111827">200×100</text>
 <rect x="638.2" y="285.4" width="73.3" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="797.8" y="271.0" width="73.3" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(837.5,268.0) rotate(-90)" font-size="9.5" fill="#111827">400×100</text>
+<rect x="307.4" y="319.6" width="73.3" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(347.0,316.6) rotate(-90)" font-size="9.5" fill="#111827">400×100</text>
 <rect x="710.0" y="274.0" width="36.7" height="22.8" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="376.1" y="308.2" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(397.4,305.2) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
+<rect x="634.4" y="308.2" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(655.8,305.2) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
 <rect x="777.6" y="285.4" width="18.3" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="579.6" y="242.1" width="18.3" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(591.8,239.1) rotate(-90)" font-size="9.5" fill="#111827">100×100</text>
+<rect x="722.4" y="319.6" width="18.3" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(734.6,316.6) rotate(-90)" font-size="9.5" fill="#111827">100×100</text>
 <rect x="768.4" y="285.4" width="36.7" height="11.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="876.6" y="271.0" width="36.7" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(898.0,268.0) rotate(-90)" font-size="9.5" fill="#111827">200×100</text>
+<rect x="588.6" y="319.6" width="36.7" height="11.4" fill="#14b8a6" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(609.9,316.6) rotate(-90)" font-size="9.5" fill="#111827">200×100</text>
 <rect x="835.0" y="274.0" width="36.7" height="22.8" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<rect x="549.5" y="308.2" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(570.9,305.2) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
+<rect x="718.8" y="308.2" width="36.7" height="22.8" fill="#2563eb" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(740.1,305.2) rotate(-90)" font-size="9.5" fill="#111827">200×200</text>
 <ellipse cx="-159.1" cy="296.8" rx="5.5" ry="3.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="813.2" cy="327.6" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(816.2,321.2) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN50</text>
+<ellipse cx="433.5" cy="327.6" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(436.5,321.2) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN50</text>
 <ellipse cx="262.5" cy="296.8" rx="5.5" ry="3.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="191.3" cy="327.6" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(194.3,321.2) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN50</text>
+<ellipse cx="450.0" cy="327.6" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(453.0,321.2) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN50</text>
 <ellipse cx="280.8" cy="296.8" rx="5.5" ry="3.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="566.8" cy="327.6" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(569.8,321.2) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN50</text>
+<ellipse cx="355.0" cy="327.6" rx="5.5" ry="3.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(358.0,321.2) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN50</text>
 <ellipse cx="574.2" cy="296.8" rx="9.2" ry="5.7" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="321.1" cy="325.3" rx="9.2" ry="5.7" fill="#16a34a" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(324.1,316.6) rotate(-90)" font-size="9.5" fill="#111827">JZ2 DN50</text>
+<ellipse cx="841.6" cy="325.3" rx="9.2" ry="5.7" fill="#16a34a" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(844.6,316.6) rotate(-90)" font-size="9.5" fill="#111827">JZ2 DN50</text>
 <ellipse cx="500.8" cy="296.8" rx="15.1" ry="9.4" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="592.8" cy="321.6" rx="15.1" ry="9.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(595.8,309.2) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN150</text>
+<ellipse cx="440.5" cy="321.6" rx="15.1" ry="9.4" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(443.5,309.2) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN150</text>
 <ellipse cx="180.8" cy="296.8" rx="15.4" ry="9.6" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="217.7" cy="321.4" rx="15.4" ry="9.6" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(220.7,308.8) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN150</text>
+<ellipse cx="562.2" cy="321.4" rx="15.4" ry="9.6" fill="#f59e0b" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(565.2,308.8) rotate(-90)" font-size="9.5" fill="#111827">ZP1 DN150</text>
 <ellipse cx="322.2" cy="296.8" rx="15.4" ry="9.6" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="122.0" cy="321.4" rx="15.4" ry="9.6" fill="#be185d" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(125.0,308.8) rotate(-90)" font-size="9.5" fill="#111827">XW DN150</text>
+<ellipse cx="407.1" cy="321.4" rx="15.4" ry="9.6" fill="#be185d" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(410.1,308.8) rotate(-90)" font-size="9.5" fill="#111827">XW DN150</text>
 <ellipse cx="135.2" cy="296.8" rx="18.8" ry="11.7" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="161.6" cy="319.3" rx="18.8" ry="11.7" fill="#16a34a" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(164.6,304.6) rotate(-90)" font-size="9.5" fill="#111827">J0 DN150</text>
+<ellipse cx="522.6" cy="319.3" rx="18.8" ry="11.7" fill="#16a34a" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(525.6,304.6) rotate(-90)" font-size="9.5" fill="#111827">J0 DN150</text>
 <ellipse cx="181.1" cy="296.8" rx="18.8" ry="11.7" fill="none" stroke="#9ca3af" stroke-width="0.8" opacity="1.0" stroke-dasharray="3 2"/>
-<ellipse cx="632.2" cy="319.3" rx="18.8" ry="11.7" fill="#16a34a" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
-<text transform="translate(635.2,304.6) rotate(-90)" font-size="9.5" fill="#111827">J2 DN150</text>
-<line x1="497.1" y1="256.5" x2="750.1" y2="256.5" stroke="#374151" stroke-width="3"/>
-<text x="495.3" y="260.5" text-anchor="end" fill="#374151">第1层 底 +2.98</text>
-<line x1="788.6" y1="285.4" x2="922.5" y2="285.4" stroke="#374151" stroke-width="3"/>
-<text x="786.8" y="289.4" text-anchor="end" fill="#374151">第2层 底 +2.73</text>
-<line x1="97.4" y1="334.0" x2="827.9" y2="334.0" stroke="#374151" stroke-width="3"/>
-<text x="95.6" y="338.0" text-anchor="end" fill="#374151">第3层 底 +2.30</text>
+<ellipse cx="384.7" cy="319.3" rx="18.8" ry="11.7" fill="#16a34a" stroke="#111827" stroke-width="0.8" opacity="0.9"/>
+<text transform="translate(387.7,304.6) rotate(-90)" font-size="9.5" fill="#111827">J2 DN150</text>
+<line x1="98.5" y1="334.0" x2="922.3" y2="334.0" stroke="#374151" stroke-width="3"/>
+<text x="96.7" y="338.0" text-anchor="end" fill="#374151">第1层 底 +2.30</text>
 <line x1="70" y1="388" x2="950" y2="388" stroke="#d1d5db"/>
 <text x="101.5" y="402" text-anchor="middle" fill="#9ca3af" font-size="9">1.6</text>
 <text x="193.1" y="402" text-anchor="middle" fill="#9ca3af" font-size="9">2.1</text>
@@ -579,6 +571,6 @@ th,td{border:1px solid #e5e7eb;padding:4px 6px;text-align:left} th{background:#f
 <text x="950" y="422" text-anchor="end" fill="#9ca3af" font-size="9">横向坐标：相对走廊边界（m）；虚线框为原位置</text>
 </svg></div>
 <h2>管线明细</h2><div class="wrap"><table><tr><th>编号</th><th>管线</th><th>系统</th><th>宽×高 mm</th><th>原 v (m)</th>
-<th>原底 (m)</th><th>净高最优</th><th>改动最少</th><th>支吊架最省</th><th>长度 m</th><th>备注</th></tr><tr><td>S01</td><td>ZP DN50</td><td>自动喷水</td><td>60×60</td><td>0.39</td><td>2.97</td><td>L3 / 2.40 / 2.32</td><td>L3 / 2.40 / 2.30</td><td>L3 / 2.40 / 2.30</td><td>3.3</td><td></td></tr><tr><td>S02</td><td>ZP DN150</td><td>自动喷水</td><td>168×168</td><td>5.92</td><td>2.92</td><td>L3 / 5.33 / 2.32</td><td>L3 / 5.36 / 2.30</td><td>L3 / 5.36 / 2.30</td><td>23.4</td><td></td></tr><tr><td>S03</td><td>X DN150</td><td>消火栓</td><td>168×168</td><td>1.08</td><td>2.87</td><td>L3 / 2.17 / 2.32</td><td>L3 / 1.73 / 2.30</td><td>L3 / 1.73 / 2.30</td><td>3.4</td><td></td></tr><tr><td>S04</td><td>400×100</td><td>强电桥架</td><td>400×100</td><td>1.92</td><td>2.60</td><td>L3 / 3.56 / 2.32</td><td>L3 / 3.78 / 2.30</td><td>L3 / 3.78 / 2.30</td><td>34.5</td><td></td></tr><tr><td>S05</td><td>100×100</td><td>强电桥架</td><td>100×100</td><td>2.61</td><td>2.60</td><td>L1 / 3.66 / 2.95</td><td>L1 / 3.86 / 2.95</td><td>L1 / 4.13 / 2.98</td><td>19.0</td><td></td></tr><tr><td>S06</td><td>600×200</td><td>强电桥架</td><td>600×200</td><td>2.61</td><td>2.60</td><td>L3 / 4.57 / 2.32</td><td>L3 / 4.82 / 2.30</td><td>L3 / 4.83 / 2.30</td><td>16.4</td><td></td></tr><tr><td>S07</td><td>300×100</td><td>强电桥架</td><td>300×100</td><td>3.45</td><td>2.60</td><td>L1 / 4.72 / 2.95</td><td>L1 / 4.49 / 2.95</td><td>L1 / 4.53 / 2.98</td><td>17.9</td><td></td></tr><tr><td>S08</td><td>600×100</td><td>强电桥架</td><td>600×100</td><td>3.45</td><td>2.60</td><td>L3 / 2.79 / 2.32</td><td>L3 / 3.02 / 2.30</td><td>L3 / 2.79 / 2.30</td><td>15.7</td><td></td></tr><tr><td>S09</td><td>400×150</td><td>强电桥架</td><td>400×150</td><td>3.93</td><td>2.60</td><td>L1 / 4.34 / 2.95</td><td>L1 / 4.87 / 2.95</td><td>L1 / 4.91 / 2.98</td><td>8.0</td><td></td></tr><tr><td>S10</td><td>200×200</td><td>强电桥架</td><td>200×200</td><td>4.00</td><td>2.60</td><td>L3 / 4.14 / 2.32</td><td>L3 / 4.34 / 2.30</td><td>L3 / 4.40 / 2.30</td><td>16.6</td><td></td></tr><tr><td>S11</td><td>200×200</td><td>强电桥架</td><td>200×200</td><td>4.58</td><td>2.60</td><td>L3 / 5.00 / 2.32</td><td>L3 / 3.45 / 2.30</td><td>L3 / 3.45 / 2.30</td><td>16.2</td><td></td></tr><tr><td>S12</td><td>200×100</td><td>弱电/消防电桥架</td><td>200×100</td><td>4.75</td><td>2.60</td><td>L1 / 3.86 / 2.95</td><td>L1 / 4.06 / 2.95</td><td>L1 / 3.93 / 2.98</td><td>19.3</td><td></td></tr><tr><td>S13</td><td>400×100</td><td>弱电/消防电桥架</td><td>400×100</td><td>4.75</td><td>2.60</td><td>L2 / 5.82 / 2.75</td><td>L2 / 5.62 / 2.73</td><td>L2 / 5.62 / 2.73</td><td>16.7</td><td></td></tr><tr><td>S14</td><td>200×200</td><td>强电桥架</td><td>200×200</td><td>5.04</td><td>2.60</td><td>L3 / 3.22 / 2.32</td><td>L3 / 2.59 / 2.30</td><td>L3 / 3.22 / 2.30</td><td>15.7</td><td></td></tr><tr><td>S15</td><td>100×100</td><td>弱电/消防电桥架</td><td>100×100</td><td>5.36</td><td>2.60</td><td>L1 / 4.04 / 2.95</td><td>L1 / 4.24 / 2.95</td><td>L1 / 4.28 / 2.98</td><td>20.3</td><td></td></tr><tr><td>S16</td><td>200×100</td><td>弱电/消防电桥架</td><td>200×100</td><td>5.36</td><td>2.60</td><td>L2 / 5.49 / 2.75</td><td>L2 / 5.95 / 2.73</td><td>L2 / 5.95 / 2.73</td><td>15.6</td><td></td></tr><tr><td>S17</td><td>200×200</td><td>强电桥架</td><td>200×200</td><td>5.72</td><td>2.60</td><td>L3 / 3.89 / 2.32</td><td>L3 / 4.11 / 2.30</td><td>L3 / 4.17 / 2.30</td><td>15.3</td><td></td></tr><tr><td>S18</td><td>ZP1 DN50</td><td>自动喷水</td><td>60×60</td><td>0.20</td><td>2.57</td><td>L3 / 5.48 / 2.32</td><td>L3 / 5.50 / 2.30</td><td>L3 / 5.50 / 2.30</td><td>13.8</td><td></td></tr><tr><td>S19</td><td>ZP1 DN50</td><td>自动喷水</td><td>60×60</td><td>2.50</td><td>2.57</td><td>L3 / 2.31 / 2.32</td><td>L3 / 2.31 / 2.30</td><td>L3 / 2.11 / 2.30</td><td>10.9</td><td></td></tr><tr><td>S20</td><td>ZP1 DN50</td><td>自动喷水</td><td>60×60</td><td>2.60</td><td>2.57</td><td>L3 / 5.18 / 2.32</td><td>L3 / 4.39 / 2.30</td><td>L3 / 4.16 / 2.30</td><td>4.3</td><td></td></tr><tr><td>S21</td><td>JZ2 DN50</td><td>生活给水</td><td>100×100</td><td>4.20</td><td>2.55</td><td>L3 / 1.77 / 2.32</td><td>L3 / 4.50 / 2.30</td><td>L3 / 2.82 / 2.30</td><td>9.9</td><td></td></tr><tr><td>S22</td><td>ZP1 DN150</td><td>自动喷水</td><td>165×165</td><td>3.80</td><td>2.52</td><td>L3 / 5.53 / 2.32</td><td>L3 / 4.67 / 2.30</td><td>L3 / 4.30 / 2.30</td><td>3.5</td><td></td></tr><tr><td>S23</td><td>ZP1 DN150</td><td>自动喷水</td><td>168×168</td><td>2.05</td><td>2.52</td><td>L3 / 2.17 / 2.32</td><td>L3 / 2.17 / 2.30</td><td>L3 / 2.26 / 2.30</td><td>11.6</td><td></td></tr><tr><td>S24</td><td>XW DN150</td><td>其他消防水</td><td>168×168</td><td>2.83</td><td>2.52</td><td>L3 / 1.73 / 2.32</td><td>L3 / 1.73 / 2.30</td><td>L3 / 1.73 / 2.30</td><td>20.0</td><td></td></tr><tr><td>S25</td><td>J0 DN150</td><td>生活给水</td><td>205×205</td><td>1.81</td><td>2.50</td><td>L3 / 1.95 / 2.32</td><td>L3 / 1.95 / 2.30</td><td>L3 / 1.95 / 2.30</td><td>36.0</td><td></td></tr><tr><td>S26</td><td>J2 DN150</td><td>生活给水</td><td>205×205</td><td>2.06</td><td>2.50</td><td>L3 / 5.02 / 2.32</td><td>L3 / 4.23 / 2.30</td><td>L3 / 4.52 / 2.30</td><td>4.7</td><td></td></tr></table></div>
+<th>原底 (m)</th><th>净高最优</th><th>改动最少</th><th>支吊架最省</th><th>长度 m</th><th>备注</th></tr><tr><td>S01</td><td>ZP DN50</td><td>自动喷水</td><td>60×60</td><td>0.39</td><td>2.97</td><td>L2 / 2.72 / 2.40</td><td>L2 / 2.23 / 2.30</td><td>L1 / 1.69 / 2.30</td><td>3.3</td><td></td></tr><tr><td>S02</td><td>ZP DN150</td><td>自动喷水</td><td>168×168</td><td>5.92</td><td>2.92</td><td>L2 / 3.10 / 2.40</td><td>L2 / 5.97 / 2.30</td><td>L1 / 3.67 / 2.30</td><td>23.4</td><td></td></tr><tr><td>S03</td><td>X DN150</td><td>消火栓</td><td>168×168</td><td>1.08</td><td>2.87</td><td>L2 / 2.90 / 2.40</td><td>L2 / 2.91 / 2.30</td><td>L1 / 3.38 / 2.30</td><td>3.4</td><td></td></tr><tr><td>S04</td><td>400×100</td><td>强电桥架</td><td>400×100</td><td>1.92</td><td>2.60</td><td>L2 / 5.85 / 2.40</td><td>L2 / 1.85 / 2.30</td><td>L1 / 2.49 / 2.30</td><td>34.5</td><td></td></tr><tr><td>S05</td><td>100×100</td><td>强电桥架</td><td>100×100</td><td>2.61</td><td>2.60</td><td>L2 / 1.70 / 2.40</td><td>L2 / 3.24 / 2.30</td><td>L1 / 2.77 / 2.30</td><td>19.0</td><td></td></tr><tr><td>S06</td><td>600×200</td><td>强电桥架</td><td>600×200</td><td>2.61</td><td>2.60</td><td>L2 / 5.32 / 2.40</td><td>L2 / 3.43 / 2.30</td><td>L1 / 5.75 / 2.30</td><td>16.4</td><td></td></tr><tr><td>S07</td><td>300×100</td><td>强电桥架</td><td>300×100</td><td>3.45</td><td>2.60</td><td>L2 / 3.76 / 2.40</td><td>L2 / 3.50 / 2.30</td><td>L1 / 5.31 / 2.30</td><td>17.9</td><td></td></tr><tr><td>S08</td><td>600×100</td><td>强电桥架</td><td>600×100</td><td>3.45</td><td>2.60</td><td>L2 / 2.08 / 2.40</td><td>L2 / 4.06 / 2.30</td><td>L1 / 1.96 / 2.30</td><td>15.7</td><td></td></tr><tr><td>S09</td><td>400×150</td><td>强电桥架</td><td>400×150</td><td>3.93</td><td>2.60</td><td>L2 / 4.40 / 2.40</td><td>L2 / 3.93 / 2.30</td><td>L1 / 2.06 / 2.30</td><td>8.0</td><td></td></tr><tr><td>S10</td><td>200×200</td><td>强电桥架</td><td>200×200</td><td>4.00</td><td>2.60</td><td>L2 / 3.90 / 2.40</td><td>L2 / 5.04 / 2.30</td><td>L1 / 5.32 / 2.30</td><td>16.6</td><td></td></tr><tr><td>S11</td><td>200×200</td><td>强电桥架</td><td>200×200</td><td>4.58</td><td>2.60</td><td>L2 / 4.36 / 2.40</td><td>L2 / 4.72 / 2.30</td><td>L1 / 4.86 / 2.30</td><td>16.2</td><td></td></tr><tr><td>S12</td><td>200×100</td><td>弱电/消防电桥架</td><td>200×100</td><td>4.75</td><td>2.60</td><td>L2 / 2.53 / 2.40</td><td>L2 / 4.75 / 2.30</td><td>L1 / 4.65 / 2.30</td><td>19.3</td><td></td></tr><tr><td>S13</td><td>400×100</td><td>弱电/消防电桥架</td><td>400×100</td><td>4.75</td><td>2.60</td><td>L1 / 5.27 / 2.75</td><td>L2 / 5.62 / 2.30</td><td>L1 / 2.94 / 2.30</td><td>16.7</td><td></td></tr><tr><td>S14</td><td>200×200</td><td>强电桥架</td><td>200×200</td><td>5.04</td><td>2.60</td><td>L2 / 3.67 / 2.40</td><td>L2 / 4.49 / 2.30</td><td>L1 / 4.63 / 2.30</td><td>15.7</td><td></td></tr><tr><td>S15</td><td>100×100</td><td>弱电/消防电桥架</td><td>100×100</td><td>5.36</td><td>2.60</td><td>L2 / 4.10 / 2.40</td><td>L2 / 5.34 / 2.30</td><td>L1 / 5.06 / 2.30</td><td>20.3</td><td></td></tr><tr><td>S16</td><td>200×100</td><td>弱电/消防电桥架</td><td>200×100</td><td>5.36</td><td>2.60</td><td>L1 / 5.60 / 2.75</td><td>L1 / 5.36 / 2.65</td><td>L1 / 4.38 / 2.30</td><td>15.6</td><td></td></tr><tr><td>S17</td><td>200×200</td><td>强电桥架</td><td>200×200</td><td>5.72</td><td>2.60</td><td>L2 / 4.13 / 2.40</td><td>L2 / 5.27 / 2.30</td><td>L1 / 5.09 / 2.30</td><td>15.3</td><td></td></tr><tr><td>S18</td><td>ZP1 DN50</td><td>自动喷水</td><td>60×60</td><td>0.20</td><td>2.57</td><td>L2 / 2.56 / 2.40</td><td>L2 / 2.23 / 2.30</td><td>L1 / 3.43 / 2.30</td><td>13.8</td><td></td></tr><tr><td>S19</td><td>ZP1 DN50</td><td>自动喷水</td><td>60×60</td><td>2.50</td><td>2.57</td><td>L2 / 4.64 / 2.40</td><td>L2 / 2.32 / 2.30</td><td>L1 / 3.52 / 2.30</td><td>10.9</td><td></td></tr><tr><td>S20</td><td>ZP1 DN50</td><td>自动喷水</td><td>60×60</td><td>2.60</td><td>2.57</td><td>L2 / 1.93 / 2.40</td><td>L2 / 2.46 / 2.30</td><td>L1 / 3.00 / 2.30</td><td>4.3</td><td></td></tr><tr><td>S21</td><td>JZ2 DN50</td><td>生活给水</td><td>100×100</td><td>4.20</td><td>2.55</td><td>L2 / 2.74 / 2.40</td><td>L2 / 4.96 / 2.30</td><td>L1 / 5.66 / 2.30</td><td>9.9</td><td></td></tr><tr><td>S22</td><td>ZP1 DN150</td><td>自动喷水</td><td>165×165</td><td>3.80</td><td>2.52</td><td>L2 / 2.90 / 2.40</td><td>L2 / 4.36 / 2.30</td><td>L1 / 3.47 / 2.30</td><td>3.5</td><td></td></tr><tr><td>S23</td><td>ZP1 DN150</td><td>自动喷水</td><td>168×168</td><td>2.05</td><td>2.52</td><td>L2 / 4.78 / 2.40</td><td>L2 / 2.46 / 2.30</td><td>L1 / 4.13 / 2.30</td><td>11.6</td><td></td></tr><tr><td>S24</td><td>XW DN150</td><td>其他消防水</td><td>168×168</td><td>2.83</td><td>2.52</td><td>L2 / 2.86 / 2.40</td><td>L2 / 2.90 / 2.30</td><td>L1 / 3.29 / 2.30</td><td>20.0</td><td></td></tr><tr><td>S25</td><td>J0 DN150</td><td>生活给水</td><td>205×205</td><td>1.81</td><td>2.50</td><td>L2 / 3.32 / 2.40</td><td>L2 / 2.68 / 2.30</td><td>L1 / 3.92 / 2.30</td><td>36.0</td><td></td></tr><tr><td>S26</td><td>J2 DN150</td><td>生活给水</td><td>205×205</td><td>2.06</td><td>2.50</td><td>L2 / 2.09 / 2.40</td><td>L2 / 2.30 / 2.30</td><td>L1 / 3.17 / 2.30</td><td>4.7</td><td></td></tr></table></div>
 <p class="sub">方案列：层号 / 横向位置 v / 底标高（均相对走廊边界和楼面，m）。</p>
 </main></body></html>

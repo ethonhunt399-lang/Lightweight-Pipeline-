@@ -78,8 +78,10 @@ clearance_mm:
 # ---------------------------------------------------------------------------
 headroom:
   floor_level: auto          # auto：取机电构件下方最近的主模型标高
-  min_clear_mm: 2200         # JGJ 100-2015 小型车车道及停车位最小净高 2.2 m
-  confirmed: false
+  min_clear_mm: 2200         # JGJ 100-2015 小型车车道及停车位最小净高 2.2 m；2026-10-01 确认为硬性最低值
+  lane_clear_mm: null        # 车道、车位分开控制（已确认）；控制值与分区待图纸（建筑车位布置）提供，暂按 2200
+  stall_clear_mm: null
+  confirmed: true
   note: 以楼层标高为地面、机电外轮廓（含保温）底为顶计算；综合支吊架横担预留在 R2 加入
 
 # ---------------------------------------------------------------------------
@@ -105,10 +107,19 @@ layout:
   moved_threshold_mm: 20       # 位移小于该值视为未动
   crossing_zone: top           # 横穿走廊的支管走在管线束上方：顶部预留“横穿层”（横穿管最大高度 + 净距）；none 不预留
   crossing_zone_max_mm: 250    # 只为高度不超过该值的横穿管预留；更大的横穿管（大风管等）在节点处局部翻弯，列为节点冲突
-  tray_above_water: hard       # 电上水下：水管（含横穿支管）不得位于桥架正上方；soft 时只作偏好
+  elevation_step_mm: 50        # 2026-10-01 确认：层底标高按 50 mm 一档（相对楼面）
+  tray_top_clearance_mm: 50    # 桥架顶距梁底 / 楼板 / 上层管线。GB 51348 为“不宜小于 0.3 m”，取值待工程师确定
+  tray_water:                  # 2026-10-01 工程师确认：电上水下
+    parallel_over_tray: forbid     # 不允许水管长距离平行覆盖在桥架正上方
+    parallel_max_mm: 500           # 平面上沿桥架方向重叠超过该长度视为平行覆盖
+    crossing_over_tray: allow      # 允许短距离交叉跨越
+    leak_prone_over_tray: forbid   # 桥架正上方避免法兰、阀门、活接、排气阀等易漏节点
+    leak_prone_margin_mm: 100      # 易漏节点按桥架平面外扩该距离判断
+    leak_prone_pattern: "法兰|活接|由任|排气|阀"   # 管件族/类型名；管道附件（阀门等）全部计入
+    confirmed: true
   confirmed: false
   preferences:                 # 软约束权重（越大越优先）
-    trays_above_water: 50      # 电上水下：桥架层位不低于水管
+    trays_above_water: 50      # 电上水下：桥架层位尽量不低于水管（平面不重叠时只作偏好）
     ducts_top: 30              # 大风管优先放在上层
     system_together: 20        # 同一系统尽量同层
     exit_side: 40              # 出线方向：向一侧拐出走廊的管线排在同层该侧

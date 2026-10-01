@@ -78,6 +78,8 @@ class Clearance(_Strict):
 class Headroom(_Strict):
     floor_level: str = "auto"
     min_clear_mm: float
+    lane_clear_mm: float | None = None    # driving lanes (None: min_clear_mm); needs lane / stall zones
+    stall_clear_mm: float | None = None   # parking stalls
     confirmed: bool = False
     note: str | None = None
 
@@ -90,6 +92,17 @@ class LayoutPreferences(_Strict):
     exit_top: int = 30
 
 
+class TrayWater(_Strict):
+    """Electrical above water (project rule, 2026-10-01)."""
+    parallel_over_tray: str = "forbid"     # forbid: water may not run along directly above a tray; soft: preference
+    parallel_max_mm: float = 500           # plan overlap along the tray longer than this counts as running along
+    crossing_over_tray: str = "allow"      # allow: a short crossing over a tray is accepted; forbid
+    leak_prone_over_tray: str = "forbid"   # flanges, valves, unions, air vents not directly above a tray
+    leak_prone_margin_mm: float = 100      # widening of the tray footprint for leak-prone items
+    leak_prone_pattern: str = "法兰|活接|由任|排气|阀"   # family/type names of leak-prone pipe fittings
+    confirmed: bool = False
+
+
 class Layout(_Strict):
     max_layers: int = 4
     support_reserve_mm: float = 100
@@ -98,7 +111,9 @@ class Layout(_Strict):
     moved_threshold_mm: float = 20
     crossing_zone: str = "top"
     crossing_zone_max_mm: float = 250
-    tray_above_water: str = "hard"   # hard: no water run (strand or crossing service) above a tray; soft: preference only
+    tray_water: TrayWater = TrayWater()
+    tray_top_clearance_mm: float = 50     # tray top to beam / slab / the layer above (cable laying space)
+    elevation_step_mm: float = 50         # layer bottoms on a grid relative to the floor (0: free)
     confirmed: bool = False
     preferences: LayoutPreferences = LayoutPreferences()
 

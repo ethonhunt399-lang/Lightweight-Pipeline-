@@ -56,3 +56,29 @@ def test_deterministic():
     a = solve(section(), rules, "changes", seconds=1.0)
     b = solve(section(), rules, "changes", seconds=1.0)
     assert {k: (p.layer, p.v, p.z) for k, p in a.placements.items()} == {k: (p.layer, p.v, p.z) for k, p in b.placements.items()}
+
+
+def test_layer_bottoms_on_grid():
+    rules = load_rules()
+    sec = section()
+    layout = solve(sec, rules, "headroom", seconds=1.0)
+    step = rules.layout.elevation_step_mm
+    for layer in layout.layers:
+        assert (layer["bottom"] - sec.floor_z) % step == 0
+
+
+def test_no_water_running_over_a_tray():
+    # Too narrow for one layer: something must go on a second layer, but never water over a tray.
+    rules = load_rules()
+    sec = section(ceiling=5200.0, width=900.0)
+    layout = solve(sec, rules, "headroom", seconds=1.0)
+    assert layout.status in ("OPTIMAL", "FEASIBLE")
+    for t in sec.strands:
+        if t.domain != "tray":
+            continue
+        for w in sec.strands:
+            if w.group != "water":
+                continue
+            pt, pw = layout.placements[t.id], layout.placements[w.id]
+            over = abs(pt.v - pw.v) < (t.width + w.width) / 2
+            assert not (over and pw.z > pt.z), (t.id, w.id)

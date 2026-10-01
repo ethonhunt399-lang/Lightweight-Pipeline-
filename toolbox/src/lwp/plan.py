@@ -18,7 +18,7 @@ from .package import Package
 from .rules import RuleSet
 from .connect import reconnect
 from .nodes import side_exits
-from .section import Section, overlaps
+from .section import Section, is_leak_prone, overlaps
 from .solver import SCHEMES, Layout
 
 
@@ -193,23 +193,62 @@ def station_profile(package: Package, corridor: Corridor, floor_z: float, step: 
             "median_levels": float(np.median(levels)), "max_levels": max(levels)}
 
 
-def water_over_tray(package: Package, corridor: Corridor, margin: float = 500.0) -> list[tuple[str, str]]:
-    """(water element, tray element) pairs where water runs directly above a tray (plan footprints overlap)."""
+def water_over_tray(package: Package, corridor: Corridor, rules: RuleSet | None = None,
+                    margin: float = 500.0) -> dict:
+    """Water over trays in the corridor (plan footprints overlap, water above).
+
+    parallel: water elements running along over a tray (overlap along the tray longer than the limit);
+    crossing: short crossings (allowed by the project rule); leak: leak-prone items over a tray.
+    """
+    tw = rules.layout.tray_water if rules is not None else None
+    limit = tw.parallel_max_mm if tw else 500.0
+    pad = tw.leak_prone_margin_mm if tw else 100.0
+    pattern = tw.leak_prone_pattern if tw else ""
     trays, water = [], []
     for e in package.mep():
         if e.solid is None or not in_corridor(e.solid.center, corridor, margin):
             continue
         if e.domain == "tray":
-            trays.append((e.key, *e.solid.aabb()))
+            lo, hi = e.solid.aabb()
+            trays.append((e.key, lo, hi, _plan_dir(e)))
         elif e.group == "water":
-            water.append((e.key, *e.solid.aabb()))
-    out = []
-    for tk, tl, th in trays:
-        for wk, wl, wh in water:
-            if (wl[0] < th[0] - 5 and tl[0] < wh[0] - 5 and wl[1] < th[1] - 5 and tl[1] < wh[1] - 5
-                    and wl[2] >= th[2] - 1):
-                out.append((wk, tk))
-    return out
+            water.append((e, *e.solid.aabb()))
+    parallel, crossing, leak = set(), set(), set()
+    for tk, tl, th, t_dir in trays:
+        for w, wl, wh in water:
+            if wl[2] < th[2] - 1:
+                continue
+            leaky = is_leak_prone(w, pattern)
+            p = pad if leaky else -5.0
+            ox = min(wh[0], th[0] + p) - max(wl[0], tl[0] - p)
+            oy = min(wh[1], th[1] + p) - max(wl[1], tl[1] - p)
+            if ox <= 0 or oy <= 0:
+                continue
+            if leaky:
+                leak.add(w.key)
+            else:
+                # Running along: the overlap along the tray is long and the water run is not across it.
+                w_dir = _plan_dir(w)
+                across = t_dir is not None and w_dir is not None and abs(float(np.dot(t_dir, w_dir))) < 0.5
+                if t_dir is not None:
+                    length = ox if abs(t_dir[0]) >= abs(t_dir[1]) else oy
+                else:
+                    length = min(ox, oy)          # tray fitting: both directions must be long
+                if length > limit and not across:
+                    parallel.add(w.key)
+                else:
+                    crossing.add(w.key)
+                continue
+    return {"parallel": parallel, "crossing": crossing - parallel, "leak": leak}
+
+
+def _plan_dir(e) -> np.ndarray | None:
+    r = e.record
+    if e.origin != "mep_curve" or not r.get("start") or not r.get("end"):
+        return None
+    d = (np.array(r["end"]) - np.array(r["start"]))[:2]
+    n = float(np.linalg.norm(d))
+    return d / n if n > 1e-6 else None
 
 
 NODE_EXIT = "出线引出"            # a strand's tee/elbow leg crossing a neighbour: rise-and-cross node (N2)
@@ -265,7 +304,7 @@ def evaluate(before: Package, planned: dict[str, Package], gold: Package | None,
             "nodes": nodes,
             "clearance": sum(c.type == CLEARANCE for c in conflicts),
             "hard_structure": sum(not (pkg.elements[c.a].is_mep and pkg.elements[c.b].is_mep) for c in hard),
-            "water_over_tray": len({w for w, _ in water_over_tray(pkg, sec.corridor)}),
+            **{f"water_{k}_tray": len(v) for k, v in water_over_tray(pkg, sec.corridor, rules).items()},
             **station_profile(pkg, sec.corridor, sec.floor_z),
         }
     return rows
