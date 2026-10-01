@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import time
 from html import escape
 from pathlib import Path
@@ -39,6 +40,31 @@ def cmd_corridors(args) -> int:
     return 0
 
 
+def cmd_drawings(args) -> int:
+    from . import drawings
+    rules = load_rules(args.rules)
+    package = load_package(args.package, rules, with_meshes=False)
+    grids = [(g.name, g.start, g.end) for g in package.grids]
+    out: dict = {"package": str(args.package)}
+    if args.plan:
+        plan = drawings.extract_plan(args.plan, grids)
+        out.update(plan)
+        al = plan["alignment"]["matched"]
+        print(f"对齐：轴网 {al['x'][0]}/{al['x'][1]} + {al['y'][0]}/{al['y'][1]} 根匹配，旋转 {al['angle_deg']}°")
+        print(f"车位 {len(plan['stalls'])}，车道线 {len(plan['lanes'])}，人防墙线 {len(plan['rf_walls'])}，"
+              f"人防标注 {len(plan['rf_text'])}，防火分区线 {len(plan['fire_zones'])}")
+    texts = []
+    for path in args.notes:
+        texts += drawings.note_texts(path)
+    if texts:
+        out["design_rules"] = drawings.design_rules(texts)
+        for k, v in out["design_rules"].items():
+            print(f"{k}：{len(v)} 段")
+    drawings.write(out, Path(args.out))
+    print(f"已写入 {args.out}")
+    return 0
+
+
 def _corridor(arg: str, package: Package) -> Corridor:
     if Path(arg).exists():
         return load_corridor(arg)
@@ -58,6 +84,14 @@ def cmd_solve(args) -> int:
     out.mkdir(parents=True, exist_ok=True)
 
     sec = extract(package, corridor, rules)
+    if getattr(args, "drawings", None):
+        from .drawings import ParkingZones, corridor_bands
+        plan = json.loads(Path(args.drawings).read_text(encoding="utf-8"))
+        sec.bands = corridor_bands(ParkingZones(plan), corridor)
+        lane = sum(b["v_hi"] - b["v_lo"] for b in sec.bands if b["zone"] == "lane")
+        sec.notes.append(f"图纸分区：断面宽 {(corridor.v1 - corridor.v0) / 1000:.1f} m 中车道上方 {lane / 1000:.1f} m，"
+                         f"其余在车位上方（净高控制：车道 {rules.headroom.lane_clear_mm or rules.headroom.min_clear_mm:.0f}、"
+                         f"车位 {rules.headroom.stall_clear_mm or rules.headroom.min_clear_mm:.0f} mm）")
     print(f"走廊 {corridor.name}：管线 {len(sec.strands)} 条（可移动 {len(sec.movable)}），横穿 {len(sec.crossings)}")
     (out / "section_original.svg").write_text(draw(sec, rules, None, "原模型断面"), encoding="utf-8")
 

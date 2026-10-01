@@ -107,6 +107,14 @@ class _Model:
                 m.AddImplication(self.used[k + 1], self.used[k])
                 m.Add(self.top[k + 1] <= self.bot[k] - self.gap[k])
 
+        # Headroom by zone (drive lane / parking stall, from the drawings).
+        hr = rules.headroom
+        self.zone_clear = {}
+        if sec.bands and "headroom" not in relax:
+            for zone, req in (("lane", hr.lane_clear_mm), ("stall", hr.stall_clear_mm)):
+                if req is not None and req > hr.min_clear_mm:
+                    self.zone_clear[zone] = _i(sec.floor_z + req + lay.support_reserve_mm)
+
         # Assignment.
         self.x = [[m.NewBoolVar(f"x{i}_{k}") for k in range(K)] for i in range(n)]
         self.layer = [m.NewIntVar(0, K - 1, f"layer{i}") for i in range(n)]
@@ -122,6 +130,18 @@ class _Model:
                 m.AddImplication(self.x[i][k], self.used[k])
                 m.Add(self.H[k] >= _i(s.height)).OnlyEnforceIf(self.x[i][k])
                 m.Add(self.z[i] == self.bot[k]).OnlyEnforceIf(self.x[i][k])
+
+        # A strand over a band with a higher required clear height sits above it (or keeps out of the band).
+        for bi, band in enumerate(sec.bands):
+            req = self.zone_clear.get(band["zone"])
+            if req is None:
+                continue
+            for i, s in enumerate(items):
+                o = [m.NewBoolVar(f"zb{bi}_{i}_{x}") for x in range(3)]
+                m.Add(self.v[i] + _i(s.width / 2) <= _i(band["v_lo"])).OnlyEnforceIf(o[0])
+                m.Add(self.v[i] - _i(s.width / 2) >= _i(band["v_hi"])).OnlyEnforceIf(o[1])
+                m.Add(self.z[i] >= req).OnlyEnforceIf(o[2])
+                m.AddBoolOr(o)
 
         def along(a: Strand, b: Strand) -> bool:
             """Strands that share part of the corridor length interact; others never meet."""

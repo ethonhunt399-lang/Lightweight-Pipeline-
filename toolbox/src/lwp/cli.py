@@ -13,7 +13,7 @@ from .package import load_package
 from .report import write_outputs
 from .rules import load_rules
 from .viewer import build_data, write_viewer
-from .solve_cmd import cmd_corridors, cmd_solve
+from .solve_cmd import cmd_corridors, cmd_drawings, cmd_solve
 
 
 def cmd_check(args) -> int:
@@ -78,7 +78,15 @@ def main(argv=None) -> int:
     s.add_argument("--schemes", help="逗号分隔：headroom,changes,supports（默认全部）")
     s.add_argument("--effort", type=float, default=2.0, help="每阶段求解的确定性时间上限（默认 2）")
     s.add_argument("--out", help="输出目录")
+    s.add_argument("--drawings", help="lwp drawings 输出的图纸 JSON（车位 / 车道分区）")
     s.set_defaults(func=cmd_solve)
+    dr = sub.add_parser("drawings", help="解析施工图 DXF：与模型轴网对齐，提取车位、车道、人防墙、设计说明中的排布要求")
+    dr.add_argument("package", help="导出包（提供轴网用于对齐）")
+    dr.add_argument("--plan", help="地下室建筑平面 DXF（车位、车道、人防）")
+    dr.add_argument("--notes", nargs="*", default=[], help="设计说明 DXF（可多个）")
+    dr.add_argument("--rules")
+    dr.add_argument("--out", required=True, help="输出 JSON")
+    dr.set_defaults(func=cmd_drawings)
     args = parser.parse_args(argv)
     return args.func(args)
 

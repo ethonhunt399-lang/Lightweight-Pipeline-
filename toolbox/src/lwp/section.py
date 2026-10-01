@@ -123,6 +123,7 @@ class Section:
     notes: list[str] = field(default_factory=list)
     ceiling_max: float = np.inf   # highest crossing-beam bottom: upper bound for any layer
     leaks: list = field(default_factory=list)       # leak-prone water items not on a strand (LeakItem)
+    bands: list = field(default_factory=list)       # across the corridor: drive lane / stall intervals (drawings)
 
     crossing_limit: float = 250.0
 
