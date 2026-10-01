@@ -98,6 +98,7 @@ class Layout(_Strict):
     moved_threshold_mm: float = 20
     crossing_zone: str = "top"
     crossing_zone_max_mm: float = 250
+    tray_above_water: str = "hard"   # hard: no water run (strand or crossing service) above a tray; soft: preference only
     confirmed: bool = False
     preferences: LayoutPreferences = LayoutPreferences()
 

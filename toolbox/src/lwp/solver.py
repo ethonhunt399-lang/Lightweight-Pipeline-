@@ -50,6 +50,7 @@ class Layout:
     metrics: dict
     stages: list[dict] = field(default_factory=list)
     diagnosis: list[str] = field(default_factory=list)
+    crossings: dict[str, float] = field(default_factory=dict)   # crossing service key → bottom (mm)
 
 
 def _i(x: float) -> int:
@@ -156,10 +157,6 @@ class _Model:
         if "beams" not in relax:
             for bm in sec.beams:
                 limits.append((bm.v_lo, bm.v_hi, bm.s_lo, bm.s_hi, bm.bottom - cb))
-        if lay.crossing_zone == "top" and "crossing" not in relax:
-            for c in sec.zone_crossings:
-                top = c.ceiling - lay.beam_clearance_mm - c.height - clear.default
-                limits.append((c.v_lo, c.v_hi, c.s - c.height / 2, c.s + c.height / 2, top))
         seen = set()
         for v0, v1, s0, s1, top in limits:
             key = (_i(v0 / 10), _i(v1 / 10), _i(s0 / 200), _i(s1 / 200), _i(top / 10))
@@ -177,6 +174,71 @@ class _Model:
                 m.Add(self.z[i] + _i(s.height) <= _i(top)).OnlyEnforceIf(opts[2])
                 m.AddBoolOr(opts)
 
+        # Crossing services in the zone above the bundle: each gets a height (bottom) of its own. A strand
+        # under it stays below (or beside it); with "electrical above water" as a hard rule, a tray under a
+        # water crossing goes above it instead, so water never runs over a tray.
+        hard_tw = lay.tray_above_water == "hard" and "tray_water" not in relax
+        self.hard_tw = hard_tw
+        self.cz: dict[str, cp_model.IntVar] = {}
+        self.cdz = []
+        self.wot = []                    # water crossing over a tray (only counted with the hard rule)
+        if lay.crossing_zone == "top" and "crossing" not in relax:
+            zone = sorted(sec.zone_crossings, key=lambda c: c.s)
+            index = {st.id: i for i, st in enumerate(items)}
+            fixed_v = {f.id: f.v for f in sec.fixed}
+            for ci, c in enumerate(zone):
+                h = _i(c.height)
+                hi = min(ceiling_top, _i(c.ceiling - lay.beam_clearance_mm)) - h
+                zc = m.NewIntVar(floor, max(floor, hi), f"cz{ci}")
+                self.cz[c.key] = zc
+                s0, s1 = c.s - c.height / 2, c.s + c.height / 2
+                for i, st in enumerate(items):
+                    if not overlaps(st.s_lo, st.s_hi, s0, s1):
+                        continue
+                    cc = _i(clear.required(st.group, c.group)[0])
+                    opts = [m.NewBoolVar(f"c{ci}_{i}_{o}") for o in range(3)]
+                    if c.attached and c.ends:
+                        # It branches from a strand that may move: it runs from its outer end to that strand.
+                        ends = [self.v[index[sid]] if sid in index else _i(fixed_v.get(sid, v)) for v, sid in c.ends]
+                        for e_ in ends:
+                            m.Add(self.v[i] + _i(st.width / 2) + cc <= e_).OnlyEnforceIf(opts[0])
+                            m.Add(self.v[i] - _i(st.width / 2) - cc >= e_).OnlyEnforceIf(opts[1])
+                        if st.id in c.attached:
+                            m.Add(opts[0] == 0)
+                            m.Add(opts[1] == 0)
+                    else:
+                        m.Add(self.v[i] + _i(st.width / 2) + cc <= _i(c.v_lo)).OnlyEnforceIf(opts[0])
+                        m.Add(self.v[i] - _i(st.width / 2) - cc >= _i(c.v_hi)).OnlyEnforceIf(opts[1])
+                    m.Add(self.z[i] + _i(st.height) + cc <= zc).OnlyEnforceIf(opts[2])
+                    if hard_tw and c.group == "water" and st.domain == "tray":
+                        # The tray goes above the water crossing; where the height does not allow it, the
+                        # crossing over the tray is a violation, minimised before anything else (a local
+                        # node: the crossing dips under the tray or the tray rises into the beam bay).
+                        over = m.NewBoolVar(f"c{ci}_{i}_up")
+                        m.Add(self.z[i] >= zc + h + cc).OnlyEnforceIf(over)
+                        m.AddBoolOr(opts + [over])
+                        self.wot.append(opts[2])
+                    else:
+                        m.AddBoolOr(opts)
+                for f in sec.fixed:
+                    if overlaps(f.s_lo, f.s_hi, s0, s1) and overlaps(f.v - f.width / 2, f.v + f.width / 2, c.v_lo, c.v_hi):
+                        m.Add(zc >= _i(f.top + clear.required(f.group, c.group)[0]))
+                dz = m.NewIntVar(0, 20000, f"cdz{ci}")
+                m.AddAbsEquality(dz, zc - _i(c.z_lo))
+                self.cdz.append(dz)
+            # Crossing services next to each other (overlapping along and across) are stacked.
+            for a_i, a in enumerate(zone):
+                for b in zone[a_i + 1:]:
+                    if b.s - b.height / 2 > a.s + a.height / 2 + clear.default + 600:
+                        break
+                    if not (overlaps(a.s - a.height / 2, a.s + a.height / 2, b.s - b.height / 2, b.s + b.height / 2, clear.default)
+                            and overlaps(a.v_lo, a.v_hi, b.v_lo, b.v_hi)):
+                        continue
+                    cc = _i(clear.required(a.group, b.group)[0])
+                    below = m.NewBoolVar(f"cs{a.key}_{b.key}")
+                    m.Add(self.cz[a.key] + _i(a.height) + cc <= self.cz[b.key]).OnlyEnforceIf(below)
+                    m.Add(self.cz[b.key] + _i(b.height) + cc <= self.cz[a.key]).OnlyEnforceIf(below.Not())
+
         # Fixed strands stay; movable ones keep clear of them.
         for f in sec.fixed:
             for i, s in enumerate(items):
@@ -188,6 +250,10 @@ class _Model:
                 m.Add(self.v[i] - _i((s.width + f.width) / 2) - c >= _i(f.v)).OnlyEnforceIf(opts[1])
                 m.Add(self.z[i] >= _i(f.top) + c).OnlyEnforceIf(opts[2])
                 m.Add(self.z[i] + _i(s.height) + c <= _i(f.z)).OnlyEnforceIf(opts[3])
+                if hard_tw and s.group == "water" and f.domain == "tray":
+                    m.Add(opts[2] == 0)               # no water over a tray
+                if hard_tw and s.domain == "tray" and f.group == "water":
+                    m.Add(opts[3] == 0)
                 m.AddBoolOr(opts)
 
         # Measures.
@@ -209,7 +275,8 @@ class _Model:
             self.dv.append(dv)
             self.dz.append(dz)
             self.moved.append(mv)
-        self.change = sum(self.dv) + sum(self.dz)
+        # Lifting a crossing service counts as a change too.
+        self.change = sum(self.dv) + sum(self.dz) + sum(self.cdz)
         self.n_moved = sum(self.moved)
 
         self.span = []
@@ -233,6 +300,9 @@ class _Model:
         self.tray_viol = []
         for t in trays:
             for q in water:
+                if hard_tw and along(items[t], items[q]):
+                    m.Add(self.layer[t] <= self.layer[q])   # electrical above water
+                    continue
                 viol = m.NewIntVar(0, K, f"tv{t}_{q}")
                 m.Add(viol >= self.layer[t] - self.layer[q])
                 self.tray_viol.append(viol)
@@ -289,7 +359,7 @@ class _Model:
         return solver, solver.StatusName(status)
 
     def snapshot(self, solver) -> list[tuple]:
-        vs = [*self.used, *self.top, *self.bot, *self.H, *self.gap, *self.layer, *self.v, *self.z]
+        vs = [*self.used, *self.top, *self.bot, *self.H, *self.gap, *self.layer, *self.v, *self.z, *self.cz.values()]
         vs += [b for row in self.x for b in row]
         return [(v, solver.Value(v)) for v in vs]
 
@@ -317,6 +387,8 @@ def solve(sec: Section, rules: RuleSet, scheme: str, seconds: float = 2.0) -> La
     else:
         raise ValueError(f"unknown scheme {scheme!r}")
 
+    if model.wot:
+        plan.insert(0, ("水管跨越桥架最少", sum(model.wot), False, 0))
     solver, status, hint = None, "UNKNOWN", None
     for name, objective, maximize, tol in plan:
         solver, status, value = stage(name, objective, maximize, hint)
@@ -367,8 +439,12 @@ def _layout(model: _Model, solver, scheme: str, status: str, stages: list[dict])
         "system_splits": sum(solver.Value(v) for v in model.split),
         "exit_side_violations": sum(solver.Value(v) for v in model.exit_viol),
         "crossings_over_bundle": len(sec.zone_crossings),
+        "crossings_lifted": sum(solver.Value(v) > 20 for v in model.cdz),
+        "water_crossing_over_tray": sum(solver.Value(v) for v in model.wot),
+        "tray_above_water": "hard" if model.hard_tw else "soft",
     }
-    return Layout(scheme, status, placements, layers, metrics, stages)
+    crossings = {k: float(solver.Value(v)) for k, v in model.cz.items()}
+    return Layout(scheme, status, placements, layers, metrics, stages, crossings=crossings)
 
 
 def diagnose(sec: Section, rules: RuleSet) -> list[str]:
@@ -379,6 +455,7 @@ def diagnose(sec: Section, rules: RuleSet) -> list[str]:
         "beams": "顺走廊方向的梁",
         "width": "可用宽度（两侧各放宽 3 m）",
         "crossing": "顶部横穿层",
+        "tray_water": "电上水下（硬约束改为偏好）",
     }
     found = []
     for key in labels:

@@ -105,6 +105,7 @@ layout:
   moved_threshold_mm: 20       # 位移小于该值视为未动
   crossing_zone: top           # 横穿走廊的支管走在管线束上方：顶部预留“横穿层”（横穿管最大高度 + 净距）；none 不预留
   crossing_zone_max_mm: 250    # 只为高度不超过该值的横穿管预留；更大的横穿管（大风管等）在节点处局部翻弯，列为节点冲突
+  tray_above_water: hard       # 电上水下：水管（含横穿支管）不得位于桥架正上方；soft 时只作偏好
   confirmed: false
   preferences:                 # 软约束权重（越大越优先）
     trays_above_water: 50      # 电上水下：桥架层位不低于水管

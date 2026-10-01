@@ -65,6 +65,7 @@ def cmd_solve(args) -> int:
     planned: dict[str, Package] = {}
     all_moves: dict[str, dict] = {}
     node_counts: dict[str, int] = {}
+    link_counts: dict[str, dict] = {}
     handled: dict[str, set] = {}
     schemes = args.schemes.split(",") if args.schemes else SCHEME_ORDER
     region = _region(corridor)
@@ -77,21 +78,29 @@ def cmd_solve(args) -> int:
             for d in layout.diagnosis:
                 print("    " + d)
             continue
-        moved, moves, nodes = apply(package, sec, layout, rules)
+        moved, moves, nodes, links = apply(package, sec, layout, rules)
+        link_counts[scheme] = {"n0_pieces": links.pieces, "n0_repairs": len(links.repairs), "open_joints": len(links.open)}
         node_counts[scheme] = len(nodes)
         handled[scheme] = {n.fitting for n in nodes}
         planned[scheme] = moved
         all_moves[scheme] = moves
-        write_json(out / f"plan_{scheme}.json", plan_json(sec, layout, rules, moves, package, nodes))
+        write_json(out / f"plan_{scheme}.json", plan_json(sec, layout, rules, moves, package, nodes, links))
         (out / f"section_{scheme}.svg").write_text(draw(sec, rules, layout, f"方案：{SCHEMES[scheme]}"), encoding="utf-8")
         conflicts = detect_conflicts(moved, rules)
+        marks = {k: "branch" for n in nodes for k in n.branch}
+        marks.update({n.fitting: "n2" for n in nodes})
+        for r in links.repairs:
+            if abs(r.stretch_mm) > 1:
+                marks.setdefault(r.host, "stretch")
+            marks.update({k: "jog" for k in r.pieces})
         data = build_data(moved, rules, conflicts, None, package, "原模型", region=region,
-                          title_suffix=f" · 走廊 {corridor.name} · {SCHEMES[scheme]}")
+                          title_suffix=f" · 走廊 {corridor.name} · {SCHEMES[scheme]}", node_marks=marks)
         write_viewer(out / f"view_{scheme}.html", data, f"走廊 {corridor.name} · {SCHEMES[scheme]}")
 
     evaluation = evaluate(package, planned, gold, rules, sec, all_moves, handled)
     for k, n in node_counts.items():
         evaluation[k]["n2_nodes"] = n
+        evaluation[k].update(link_counts[k])
     review = None
     if gold is not None:
         gold_sec = extract(gold, corridor, rules)
@@ -123,13 +132,14 @@ def _page(sec: Section, rules: RuleSet, layouts: dict[str, Layout], ev: dict, ha
         rows.append("<tr>" + "".join(f"<td>{x}</td>" for x in [
             f"<b>{escape(r['name'])}</b>",
             r["hard"], (f"{r['hard'] - r['hard_node']} / {r['hard_node']}" if key in layouts else "—"),
-            r["hard_structure"], r["clearance"],
+            r["hard_structure"], r["clearance"], r.get("water_over_tray", "—"),
+            (f"{r['n2_nodes']} / {r['n0_repairs']}" if "n2_nodes" in r else "—"),
             _m(r.get("lowest_mm")), _m(r.get("median_lowest_mm")), r.get("median_levels", "—"),
             m.get("layers", "—"), m.get("moved", "—"),
             f"{m['support_length_mm'] / 1000:.1f} m" if m else "—",
             m.get("tray_below_water", "—"),
         ]) + "</tr>")
-    table = ("<table><tr><th>方案</th><th>硬碰撞</th><th>排布 / 待节点</th><th>其中与梁柱</th><th>净距不足</th><th>最低管底</th>"
+    table = ("<table><tr><th>方案</th><th>硬碰撞</th><th>排布 / 待节点</th><th>其中与梁柱</th><th>净距不足</th><th>水在电上</th><th>引出 / 接驳</th><th>最低管底</th>"
              "<th>管底中位</th><th>断面层数中位</th><th>排布层数</th><th>移动管线</th><th>横担总长</th><th>电在水下</th></tr>"
              + "".join(rows) + "</table>")
     sections = [("原模型", "section_original.svg", None)]
@@ -168,6 +178,8 @@ th,td{{border:1px solid #e5e7eb;padding:4px 6px;text-align:left}} th{{background
 <p class="sub">“排布 / 待节点”：自动方案只做平移，不建模翻弯；管线三通、弯头向侧面引出跨过相邻管线、大尺寸横穿管、
 横穿管与其自身管件的冲突属于节点工作（N1 交叉翻弯、N2 侧向引出），单独计数。碰撞与净距只统计走廊范围内；最低管底、层数为沿走廊每 1 m 断面采样。横穿管线抬到其经过的管线上方；
 它们在走廊外的翻弯、以及管线拐出走廊处的冲突属于节点问题（N1、N2），在节点库中处理。
+“水在电上”：走廊内位于桥架正上方（平面重叠）的水管、管件数。电上水下为硬约束：桥架层位不低于水管，横穿水管从桥架下方通过；净空不够处才允许横穿水管跨越桥架（求解时最先压到最少），列为节点处理。
+“引出 / 接驳”：N2 侧向引出节点数 / 接驳过渡数（移动后断开的连接全部重新接上：直管伸缩，或加竖向、水平过渡段）。
 约束：同层外底平齐；层间净空 ≥ {lay.layer_gap_min_mm:.0f} mm 且满足分组净距；顶部距梁底 {lay.beam_clearance_mm:.0f} mm
 各梁只限制其下方（横向与沿走廊均重叠）的管线；{len(sec.zone_crossings)} 根横穿管线从管线束上方通过（其上方的顺走廊梁限制管线束高度）；
 最下层底 ≥ 楼面 + {rules.headroom.min_clear_mm:.0f} + 横担 {lay.support_reserve_mm:.0f} mm。</p>

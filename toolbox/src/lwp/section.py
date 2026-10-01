@@ -72,6 +72,10 @@ class Crossing:
     z_hi: float
     label: str
     ceiling: float = np.inf   # lowest bottom of beams it has to pass under (beams along the corridor)
+    group: str = "other"
+    domain: str = ""
+    attached: set = field(default_factory=set)   # strands it branches from: it reaches them wherever they go
+    ends: list = field(default_factory=list)      # per end: (v mm, strand id it connects to or None)
 
     @property
     def height(self) -> float:
@@ -172,7 +176,8 @@ def extract(package: Package, corridor: Corridor, rules: RuleSet) -> Section:
             sc = (s_lo + s_hi) / 2
             if corridor.s0 <= sc <= corridor.s1 and v_lo < corridor.v1 and v_hi > corridor.v0:
                 lo, hi = e.solid.aabb()
-                crossings.append(Crossing(e.key, sc, v_lo, v_hi, float(lo[2]), float(hi[2]), e.label()))
+                crossings.append(Crossing(e.key, sc, v_lo, v_hi, float(lo[2]), float(hi[2]), e.label(),
+                                          group=e.group, domain=e.domain))
 
     # Split each (kind, system, size) group into strands of collinear segments.
     strands: list[Strand] = []
@@ -207,6 +212,18 @@ def extract(package: Package, corridor: Corridor, rules: RuleSet) -> Section:
         s.id = f"S{i:02d}"
 
     _attach_fittings(package, corridor, strands)
+    graph = connection_graph(package)
+    owner = {k: st.id for st in strands for k in st.fittings + st.segments}
+    for c in crossings:
+        near = graph.get(c.key, set())
+        c.attached = {owner[k] for k in near if k in owner}
+        e = package.elements[c.key]
+        for conn in e.connectors:
+            if not conn.get("origin"):
+                continue
+            o = np.array(conn["origin"]) * 1000
+            sid = next((owner[r["key"]] for r in conn.get("connected") or [] if r.get("key") in owner), None)
+            c.ends.append((corridor.v_of(o), sid))
 
     # Structure.
     beams, ceiling, ceiling_key, ceiling_max = [], np.inf, "", -np.inf

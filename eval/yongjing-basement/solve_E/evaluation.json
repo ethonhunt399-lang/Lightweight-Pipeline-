@@ -7,6 +7,7 @@
   "nodes": {},
   "clearance": 40,
   "hard_structure": 4,
+  "water_over_tray": 16,
   "stations": 23,
   "lowest_mm": 2516,
   "median_lowest_mm": 2516,
@@ -15,54 +16,68 @@
  },
  "headroom": {
   "name": "净高最优",
-  "hard": 11,
-  "n2_unresolved": 3,
-  "hard_node": 6,
+  "hard": 24,
+  "n2_unresolved": 5,
+  "hard_node": 13,
   "nodes": {
-   "横穿翻弯": 6
+   "大尺寸横穿": 5,
+   "横穿翻弯": 8
   },
-  "clearance": 36,
-  "hard_structure": 6,
+  "clearance": 14,
+  "hard_structure": 0,
+  "water_over_tray": 7,
   "stations": 23,
   "lowest_mm": 2534,
-  "median_lowest_mm": 2950,
+  "median_lowest_mm": 2734,
   "median_levels": 1.0,
-  "max_levels": 2,
-  "n2_nodes": 25
+  "max_levels": 3,
+  "n2_nodes": 25,
+  "n0_pieces": 50,
+  "n0_repairs": 44,
+  "open_joints": 0
  },
  "changes": {
   "name": "改动最少",
-  "hard": 19,
-  "n2_unresolved": 14,
-  "hard_node": 5,
+  "hard": 29,
+  "n2_unresolved": 6,
+  "hard_node": 10,
   "nodes": {
-   "横穿翻弯": 5
+   "大尺寸横穿": 10
   },
-  "clearance": 39,
-  "hard_structure": 5,
+  "clearance": 16,
+  "hard_structure": 0,
+  "water_over_tray": 4,
   "stations": 23,
   "lowest_mm": 2300,
   "median_lowest_mm": 2300,
   "median_levels": 3.0,
   "max_levels": 4,
-  "n2_nodes": 25
+  "n2_nodes": 25,
+  "n0_pieces": 45,
+  "n0_repairs": 40,
+  "open_joints": 0
  },
  "supports": {
   "name": "支吊架最省",
-  "hard": 12,
-  "n2_unresolved": 4,
-  "hard_node": 8,
+  "hard": 39,
+  "n2_unresolved": 3,
+  "hard_node": 23,
   "nodes": {
-   "横穿翻弯": 8
+   "大尺寸横穿": 8,
+   "横穿翻弯": 15
   },
-  "clearance": 24,
+  "clearance": 19,
   "hard_structure": 0,
+  "water_over_tray": 7,
   "stations": 23,
   "lowest_mm": 2534,
   "median_lowest_mm": 2600,
   "median_levels": 1.0,
   "max_levels": 3,
-  "n2_nodes": 25
+  "n2_nodes": 25,
+  "n0_pieces": 43,
+  "n0_repairs": 44,
+  "open_joints": 0
  },
  "gold": {
   "name": "人工方案",
@@ -72,6 +87,7 @@
   "nodes": {},
   "clearance": 25,
   "hard_structure": 0,
+  "water_over_tray": 4,
   "stations": 23,
   "lowest_mm": 2534,
   "median_lowest_mm": 3000,

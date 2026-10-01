@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import json
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
@@ -15,6 +16,7 @@ from .detect import CLEARANCE, HARD, Conflict, connection_graph, detect_conflict
 from .geometry import Solid
 from .package import Package
 from .rules import RuleSet
+from .connect import reconnect
 from .nodes import side_exits
 from .section import Section, overlaps
 from .solver import SCHEMES, Layout
@@ -29,7 +31,7 @@ def translate(solid: Solid, t: np.ndarray) -> Solid:
 
 
 def apply(package: Package, sec: Section, layout: Layout, rules: RuleSet | None = None, nodes: bool = True
-          ) -> tuple[Package, dict[str, np.ndarray], list]:
+          ) -> tuple[Package, dict[str, np.ndarray], list, "Links"]:
     """A copy of the package with the strands (segments and their fittings) moved.
 
     With a top crossing zone, services crossing the corridor are lifted into it (above the bundle);
@@ -48,6 +50,11 @@ def apply(package: Package, sec: Section, layout: Layout, rules: RuleSet | None 
             moved.parts = [translate(p, t) for p in e.parts]
         if e.centre is not None:
             moved.centre = e.centre + t
+        conns = [{**c, "origin": list(np.array(c["origin"]) + t / 1000)} if c.get("origin") else c for c in e.connectors]
+        if e.leg_conns is not None:
+            by_id = {id(old): new for old, new in zip(e.connectors, conns)}
+            moved.leg_conns = [by_id.get(id(c), c) for c in e.leg_conns]
+        moved.connectors = conns
         rec = dict(e.record)
         for field in ("start", "end"):
             if rec.get(field):
@@ -67,7 +74,22 @@ def apply(package: Package, sec: Section, layout: Layout, rules: RuleSet | None 
             move(key, t)
 
     graph = connection_graph(package)
-    if rules is not None and rules.layout.crossing_zone == "top" and sec.zone_crossings and layout.placements:
+
+    def move_crossing(key: str, t: np.ndarray) -> None:
+        move(key, t)
+        # Fittings of the crossing run inside the corridor go with it.
+        for other in graph.get(key, ()):
+            f = package.elements.get(other)
+            if f is not None and f.origin == "mep_family" and f.solid is not None and in_corridor(f.solid.center, sec.corridor):
+                move(other, t)
+
+    if layout.crossings:
+        # Heights chosen by the solver (stacked, and under the trays where water must not run over them).
+        for c in sec.zone_crossings:
+            z = layout.crossings.get(c.key)
+            if z is not None and abs(z - c.z_lo) > 0.5:
+                move_crossing(c.key, np.array([0.0, 0.0, z - c.z_lo]))
+    elif rules is not None and rules.layout.crossing_zone == "top" and sec.zone_crossings and layout.placements:
         clr = rules.clearance_mm.default
         cor = sec.corridor
         placed: list[tuple[float, float, float, float, float, float]] = []   # s_lo, s_hi, v_lo, v_hi, z_lo, z_hi
@@ -94,18 +116,30 @@ def apply(package: Package, sec: Section, layout: Layout, rules: RuleSet | None 
                                        and overlaps(p[4], p[5], c.z_lo, c.z_hi, clr) for p in placed):
                 placed.append((c_slo, c_shi, c.v_lo, c.v_hi, c.z_lo, c.z_hi))
                 continue
-            t = np.array([0.0, 0.0, z - c.z_lo])
-            move(c.key, t)
+            move_crossing(c.key, np.array([0.0, 0.0, z - c.z_lo]))
             placed.append((c_slo, c_shi, c.v_lo, c.v_hi, z, z + c.height))
-            # Fittings of the crossing run inside the corridor go with it.
-            for other in graph.get(c.key, ()):
-                f = package.elements.get(other)
-                if f is not None and f.origin == "mep_family" and f.solid is not None and in_corridor(f.solid.center, cor):
-                    move(other, t)
     made = []
     if nodes and rules is not None and layout.placements:
         made = side_exits(package, elements, sec, layout, rules, moves, move, graph)
-    return _replace(package, elements), moves, made
+    links = Links()
+    if nodes:
+        links.repairs, links.open = reconnect(package, elements, moves)
+    return _replace(package, elements), moves, made, links
+
+
+@dataclass
+class Links:
+    """Re-connections made after the moves (N0) and joints left open."""
+    repairs: list = field(default_factory=list)
+    open: list = field(default_factory=list)
+
+    @property
+    def pieces(self) -> int:
+        return sum(len(r.pieces) for r in self.repairs)
+
+    def to_dict(self) -> dict:
+        return {"repairs": [r.to_dict() for r in self.repairs], "open": [j.to_dict() for j in self.open],
+                "pieces": self.pieces, "stretched": sum(abs(r.stretch_mm) > 1 for r in self.repairs)}
 
 
 def _replace(package: Package, elements: dict) -> Package:
@@ -157,6 +191,25 @@ def station_profile(package: Package, corridor: Corridor, floor_z: float, step: 
         return {"stations": 0}
     return {"stations": len(lows), "lowest_mm": round(min(lows)), "median_lowest_mm": round(float(np.median(lows))),
             "median_levels": float(np.median(levels)), "max_levels": max(levels)}
+
+
+def water_over_tray(package: Package, corridor: Corridor, margin: float = 500.0) -> list[tuple[str, str]]:
+    """(water element, tray element) pairs where water runs directly above a tray (plan footprints overlap)."""
+    trays, water = [], []
+    for e in package.mep():
+        if e.solid is None or not in_corridor(e.solid.center, corridor, margin):
+            continue
+        if e.domain == "tray":
+            trays.append((e.key, *e.solid.aabb()))
+        elif e.group == "water":
+            water.append((e.key, *e.solid.aabb()))
+    out = []
+    for tk, tl, th in trays:
+        for wk, wl, wh in water:
+            if (wl[0] < th[0] - 5 and tl[0] < wh[0] - 5 and wl[1] < th[1] - 5 and tl[1] < wh[1] - 5
+                    and wl[2] >= th[2] - 1):
+                out.append((wk, tk))
+    return out
 
 
 NODE_EXIT = "出线引出"            # a strand's tee/elbow leg crossing a neighbour: rise-and-cross node (N2)
@@ -212,6 +265,7 @@ def evaluate(before: Package, planned: dict[str, Package], gold: Package | None,
             "nodes": nodes,
             "clearance": sum(c.type == CLEARANCE for c in conflicts),
             "hard_structure": sum(not (pkg.elements[c.a].is_mep and pkg.elements[c.b].is_mep) for c in hard),
+            "water_over_tray": len({w for w, _ in water_over_tray(pkg, sec.corridor)}),
             **station_profile(pkg, sec.corridor, sec.floor_z),
         }
     return rows
@@ -267,7 +321,7 @@ def review_human(gold: Package, gold_sec: Section, rules: RuleSet, ev: dict, lay
 
 
 def plan_json(sec: Section, layout: Layout, rules: RuleSet, moves: dict[str, np.ndarray], package: Package,
-              nodes: list | None = None) -> dict:
+              nodes: list | None = None, links: "Links | None" = None) -> dict:
     strands = []
     for st in sec.strands:
         p = layout.placements.get(st.id)
@@ -291,6 +345,8 @@ def plan_json(sec: Section, layout: Layout, rules: RuleSet, moves: dict[str, np.
                     "crossings": len(sec.crossings)},
         "layers": layout.layers, "strands": strands,
         "nodes": [n.to_dict() for n in nodes or []],
+        "crossings": {k: round(z) for k, z in layout.crossings.items()},
+        "links": links.to_dict() if links is not None else None,
         "moves": {k: [round(float(x), 1) for x in t] for k, t in moves.items()},
     }
 

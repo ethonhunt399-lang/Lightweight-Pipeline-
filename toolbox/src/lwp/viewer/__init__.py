@@ -34,7 +34,7 @@ MOVED_MM = 20.0   # displacement below this counts as unchanged in the compariso
 def build_data(package: Package, rules: RuleSet, conflicts: list[Conflict] | None = None,
                headroom: list[HeadroomItem] | None = None, reference: Package | None = None,
                reference_name: str = "调整前", region: tuple[float, float, float, float] | None = None,
-               title_suffix: str = "") -> dict:
+               title_suffix: str = "", node_marks: dict[str, str] | None = None) -> dict:
     """region: (xmin, ymin, xmax, ymax) in mm — show only elements whose plan extent touches it."""
 
     def inside(e) -> bool:
@@ -85,6 +85,8 @@ def build_data(package: Package, rules: RuleSet, conflicts: list[Conflict] | Non
         })
         if reference is not None and e.is_mep:
             items[-1].update(_compare(e, reference.elements.get(e.key), matcher))
+        if node_marks and e.key in node_marks:
+            items[-1]["nd"] = node_marks[e.key]
 
     classes = {}
     for cls, count in _count(items).items():

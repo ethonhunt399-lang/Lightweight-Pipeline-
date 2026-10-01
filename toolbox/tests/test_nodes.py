@@ -52,7 +52,8 @@ def test_side_exit_rises_over_neighbour():
     layout = Layout("headroom", "OPTIMAL", {"S01": Placement("S01", 0, 1000, zb), "S02": Placement("S02", 0, 1500, zb)}, [], {})
 
     assert element_distance(branch, b)[0] < 0  # the branch runs through strand B
-    moved, moves, nodes = apply(pkg, sec, layout, rules)
+    moved, moves, nodes, links = apply(pkg, sec, layout, rules)
+    assert not links.open
     assert len(nodes) == 1 and nodes[0].side == "right"
     assert nodes[0].rise_mm > 2 * R * 1000      # rises above strand B
     t2 = moved.elements["T"]

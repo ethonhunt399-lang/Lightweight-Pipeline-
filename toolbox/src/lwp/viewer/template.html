@@ -286,6 +286,10 @@
     const cls = DATA.classes[e.c];
     if (cls.kind === "obstacle" || mode === "system") return new THREE.Color(cls.color);
     if (mode === "elev") return e.clr == null ? new THREE.Color(0x6b7280) : rampColor(e.clr / 1000);
+    if (mode === "nodes") {
+      if (cls.kind !== "mep") return new THREE.Color(cls.color);
+      return new THREE.Color(e.nd ? NODE_MARKS[e.nd][0] : 0x4b5563);
+    }
     if (mode === "compare") {
       if (e.st === "new") return e.o === "f" ? COLOR_NEW_FIT : COLOR_NEW;
       if (e.st !== "moved") return COLOR_SAME;
@@ -308,6 +312,9 @@
   }
   const MODES = [["system", "系统"], ["elev", "底部净高"]];
   if (REF) MODES.push(["compare", "调整对比"]);
+  const NODE_MARKS = { n2: [0xf43f5e, "N2 侧向引出（管件改为立管 + 水平段）"], branch: [0xfacc15, "随引出抬升的支管"],
+                       jog: [0x22d3ee, "接驳过渡段（新增）"], stretch: [0xa3e635, "接驳伸缩的管段"] };
+  if (DATA.elements.some(e => e.nd)) MODES.push(["nodes", "节点"]);
   MODES.forEach(([mode, name]) => {
     const b = document.createElement("button");
     b.textContent = name;
@@ -334,6 +341,11 @@
       const rows = [["#3b82f6", "上移", c.up], ["#f97316", "下移", c.down], ["#a855f7", "水平移动", c.side],
                     ["#22c55e", "新增管线（翻弯竖段、新增系统）", c.new], ["#86efac", "新增管件（弯头等）", c.newf], ["#6b7280", "未变", c.same]];
       el.innerHTML = '<div class="sub" style="margin-bottom:4px">与' + esc(REF.name) + '同一构件（UniqueId）比较；被打断或重画的管线按位置匹配。</div>' + rows.map(r => '<div class="row"><span class="sw" style="background:' + r[0] + '"></span>' + r[1] + '<span class="cnt">' + r[2] + "</span></div>").join("");
+    } else if (colorMode === "nodes") {
+      const c = {};
+      for (const e of DATA.elements) if (e.nd) c[e.nd] = (c[e.nd] || 0) + 1;
+      el.innerHTML = '<div class="sub" style="margin-bottom:4px">节点库生成或改动的构件；灰色为其他机电。</div>'
+        + Object.entries(NODE_MARKS).map(([k, v]) => '<div class="row"><span class="sw" style="background:#' + v[0].toString(16).padStart(6, "0") + '"></span>' + v[1] + '<span class="cnt">' + (c[k] || 0) + "</span></div>").join("");
     } else {
       el.innerHTML = "";
     }
@@ -666,6 +678,7 @@
       if (e.pm) text += "（按位置匹配：调整时被打断或重画）";
       rows.push(["相对" + esc(REF.name), text]);
     }
+    if (e.nd) rows.push(["节点", esc(NODE_MARKS[e.nd][1])]);
     rows.push(["几何", e.ex ? "参数化（精确）" : "包围盒（近似）"]);
     return "<table>" + rows.map(r => "<tr><td>" + r[0] + "</td><td>" + r[1] + "</td></tr>").join("") + "</table>"
       + '<div class="key">' + esc(e.k) + "</div>";
