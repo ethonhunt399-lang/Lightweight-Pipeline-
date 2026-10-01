@@ -47,6 +47,7 @@ class Element:
     insulation_source: str = "none"   # modeled | default | none
     size_text: str = ""
     solid: Solid | None = None
+    parts: list[Solid] | None = None   # fittings: one leg per connector (more exact than the fitted box)
     connectors: list[dict] = field(default_factory=list)
     record: dict = field(default_factory=dict, repr=False)
 
@@ -146,6 +147,9 @@ def load_package(path: str | Path, rules: RuleSet, with_meshes: bool = True) -> 
                     level=pe.get("level", ""), group="wall" if kind == "wall" else "structure", solid=solid,
                     record=pe,
                 )
+        for e in elements.values():
+            if e.origin == "mep_family" and e.kind == "fitting":
+                e.parts = fitting_legs(e)
         missing = [k for k, e in elements.items() if e.origin == "mep_family" and e.solid is None]
         for key in missing:
             e = elements[key]
@@ -201,6 +205,58 @@ def _family_element(rec: dict, classifier: Classifier) -> Element:
     domain = CATEGORY_DOMAIN.get(rec.get("builtin_category", ""), "other")
     e = _common(rec, "mep_family", domain, classifier)
     return e
+
+
+def fitting_legs(e: Element) -> list[Solid] | None:
+    """A fitting as legs from each connector to the fitting centre (elbows, tees, crosses, reducers,
+    tray fittings). The centre is the point closest to all connector axes."""
+    conns = [c for c in e.connectors if c.get("origin") and c.get("direction")]
+    if not conns:
+        return None
+    origins = np.array([c["origin"] for c in conns], float) * M
+    dirs = np.array([c["direction"] for c in conns], float)
+    dirs /= np.maximum(np.linalg.norm(dirs, axis=1, keepdims=True), 1e-9)
+    A = np.zeros((3, 3))
+    b = np.zeros(3)
+    for o, d in zip(origins, dirs):
+        P = np.eye(3) - np.outer(d, d)
+        A += P
+        b += P @ o
+    if len(conns) >= 2 and np.linalg.cond(A) < 1e6:
+        centre = np.linalg.solve(A, b)
+        # Guard against axes that do not meet near the fitting (skewed data): fall back to the mean.
+        if np.max(np.linalg.norm(origins - centre, axis=1)) > 3 * np.max(np.linalg.norm(origins - origins.mean(0), axis=1)) + 50:
+            centre = origins.mean(axis=0)
+    else:
+        centre = origins.mean(axis=0)
+    ins = e.insulation_mm
+    inward = [(centre - o) / max(float(np.linalg.norm(centre - o)), 1e-9) for o in origins]
+    legs = []
+    for idx, (c, o) in enumerate(zip(conns, origins)):
+        length = float(np.linalg.norm(centre - o))
+        if (c.get("diameter_m") or 0) > 0:
+            r = c["diameter_m"] * M / 2 + ins
+            end = centre if length > 1 else o + np.array(c["direction"]) * -1.0
+            legs.append(capsule(o, end, r))
+        elif (c.get("width_m") or 0) > 0 and (c.get("height_m") or 0) > 0:
+            hw, hh = c["width_m"] * M / 2 + ins, c["height_m"] * M / 2 + ins
+            if length < 1:
+                continue
+            d = inward[idx]
+            x_axis = np.array(c["x_axis"]) if c.get("x_axis") else None
+            ext = 0.0
+            if len(conns) == 2 and x_axis is not None:
+                # Close the outer corner of an elbow: half the section in the bend plane × tan(turn / 2).
+                other = inward[1 - idx]
+                turn = float(np.arccos(np.clip(-np.dot(d, other), -1, 1)))
+                n = np.cross(d, other)
+                if np.linalg.norm(n) > 1e-6 and turn > 1e-3:
+                    p = np.cross(n / np.linalg.norm(n), d)
+                    y_axis = np.cross(d, x_axis)
+                    half_in_plane = hw * abs(float(np.dot(x_axis, p))) + hh * abs(float(np.dot(y_axis, p)))
+                    ext = half_in_plane * float(np.tan(min(turn, 2.0) / 2))
+            legs.append(swept_box(o, centre + d * ext, x_axis, hw, hh))
+    return legs or None
 
 
 def _level(rec: dict, manifest: dict) -> Level:

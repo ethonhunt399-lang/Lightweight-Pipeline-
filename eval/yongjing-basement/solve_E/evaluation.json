@@ -1,0 +1,202 @@
+{
+ "original": {
+  "name": "原模型",
+  "hard": 84,
+  "hard_node": 0,
+  "nodes": {},
+  "clearance": 40,
+  "hard_structure": 4,
+  "stations": 23,
+  "lowest_mm": 2516,
+  "median_lowest_mm": 2516,
+  "median_levels": 4.0,
+  "max_levels": 5
+ },
+ "headroom": {
+  "name": "净高最优",
+  "hard": 15,
+  "hard_node": 12,
+  "nodes": {
+   "出线引出": 8,
+   "横穿翻弯": 4
+  },
+  "clearance": 21,
+  "hard_structure": 4,
+  "stations": 23,
+  "lowest_mm": 2534,
+  "median_lowest_mm": 2950,
+  "median_levels": 1.0,
+  "max_levels": 2
+ },
+ "changes": {
+  "name": "改动最少",
+  "hard": 18,
+  "hard_node": 15,
+  "nodes": {
+   "出线引出": 11,
+   "横穿翻弯": 4
+  },
+  "clearance": 24,
+  "hard_structure": 4,
+  "stations": 23,
+  "lowest_mm": 2336,
+  "median_lowest_mm": 2336,
+  "median_levels": 3.0,
+  "max_levels": 4
+ },
+ "supports": {
+  "name": "支吊架最省",
+  "hard": 24,
+  "hard_node": 22,
+  "nodes": {
+   "出线引出": 14,
+   "横穿翻弯": 8
+  },
+  "clearance": 21,
+  "hard_structure": 0,
+  "stations": 23,
+  "lowest_mm": 2534,
+  "median_lowest_mm": 2600,
+  "median_levels": 1.0,
+  "max_levels": 3
+ },
+ "gold": {
+  "name": "人工方案",
+  "hard": 1,
+  "hard_node": 0,
+  "nodes": {},
+  "clearance": 25,
+  "hard_structure": 0,
+  "stations": 23,
+  "lowest_mm": 2534,
+  "median_lowest_mm": 3000,
+  "median_levels": 4.0,
+  "max_levels": 5
+ },
+ "review": {
+  "findings": [
+   "人工方案管底有 8 个不同标高；净高最优方案只需 1 层，支吊架层数可减少、排布更规整",
+   "人工方案在走廊内仍有 1 处硬碰撞（见下表）",
+   "人工方案有 25 处净距低于规则要求（按已确认的校准净距）"
+  ],
+  "hard": [
+   {
+    "where": "14-A 轴 -1.3 m / 27 轴 +0.1 m",
+    "a": "电缆桥架 消防广播 100 mmx100 mmø",
+    "b": "管道 喷淋系统 50 mm",
+    "distance_mm": -30,
+    "required_mm": 60
+   }
+  ],
+  "clearance": [
+   {
+    "where": "Y 轴 +6.7 m / 27 轴 +1.3 m",
+    "a": "管道 X 65 mm",
+    "b": "电缆桥架 母线 200 mmx200 mmø",
+    "distance_mm": 63,
+    "required_mm": 150
+   },
+   {
+    "where": "Y 轴 +6.7 m / 27 轴 +1.0 m",
+    "a": "管道 X 65 mm",
+    "b": "电缆桥架 母线 200 mmx200 mmø",
+    "distance_mm": 63,
+    "required_mm": 150
+   },
+   {
+    "where": "Y 轴 +6.7 m / 27 轴 +0.7 m",
+    "a": "管道 X 65 mm",
+    "b": "电缆桥架 母线 200 mmx200 mmø",
+    "distance_mm": 63,
+    "required_mm": 150
+   },
+   {
+    "where": "Y 轴 +6.7 m / 27 轴 +0.4 m",
+    "a": "管道 X 65 mm",
+    "b": "电缆桥架 母线 200 mmx200 mmø",
+    "distance_mm": 63,
+    "required_mm": 150
+   },
+   {
+    "where": "Y 轴 +6.7 m / 27 轴 +0.3 m",
+    "a": "管道 X 65 mm",
+    "b": "电缆桥架 UPS 100 mmx100 mmø",
+    "distance_mm": 63,
+    "required_mm": 150
+   },
+   {
+    "where": "14-A 轴 +1.9 m / 27 轴 +0.3 m",
+    "a": "管道 喷淋系统 150 mm",
+    "b": "电缆桥架配件 UPS 100 mmx100 mmø-100 mmx100 mmø",
+    "distance_mm": 88,
+    "required_mm": 150
+   },
+   {
+    "where": "14-A 轴 +1.9 m / 27 轴 +1.0 m",
+    "a": "电缆桥架 UPS 100 mmx100 mmø",
+    "b": "管道 喷淋系统 150 mm",
+    "distance_mm": 88,
+    "required_mm": 150
+   },
+   {
+    "where": "14-A 轴 +1.9 m / 27 轴 +2.3 m",
+    "a": "电缆桥架配件 UPS 100 mmx100 mmø-100 mmx100 mmø",
+    "b": "管道 喷淋系统 150 mm",
+    "distance_mm": 95,
+    "required_mm": 150
+   },
+   {
+    "where": "14-A 轴 +1.9 m / 27 轴 +2.3 m",
+    "a": "管道 喷淋系统 150 mm",
+    "b": "电缆桥架 UPS 100 mmx100 mmø",
+    "distance_mm": 95,
+    "required_mm": 150
+   },
+   {
+    "where": "14-A 轴 +1.9 m / 27 轴 +2.3 m",
+    "a": "电缆桥架配件 UPS 100 mmx100 mmø-100 mmx100 mmø",
+    "b": "管件 喷淋系统 150 mm-150 mm",
+    "distance_mm": 97,
+    "required_mm": 150
+   },
+   {
+    "where": "14-A 轴 +1.9 m / 27 轴 +2.1 m",
+    "a": "管件 喷淋系统 150 mm-150 mm",
+    "b": "电缆桥架 UPS 100 mmx100 mmø",
+    "distance_mm": 97,
+    "required_mm": 150
+   },
+   {
+    "where": "AA 轴 +0.1 m / 27 轴 -1.1 m",
+    "a": "结构框架 450x750",
+    "b": "电缆桥架配件 强电消防桥架 600 mmx200 mmø-600 mmx200 mmø",
+    "distance_mm": 0,
+    "required_mm": 50
+   },
+   {
+    "where": "14-A 轴 -0.2 m / 27 轴 +3.6 m",
+    "a": "电缆桥架 母线 200 mmx200 mmø",
+    "b": "电缆桥架 火灾自动报警 400 mmx100 mmø",
+    "distance_mm": 0,
+    "required_mm": 50
+   },
+   {
+    "where": "14-A 轴 -0.5 m / 27 轴 +3.6 m",
+    "a": "电缆桥架 母线 200 mmx200 mmø",
+    "b": "电缆桥架 火灾自动报警 400 mmx100 mmø",
+    "distance_mm": 0,
+    "required_mm": 50
+   },
+   {
+    "where": "14-A 轴 -1.2 m / 27 轴 +3.6 m",
+    "a": "电缆桥架 母线 200 mmx200 mmø",
+    "b": "电缆桥架配件 火灾自动报警桥架 400 mmx100 mmø-400 mmx100 mmø-400 mmx100 mmø",
+    "distance_mm": 0,
+    "required_mm": 50
+   }
+  ],
+  "clearance_total": 25,
+  "tray_under_water": [],
+  "levels": 8
+ }
+}

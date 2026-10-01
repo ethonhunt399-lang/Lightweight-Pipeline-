@@ -17,12 +17,13 @@ Three schemes, each solved lexicographically:
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 
 from ortools.sat.python import cp_model
 
 from .rules import RuleSet
-from .section import Section, Strand
+from .section import Section, Strand, overlaps
 
 SCHEMES = {
     "headroom": "净高最优",
@@ -68,12 +69,9 @@ class _Model:
         self.K = K
         clear = rules.clearance_mm
         floor = _i(sec.floor_z)
-        ceiling_top = _i(sec.ceiling - lay.beam_clearance_mm)
-        self.crossing_reserve = 0
-        if lay.crossing_zone == "top" and sec.zone_crossings and "crossing" not in relax:
-            # Branches crossing the corridor pass between the bundle and the beams.
-            self.crossing_reserve = _i(sec.crossing_height + clear.default)
-            ceiling_top -= self.crossing_reserve
+        # Global bound only; every beam and crossing service limits the strands under it (below).
+        top_bound = sec.ceiling_max if math.isfinite(sec.ceiling_max) else sec.ceiling
+        ceiling_top = _i(top_bound - lay.beam_clearance_mm)
         min_bottom = _i(sec.floor_z + rules.headroom.min_clear_mm + lay.support_reserve_mm)
         if "headroom" in relax:
             min_bottom = floor
@@ -119,11 +117,15 @@ class _Model:
                 m.Add(self.H[k] >= _i(s.height)).OnlyEnforceIf(self.x[i][k])
                 m.Add(self.z[i] == self.bot[k]).OnlyEnforceIf(self.x[i][k])
 
+        def along(a: Strand, b: Strand) -> bool:
+            """Strands that share part of the corridor length interact; others never meet."""
+            return overlaps(a.s_lo, a.s_hi, b.s_lo, b.s_hi)
+
         # Vertical clearance between adjacent layers, by group.
         for i, a in enumerate(items):
             for j, b in enumerate(items):
                 c = clr(a, b)
-                if i == j or c <= lay.layer_gap_min_mm:
+                if i == j or c <= lay.layer_gap_min_mm or not along(a, b):
                     continue
                 for k in range(K - 1):
                     m.Add(self.gap[k] >= c).OnlyEnforceIf([self.x[i][k], self.x[j][k + 1]])
@@ -133,6 +135,8 @@ class _Model:
         for i in range(n):
             for j in range(i + 1, n):
                 a, b = items[i], items[j]
+                if not along(a, b):
+                    continue
                 same = m.NewBoolVar(f"same{i}_{j}")
                 m.Add(self.layer[i] == self.layer[j]).OnlyEnforceIf(same)
                 m.Add(self.layer[i] != self.layer[j]).OnlyEnforceIf(same.Not())
@@ -143,25 +147,41 @@ class _Model:
                 self.same[(i, j)] = same
                 self.left[(i, j)] = left
 
-        # Beams running along the corridor: be beside them or below them.
+        # Overhead limits, each acting only on strands under it (across and along the corridor):
+        #   beams — clearance to the beam bottom;
+        #   crossing services up to the zone limit — they pass above the bundle and under the beams
+        #   that run along the corridor, so the bundle stays below that level minus the service.
+        limits = []      # (v_lo, v_hi, s_lo, s_hi, highest allowed top of a strand)
+        cb = _i(clear.required("structure", "water")[0])
         if "beams" not in relax:
-            seen = set()
-            cb = _i(clear.required("structure", "water")[0])
             for bm in sec.beams:
-                key = (_i(bm.v_lo / 10), _i(bm.v_hi / 10), _i(bm.bottom / 10))
-                if key in seen:
+                limits.append((bm.v_lo, bm.v_hi, bm.s_lo, bm.s_hi, bm.bottom - cb))
+        if lay.crossing_zone == "top" and "crossing" not in relax:
+            for c in sec.zone_crossings:
+                top = c.ceiling - lay.beam_clearance_mm - c.height - clear.default
+                limits.append((c.v_lo, c.v_hi, c.s - c.height / 2, c.s + c.height / 2, top))
+        seen = set()
+        for v0, v1, s0, s1, top in limits:
+            key = (_i(v0 / 10), _i(v1 / 10), _i(s0 / 200), _i(s1 / 200), _i(top / 10))
+            if key in seen:
+                continue
+            seen.add(key)
+            for i, s in enumerate(items):
+                if not overlaps(s.s_lo, s.s_hi, s0, s1):
                     continue
-                seen.add(key)
-                for i, s in enumerate(items):
-                    opts = [m.NewBoolVar(f"b{i}_{len(seen)}_{o}") for o in range(3)]
-                    m.Add(self.v[i] + _i(s.width / 2) + cb <= _i(bm.v_lo)).OnlyEnforceIf(opts[0])
-                    m.Add(self.v[i] - _i(s.width / 2) - cb >= _i(bm.v_hi)).OnlyEnforceIf(opts[1])
-                    m.Add(self.z[i] + _i(s.height) + cb <= _i(bm.bottom)).OnlyEnforceIf(opts[2])
-                    m.AddBoolOr(opts)
+                if _i(top) >= ceiling_top:
+                    continue          # never binding
+                opts = [m.NewBoolVar(f"o{i}_{len(seen)}_{o}") for o in range(3)]
+                m.Add(self.v[i] + _i(s.width / 2) + cb <= _i(v0)).OnlyEnforceIf(opts[0])
+                m.Add(self.v[i] - _i(s.width / 2) - cb >= _i(v1)).OnlyEnforceIf(opts[1])
+                m.Add(self.z[i] + _i(s.height) <= _i(top)).OnlyEnforceIf(opts[2])
+                m.AddBoolOr(opts)
 
         # Fixed strands stay; movable ones keep clear of them.
         for f in sec.fixed:
             for i, s in enumerate(items):
+                if not along(s, f):
+                    continue
                 c = clr(s, f)
                 opts = [m.NewBoolVar(f"f{f.id}_{i}_{o}") for o in range(4)]
                 m.Add(self.v[i] + _i((s.width + f.width) / 2) + c <= _i(f.v)).OnlyEnforceIf(opts[0])
@@ -344,7 +364,7 @@ def _layout(model: _Model, solver, scheme: str, status: str, stages: list[dict])
         "tray_below_water": sum(solver.Value(v) for v in model.tray_viol),
         "system_splits": sum(solver.Value(v) for v in model.split),
         "exit_side_violations": sum(solver.Value(v) for v in model.exit_viol),
-        "crossing_reserve_mm": model.crossing_reserve,
+        "crossings_over_bundle": len(sec.zone_crossings),
     }
     return Layout(scheme, status, placements, layers, metrics, stages)
 
@@ -366,5 +386,5 @@ def diagnose(sec: Section, rules: RuleSet) -> list[str]:
             found.append(f"放宽“{labels[key]}”后有解")
     stack = sum(sorted((s.height for s in sec.movable), reverse=True)[:1]) if sec.movable else 0
     avail = sec.ceiling - rules.layout.beam_clearance_mm - (sec.floor_z + rules.headroom.min_clear_mm + rules.layout.support_reserve_mm)
-    found.append(f"可用高度 {avail:.0f} mm（梁底 − 净距 − 净高要求 − 横担），最高单件 {stack:.0f} mm")
+    found.append(f"最低横跨梁下可用高度 {avail:.0f} mm（梁底 − 净距 − 净高要求 − 横担），最高单件 {stack:.0f} mm")
     return found or ["单独放宽任一组约束都无解，需要组合放宽"]

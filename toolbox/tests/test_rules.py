@@ -18,7 +18,7 @@ def classify(**kw):
 def test_default_rules_load():
     rules = load_rules()
     assert rules.headroom.min_clear_mm == 2200
-    assert rules.clearance_mm.required("water", "power")[0] == 300
+    assert rules.clearance_mm.required("water", "power")[0] == 150
     assert rules.clearance_mm.required("structure", "air")[0] == 50
     assert rules.clearance_mm.required("air", "air")[0] == rules.clearance_mm.default
 

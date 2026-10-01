@@ -54,11 +54,17 @@ def build_data(package: Package, rules: RuleSet, conflicts: list[Conflict] | Non
     def m(p) -> list[float]:
         return [round(float(v) / 1000, 4) for v in (np.asarray(p) - origin)]
 
-    def geometry(s) -> dict:
+    def geometry(s, tray: bool = False) -> dict:
         if s.is_capsule:
             return {"t": "cyl", "g": m(s.segment[0]) + m(s.segment[1]) + [round(s.radius / 1000, 4)]}
-        return {"t": "box", "g": m(s.center) + [round(float(v), 5) for v in s.axes.ravel()]
+        return {"t": "tray" if tray else "box", "g": m(s.center) + [round(float(v), 5) for v in s.axes.ravel()]
                 + [round(float(v) / 1000, 4) for v in s.half]}
+
+    def shape(e) -> dict:
+        tray = e.domain == "tray"
+        if e.parts:
+            return {"t": "multi", "p": [geometry(p, tray) for p in e.parts]}
+        return geometry(e.solid, tray and e.origin == "mep_curve")
 
     matcher = _RunMatcher(reference) if reference is not None else None
     index: dict[str, int] = {}
@@ -66,7 +72,7 @@ def build_data(package: Package, rules: RuleSet, conflicts: list[Conflict] | Non
     for e in elements:
         s = e.solid
         cls = e.cls if e.is_mep else e.kind
-        geom = geometry(s)
+        geom = shape(e)
         lo, hi = s.aabb()
         level = floor_level(package, rules, float(lo[2]))
         index[e.key] = len(items)
@@ -119,7 +125,7 @@ def build_data(package: Package, rules: RuleSet, conflicts: list[Conflict] | Non
         for e in reference.mep():
             if e.solid is None or not inside(e):
                 continue
-            ref_items.append({**geometry(e.solid), "c": e.cls, "l": e.label(),
+            ref_items.append({**shape(e), "c": e.cls, "l": e.label(),
                               "st": "kept" if e.key in package.elements else "removed"})
     # Grid lines span the whole building: clip them to the exported range plus a margin.
     margin = 3000.0

@@ -82,7 +82,7 @@ def build(package: Package, floor_z: float, cell: float = 500.0) -> HeadroomMap:
         xs = x0 + (np.arange(i0, i1) + 0.5) * cell
         ys = y0 + (np.arange(j0, j1) + 0.5) * cell
         X, Y = np.meshgrid(xs, ys)
-        z = _bottom_at(s, X, Y, cell / 2)
+        z = np.min([_bottom_at(p, X, Y, cell / 2) for p in (e.parts or [s])], axis=0)
         block = bottom[j0:j1, i0:i1]
         better = z < block
         block[better] = z[better]

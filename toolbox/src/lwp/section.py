@@ -57,6 +57,29 @@ class Beam:
     bottom: float
     crossing: bool            # spans across the corridor (else runs along it)
     label: str
+    s_lo: float = -np.inf     # extent along the corridor (mm)
+    s_hi: float = np.inf
+
+
+@dataclass
+class Crossing:
+    """A service crossing the corridor (perpendicular to it)."""
+    key: str
+    s: float                  # position along the corridor
+    v_lo: float
+    v_hi: float
+    z_lo: float
+    z_hi: float
+    label: str
+    ceiling: float = np.inf   # lowest bottom of beams it has to pass under (beams along the corridor)
+
+    @property
+    def height(self) -> float:
+        return self.z_hi - self.z_lo
+
+
+def overlaps(a_lo: float, a_hi: float, b_lo: float, b_hi: float, margin: float = 0.0) -> bool:
+    return a_lo < b_hi + margin and b_lo < a_hi + margin
 
 
 @dataclass
@@ -64,31 +87,32 @@ class Section:
     corridor: Corridor
     floor_z: float
     floor_name: str
-    ceiling: float            # lowest bottom of beams crossing the corridor (mm)
+    ceiling: float            # lowest bottom of beams crossing the corridor (mm) — reported
     ceiling_key: str
     v_lo: float               # available width (mm), walls/columns excluded
     v_hi: float
     strands: list[Strand]
-    beams: list[Beam]         # beams running along the corridor (local limits)
-    crossings: list[tuple[str, float, float, str]]   # perpendicular services: key, z_lo, z_hi, label
+    beams: list[Beam]         # every beam over the corridor; each limits only strands under it
+    crossings: list[Crossing]
     blocked: list[tuple[float, float, str]]          # v intervals blocked by columns / walls
     notes: list[str] = field(default_factory=list)
+    ceiling_max: float = np.inf   # highest crossing-beam bottom: upper bound for any layer
 
     crossing_limit: float = 250.0
 
     @property
-    def zone_crossings(self) -> list[tuple[str, float, float, str]]:
-        """Crossing services that go through the crossing zone (the rest are node items)."""
-        return [c for c in self.crossings if c[2] - c[1] <= self.crossing_limit + 1]
+    def zone_crossings(self) -> list[Crossing]:
+        """Crossing services that pass above the bundle (the rest are node items)."""
+        return [c for c in self.crossings if c.height <= self.crossing_limit + 1]
 
     @property
-    def large_crossings(self) -> list[tuple[str, float, float, str]]:
-        return [c for c in self.crossings if c[2] - c[1] > self.crossing_limit + 1]
+    def large_crossings(self) -> list[Crossing]:
+        return [c for c in self.crossings if c.height > self.crossing_limit + 1]
 
     @property
     def crossing_height(self) -> float:
-        """Largest crossing service that the crossing zone has to fit (mm)."""
-        return max((hi - lo for _, lo, hi, _ in self.zone_crossings), default=0.0)
+        """Largest crossing service passing above the bundle (mm)."""
+        return max((c.height for c in self.zone_crossings), default=0.0)
 
     @property
     def movable(self) -> list[Strand]:
@@ -148,7 +172,7 @@ def extract(package: Package, corridor: Corridor, rules: RuleSet) -> Section:
             sc = (s_lo + s_hi) / 2
             if corridor.s0 <= sc <= corridor.s1 and v_lo < corridor.v1 and v_hi > corridor.v0:
                 lo, hi = e.solid.aabb()
-                crossings.append((e.key, float(lo[2]), float(hi[2]), e.label()))
+                crossings.append(Crossing(e.key, sc, v_lo, v_hi, float(lo[2]), float(hi[2]), e.label()))
 
     # Split each (kind, system, size) group into strands of collinear segments.
     strands: list[Strand] = []
@@ -185,7 +209,7 @@ def extract(package: Package, corridor: Corridor, rules: RuleSet) -> Section:
     _attach_fittings(package, corridor, strands)
 
     # Structure.
-    beams, ceiling, ceiling_key = [], np.inf, ""
+    beams, ceiling, ceiling_key, ceiling_max = [], np.inf, "", -np.inf
     blocked = []
     for e in package.obstacles():
         s_lo, s_hi, v_lo, v_hi = _plan_extent(e, corridor)
@@ -197,12 +221,13 @@ def extract(package: Package, corridor: Corridor, rules: RuleSet) -> Section:
                 continue
             long_axis = max((1, 2, 0), key=lambda k: e.solid.half[k] * (1 - abs(e.solid.axes[k][2])))
             along = abs(float(np.dot(e.solid.axes[long_axis], corridor.u)))
-            crossing = along < 0.95      # anything not running along the corridor limits the whole section
-            if crossing:
-                if v_lo < corridor.v1 and v_hi > corridor.v0 and lo[2] < ceiling:
+            crossing = along < 0.95
+            # Every beam limits only the strands under it (overlapping across and along the corridor).
+            beams.append(Beam(e.key, v_lo, v_hi, float(lo[2]), crossing, e.type_name, s_lo, s_hi))
+            if crossing and v_lo < corridor.v1 and v_hi > corridor.v0:
+                if lo[2] < ceiling:
                     ceiling, ceiling_key = float(lo[2]), e.key
-            else:
-                beams.append(Beam(e.key, v_lo, v_hi, float(lo[2]), False, e.type_name))
+                ceiling_max = max(ceiling_max, float(lo[2]))
         elif e.kind in ("column", "wall"):
             if v_hi < corridor.v0 - SIDE_EXTENSION or v_lo > corridor.v1 + SIDE_EXTENSION:
                 continue
@@ -231,12 +256,20 @@ def extract(package: Package, corridor: Corridor, rules: RuleSet) -> Section:
         else:
             notes.append(f"{'柱' if kind == 'column' else '墙'}位于管线束中间（v {b_lo / 1000:.2f}–{b_hi / 1000:.2f} m），宽度限制未计入")
 
+    if not np.isfinite(ceiling_max):
+        ceiling_max = ceiling
+    # Crossing services run between the crossing beams; they pass under beams running along the corridor.
+    for c in crossings:
+        under = [b.bottom for b in beams if not b.crossing and overlaps(b.v_lo, b.v_hi, c.v_lo, c.v_hi)
+                 and b.s_lo - 1 <= c.s <= b.s_hi + 1]
+        c.ceiling = min(under) if under else ceiling_max
     sec = Section(corridor=corridor, floor_z=floor_z, floor_name=floor.name if floor else "", ceiling=ceiling,
                   ceiling_key=ceiling_key, v_lo=v_lo, v_hi=v_hi, strands=strands, beams=beams,
-                  crossings=crossings, blocked=blocked, notes=notes, crossing_limit=rules.layout.crossing_zone_max_mm)
+                  crossings=crossings, blocked=blocked, notes=notes, crossing_limit=rules.layout.crossing_zone_max_mm,
+                  ceiling_max=ceiling_max)
     if sec.large_crossings:
         sec.notes.append(f"{len(sec.large_crossings)} 根横穿管高度超过 {rules.layout.crossing_zone_max_mm:.0f} mm"
-                         f"（{'、'.join(sorted({c[3] for c in sec.large_crossings}))}），不进横穿层，按节点冲突处理")
+                         f"（{'、'.join(sorted({c.label for c in sec.large_crossings}))}），不从管线束上方通过，按节点冲突处理")
     return sec
 
 
@@ -273,6 +306,13 @@ def _attach_fittings(package: Package, corridor: Corridor, strands: list[Strand]
         if linked:
             # A fitting joining two strands (e.g. a reducer) goes with the first; transitions are node work.
             linked[0].fittings.append(e.key)
+    # A strand occupies the corridor length of its fittings too (elbows and tees reach past the run).
+    for s in strands:
+        for key in s.fittings:
+            f = package.elements[key]
+            s_lo, s_hi, _, _ = _plan_extent(f, corridor)
+            s.s_lo = max(min(s.s_lo, s_lo), corridor.s0)
+            s.s_hi = min(max(s.s_hi, s_hi), corridor.s1)
     members = {k for s in strands for k in s.segments + s.fittings}
     for s in strands:
         for key in s.segments + s.fittings:

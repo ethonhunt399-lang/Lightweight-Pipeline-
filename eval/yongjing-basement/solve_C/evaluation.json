@@ -1,8 +1,10 @@
 {
  "original": {
   "name": "原模型",
-  "hard": 218,
-  "clearance": 101,
+  "hard": 213,
+  "hard_node": 0,
+  "nodes": {},
+  "clearance": 43,
   "hard_structure": 4,
   "stations": 31,
   "lowest_mm": 2498,
@@ -12,46 +14,204 @@
  },
  "headroom": {
   "name": "净高最优",
-  "hard": 34,
-  "clearance": 139,
+  "hard": 41,
+  "hard_node": 21,
+  "nodes": {
+   "出线引出": 18,
+   "横穿翻弯": 3
+  },
+  "clearance": 91,
   "hard_structure": 3,
   "stations": 31,
-  "lowest_mm": 2495,
-  "median_lowest_mm": 2495,
+  "lowest_mm": 2516,
+  "median_lowest_mm": 2560,
   "median_levels": 1.0,
   "max_levels": 2
  },
  "changes": {
   "name": "改动最少",
-  "hard": 40,
-  "clearance": 133,
-  "hard_structure": 3,
+  "hard": 32,
+  "hard_node": 17,
+  "nodes": {
+   "横穿翻弯": 4,
+   "出线引出": 13
+  },
+  "clearance": 73,
+  "hard_structure": 4,
   "stations": 31,
-  "lowest_mm": 2495,
-  "median_lowest_mm": 2495,
-  "median_levels": 1.0,
-  "max_levels": 2
+  "lowest_mm": 2300,
+  "median_lowest_mm": 2300,
+  "median_levels": 2.0,
+  "max_levels": 3
  },
  "supports": {
   "name": "支吊架最省",
-  "hard": 43,
-  "clearance": 147,
+  "hard": 44,
+  "hard_node": 29,
+  "nodes": {
+   "出线引出": 26,
+   "横穿翻弯": 3
+  },
+  "clearance": 92,
   "hard_structure": 3,
   "stations": 31,
-  "lowest_mm": 2495,
-  "median_lowest_mm": 2495,
+  "lowest_mm": 2516,
+  "median_lowest_mm": 2560,
   "median_levels": 1.0,
   "max_levels": 2
  },
  "gold": {
-  "name": "人工排布",
-  "hard": 12,
-  "clearance": 164,
-  "hard_structure": 7,
+  "name": "人工方案",
+  "hard": 3,
+  "hard_node": 0,
+  "nodes": {},
+  "clearance": 43,
+  "hard_structure": 3,
   "stations": 31,
   "lowest_mm": 2616,
   "median_lowest_mm": 2616,
   "median_levels": 2.0,
   "max_levels": 7
+ },
+ "review": {
+  "findings": [
+   "人工方案净高比自动方案高 100 mm（自动方案在此项不如人工）",
+   "人工方案管底有 5 个不同标高；净高最优方案只需 1 层，支吊架层数可减少、排布更规整",
+   "人工方案在走廊内仍有 3 处硬碰撞（见下表）",
+   "人工方案有 43 处净距低于规则要求（按已确认的校准净距）"
+  ],
+  "hard": [
+   {
+    "where": "AA 轴 -2.5 m / 27 轴 +0.7 m",
+    "a": "管道 XW 150 mm",
+    "b": "结构框架 300X600",
+    "distance_mm": -184,
+    "required_mm": 50
+   },
+   {
+    "where": "AA 轴 -1.1 m / 27 轴 +1.3 m",
+    "a": "结构框架 300X600",
+    "b": "管道 XW 150 mm",
+    "distance_mm": -184,
+    "required_mm": 50
+   },
+   {
+    "where": "AA 轴 -3.1 m / 27 轴 +0.9 m",
+    "a": "结构框架 300X600",
+    "b": "管道 X 150 mm",
+    "distance_mm": -184,
+    "required_mm": 50
+   }
+  ],
+  "clearance": [
+   {
+    "where": "AA 轴 -0.2 m / 25 轴 +0.7 m",
+    "a": "结构框架 400X700",
+    "b": "电缆桥架配件 火灾自动报警桥架 100 mmx100 mmø-100 mmx100 mmø",
+    "distance_mm": 0,
+    "required_mm": 50
+   },
+   {
+    "where": "AA 轴 -0.2 m / 25 轴 +0.8 m",
+    "a": "结构框架 400X700",
+    "b": "电缆桥架配件 消防广播 100 mmx100 mmø-100 mmx100 mmø",
+    "distance_mm": 0,
+    "required_mm": 50
+   },
+   {
+    "where": "AA 轴 +0.1 m / 25 轴 +0.7 m",
+    "a": "结构框架 400X700",
+    "b": "电缆桥架 火灾自动报警 100 mmx100 mmø",
+    "distance_mm": 0,
+    "required_mm": 50
+   },
+   {
+    "where": "AA 轴 +0.1 m / 25 轴 +0.8 m",
+    "a": "结构框架 400X700",
+    "b": "电缆桥架 消防广播 100 mmx100 mmø",
+    "distance_mm": 0,
+    "required_mm": 50
+   },
+   {
+    "where": "AA 轴 -1.4 m / 27 轴 +1.3 m",
+    "a": "电缆桥架 UPS 100 mmx100 mmø",
+    "b": "电缆桥架配件 消防广播 200 mmx100 mmø-200 mmx100 mmø-100 mmx100 mmø",
+    "distance_mm": 0,
+    "required_mm": 50
+   },
+   {
+    "where": "AA 轴 +0.1 m / 25 轴 +2.4 m",
+    "a": "结构框架 400X700",
+    "b": "管道 喷淋系统 150 mm",
+    "distance_mm": 16,
+    "required_mm": 50
+   },
+   {
+    "where": "AA 轴 -1.3 m / 25 轴 +2.4 m",
+    "a": "电缆桥架 UPS 100 mmx100 mmø",
+    "b": "管道 喷淋系统 150 mm",
+    "distance_mm": 116,
+    "required_mm": 150
+   },
+   {
+    "where": "AA 轴 +1.0 m / 25 轴 +2.4 m",
+    "a": "电缆桥架 强电消防桥架 100 mmx100 mmø",
+    "b": "管道 喷淋系统 150 mm",
+    "distance_mm": 116,
+    "required_mm": 150
+   },
+   {
+    "where": "AA 轴 -2.2 m / 25 轴 +0.4 m",
+    "a": "管道 XW 150 mm",
+    "b": "电缆桥架 强电-居住 200 mmx100 mmø",
+    "distance_mm": 116,
+    "required_mm": 150
+   },
+   {
+    "where": "AA 轴 -2.4 m / 1-1 轴 -2.2 m",
+    "a": "管道 XW 150 mm",
+    "b": "电缆桥架 充电桩桥架 150 mmx100 mmø",
+    "distance_mm": 116,
+    "required_mm": 150
+   },
+   {
+    "where": "AA 轴 -2.2 m / 1-1 轴 -2.2 m",
+    "a": "管道 XW 150 mm",
+    "b": "电缆桥架 充电桩桥架 150 mmx100 mmø",
+    "distance_mm": 116,
+    "required_mm": 150
+   },
+   {
+    "where": "AB 轴 +2.4 m / 1-1 轴 -2.2 m",
+    "a": "管道 X 150 mm",
+    "b": "电缆桥架 充电桩桥架 150 mmx100 mmø",
+    "distance_mm": 116,
+    "required_mm": 150
+   },
+   {
+    "where": "AB 轴 +2.4 m / 25 轴 +0.4 m",
+    "a": "管道 X 150 mm",
+    "b": "电缆桥架 强电-居住 200 mmx100 mmø",
+    "distance_mm": 116,
+    "required_mm": 150
+   },
+   {
+    "where": "AA 轴 -2.7 m / 25 轴 +0.4 m",
+    "a": "管道 X 150 mm",
+    "b": "电缆桥架 强电-居住 200 mmx100 mmø",
+    "distance_mm": 116,
+    "required_mm": 150
+   },
+   {
+    "where": "AA 轴 -2.4 m / 25 轴 +0.4 m",
+    "a": "管道 XW 150 mm",
+    "b": "电缆桥架 强电-居住 200 mmx100 mmø",
+    "distance_mm": 116,
+    "required_mm": 150
+   }
+  ],
+  "clearance_total": 43,
+  "tray_under_water": [],
+  "levels": 5
  }
 }

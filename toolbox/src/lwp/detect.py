@@ -120,7 +120,7 @@ def detect_conflicts(package: Package, rules: RuleSet) -> list[Conflict]:
         gap_mm = float(np.linalg.norm(gap))
         if gap_mm > 0 and gap_mm >= required:
             continue
-        d, where = distance(a.solid, b.solid)
+        d, where = element_distance(a, b)
         # 1 mm tolerance: modelled "exactly 50 mm" spacings come out as 49.99.
         if d >= required - TOLERANCE_MM or not in_scope(where):
             continue
@@ -140,6 +140,22 @@ def detect_conflicts(package: Package, rules: RuleSet) -> list[Conflict]:
     return conflicts
 
 
+def element_distance(a: Element, b: Element):
+    """Distance between two elements, using fitting legs where available."""
+    best = None
+    for pa in a.parts or [a.solid]:
+        for pb in b.parts or [b.solid]:
+            d, where = distance(pa, pb)
+            if best is None or d < best[0]:
+                best = (d, where)
+    return best
+
+
+def project_element(e: Element, p: np.ndarray) -> np.ndarray:
+    pts = [s.project(p) for s in (e.parts or [e.solid])]
+    return min(pts, key=lambda q: float(np.linalg.norm(q - p)))
+
+
 def same_system_issue(a: Element, b: Element) -> str | None:
     """Overlaps inside one system are modelling issues, not coordination clashes."""
     if not (a.is_mep and b.is_mep) or a.cls != b.cls:
@@ -151,7 +167,7 @@ def same_system_issue(a: Element, b: Element) -> str | None:
             if c.get("connector_type") != "End" or c.get("connected") or not c.get("origin"):
                 continue
             p = np.array(c["origin"]) * 1000
-            if np.linalg.norm(y.solid.project(p) - p) <= 50:
+            if np.linalg.norm(project_element(y, p) - p) <= 50:
                 return JOINT
     return OVERLAP
 

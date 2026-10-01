@@ -163,11 +163,34 @@
   sun.position.set(0.6, -0.8, 1.4);
   scene.add(sun);
 
+  // ------------------------------------------------------------------ render parts
+  // An element renders as one or more parts: fittings as one leg per connector, cable trays as an
+  // open channel (bottom plate and two side walls) so that they read differently from ducts.
+  const TRAY_T = 0.02;           // m, drawn plate thickness
+  function expand(item) {
+    if (item.t === "multi") return item.p.flatMap(expand);
+    if (item.t !== "tray") return [item];
+    const g = item.g;
+    const c = [g[0], g[1], g[2]];
+    const a = [0, 1, 2].map(i => [g[3 + 3 * i], g[4 + 3 * i], g[5 + 3 * i]]);
+    const h = [g[12], g[13], g[14]];
+    const t = Math.min(TRAY_T, h[1] * 0.4, h[2] * 0.4);
+    const down = a[2][2] >= 0 ? -1 : 1;     // the plate goes on the lower side
+    const at = (k, d) => c.map((v, i) => v + a[k][i] * d);
+    const part = (centre, half) => ({ t: "box", g: [...centre, ...a[0], ...a[1], ...a[2], ...half] });
+    return [
+      part(at(2, down * (h[2] - t / 2)), [h[0], h[1], t / 2]),
+      part(at(1, h[1] - t / 2), [h[0], t / 2, h[2]]),
+      part(at(1, -(h[1] - t / 2)), [h[0], t / 2, h[2]]),
+    ];
+  }
+
   const box = new THREE.Box3();
   const tmp = new THREE.Vector3();
-  for (const e of DATA.elements) {
-    box.expandByPoint(tmp.set(e.g[0], e.g[1], e.g[2]));
-    if (e.t === "cyl") box.expandByPoint(tmp.set(e.g[3], e.g[4], e.g[5]));
+  DATA.elements.forEach(e => { e._parts = expand(e); });
+  for (const e of DATA.elements) for (const p of e._parts) {
+    box.expandByPoint(tmp.set(p.g[0], p.g[1], p.g[2]));
+    if (p.t === "cyl") box.expandByPoint(tmp.set(p.g[3], p.g[4], p.g[5]));
   }
   const floorZ = META.floor_z;
   const topZ = box.max.z + 0.5;
@@ -186,9 +209,9 @@
   const Y = new THREE.Vector3(0, 1, 0);
   const m4 = new THREE.Matrix4();
 
-  function matrixFor(e, out) {
-    const g = e.g;
-    if (e.t === "cyl") {
+  function matrixFor(p, out) {
+    const g = p.g;
+    if (p.t === "cyl") {
       const a = new THREE.Vector3(g[0], g[1], g[2]), b = new THREE.Vector3(g[3], g[4], g[5]);
       const dir = b.clone().sub(a);
       const len = Math.max(dir.length(), 1e-4);
@@ -201,17 +224,17 @@
     return out;
   }
 
-  function instanced(list, material, onEach) {
+  // items: [{ p: part, owner: element index or -1 }] → instanced meshes; userData.owner maps instance → element.
+  function instanced(items, material, onEach) {
     const out = [];
     for (const shape of ["cyl", "box"]) {
-      const idx = [];
-      list.forEach((e, i) => { if (e.t === shape) idx.push(i); });
-      if (!idx.length) continue;
-      const mesh = new THREE.InstancedMesh(shape === "cyl" ? cylGeo : boxGeo, material, idx.length);
-      idx.forEach((ei, k) => { mesh.setMatrixAt(k, matrixFor(list[ei], m4)); onEach && onEach(mesh, k, ei); });
+      const sel = items.filter(it => it.p.t === shape);
+      if (!sel.length) continue;
+      const mesh = new THREE.InstancedMesh(shape === "cyl" ? cylGeo : boxGeo, material, sel.length);
+      sel.forEach((it, k) => { mesh.setMatrixAt(k, matrixFor(it.p, m4)); onEach && onEach(mesh, k, it.owner); });
       mesh.instanceMatrix.needsUpdate = true;
       mesh.computeBoundingSphere();
-      mesh.userData.idx = idx;
+      mesh.userData.owner = sel.map(it => it.owner);
       out.push(mesh);
     }
     return out;
@@ -221,16 +244,14 @@
     const obstacle = info.kind === "obstacle";
     const mat = new THREE.MeshLambertMaterial({ color: 0xffffff, clippingPlanes: planes, transparent: obstacle,
       opacity: cls === "wall" ? 0.12 : obstacle ? 0.35 : 1, depthWrite: !obstacle });
-    const members = [];
-    DATA.elements.forEach((e, i) => { if (e.c === cls) members.push(i); });
-    const list = members.map(i => DATA.elements[i]);
-    groups[cls] = instanced(list, mat, (mesh, k, li) => {
-      const e = list[li];
-      e._mesh = mesh; e._k = k; e._i = members[li];
-      mesh.setColorAt(k, new THREE.Color(info.color));
+    const items = [];
+    DATA.elements.forEach((e, i) => { if (e.c === cls) { e._inst = []; e._parts.forEach(p => items.push({ p, owner: i })); } });
+    const colour = new THREE.Color(info.color);
+    groups[cls] = instanced(items, mat, (mesh, k, owner) => {
+      DATA.elements[owner]._inst.push([mesh, k]);
+      mesh.setColorAt(k, colour);
     });
     groups[cls].forEach(mesh => {
-      mesh.userData.idx = mesh.userData.idx.map(li => members[li]);
       if (obstacle) mesh.renderOrder = 2;
       scene.add(mesh);
       pickables.push(mesh);
@@ -240,11 +261,12 @@
   // ------------------------------------------------------------------ reference (e.g. before coordination)
   const refGroup = new THREE.Group();
   if (REF) {
+    const parts = (list) => list.flatMap(e => expand(e).map(p => ({ p, owner: -1 })));
     const kept = REF.elements.filter(e => e.st === "kept"), removed = REF.elements.filter(e => e.st !== "kept");
     const ghost = new THREE.MeshBasicMaterial({ color: 0xcfd6df, transparent: true, opacity: 0.16, depthWrite: false, clippingPlanes: planes });
     const gone = new THREE.MeshBasicMaterial({ color: 0xff6b6b, transparent: true, opacity: 0.35, depthWrite: false, clippingPlanes: planes });
-    instanced(kept, ghost).forEach(m => refGroup.add(m));
-    instanced(removed, gone).forEach(m => refGroup.add(m));
+    instanced(parts(kept), ghost).forEach(m => refGroup.add(m));
+    instanced(parts(removed), gone).forEach(m => refGroup.add(m));
     refGroup.visible = false;
     refGroup.renderOrder = 3;
     scene.add(refGroup);
@@ -277,7 +299,7 @@
   function applyColors() {
     for (const e of DATA.elements) {
       e._color = colorFor(e, colorMode);
-      e._mesh.setColorAt(e._k, e._color);
+      for (const [mesh, k] of e._inst) mesh.setColorAt(k, e._color);
     }
     for (const list of Object.values(groups)) list.forEach(m => m.instanceColor.needsUpdate = true);
     highlighted.forEach((i, n) => paint(i, HL[n % 2]));
@@ -594,9 +616,10 @@
   let highlighted = [];
   const HL = [new THREE.Color(0xffff00), new THREE.Color(0xff00ff)];
   function paint(i, color) {
-    const e = DATA.elements[i];
-    e._mesh.setColorAt(e._k, color);
-    e._mesh.instanceColor.needsUpdate = true;
+    for (const [mesh, k] of DATA.elements[i]._inst) {
+      mesh.setColorAt(k, color);
+      mesh.instanceColor.needsUpdate = true;
+    }
   }
   function highlight(indices) {
     for (const i of highlighted) paint(i, DATA.elements[i]._color);
@@ -607,7 +630,7 @@
   function pick(ev) {
     const hit = raycast(ev);
     if (hit) {
-      const ei = hit.object.userData.idx[hit.instanceId];
+      const ei = hit.object.userData.owner[hit.instanceId];
       highlight([ei]); showInfo([ei]);
       return;
     }

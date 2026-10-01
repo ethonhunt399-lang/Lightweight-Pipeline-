@@ -5,7 +5,7 @@
 # 单位：毫米。
 
 name: 小区地下室默认规则
-version: 0.1.0
+version: 0.2.0
 
 # ---------------------------------------------------------------------------
 # 系统分类。group 用于净距矩阵，pressure 用于“有压让无压”等排布规则（R1 使用）。
@@ -65,12 +65,13 @@ classification:
 # 净距（外轮廓含保温之间的最小距离）。按 group 两两查表，未列出的用 default。
 # ---------------------------------------------------------------------------
 clearance_mm:
-  default: 50
+  # 2026-10-01 工程师确认：按雍景地下室人工调整后模型实测校准（桥架与水管实测中位 179 mm）。
+  default: 30
   pairs:
-    - {a: power, b: water,     mm: 300, confirmed: false, note: 参照 GB 50303 电缆桥架与一般工艺管道交叉净距 0.3 m}
-    - {a: weak,  b: water,     mm: 100, confirmed: false}
-    - {a: power, b: weak,      mm: 100, confirmed: false}
-    - {a: any,   b: structure, mm: 50,  confirmed: false, note: 机电与梁、柱外表面}
+    - {a: power, b: water,     mm: 150, confirmed: true, note: 强电桥架与水管；GB 50303 交叉净距 0.3 m 为更严的参照值}
+    - {a: weak,  b: water,     mm: 60,  confirmed: true, note: 弱电、消防电桥架与水管}
+    - {a: power, b: weak,      mm: 50,  confirmed: true, note: 强弱电桥架之间}
+    - {a: any,   b: structure, mm: 50,  confirmed: true, note: 机电与梁、柱外表面}
 
 # ---------------------------------------------------------------------------
 # 净高

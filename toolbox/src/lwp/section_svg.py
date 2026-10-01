@@ -16,7 +16,7 @@ MARGIN_L, MARGIN_R, MARGIN_T, MARGIN_B = 70, 30, 46, 42
 def draw(sec: Section, rules: RuleSet, layout: Layout | None, title: str) -> str:
     lay = rules.layout
     z_lo = sec.floor_z + rules.headroom.min_clear_mm - 400
-    z_hi = sec.ceiling + 250
+    z_hi = max(sec.ceiling_max, sec.ceiling) + 300
     v_lo, v_hi = sec.v_lo - 200, sec.v_hi + 200
     sx = (W - MARGIN_L - MARGIN_R) / (v_hi - v_lo)
     sz = (H - MARGIN_T - MARGIN_B) / (z_hi - z_lo)
@@ -43,27 +43,28 @@ def draw(sec: Section, rules: RuleSet, layout: Layout | None, title: str) -> str
     out.append(f'<text x="{MARGIN_L}" y="36" fill="#6b7280">走廊 {escape(c.name)}（沿 {c.axis.upper()}，长 {c.length / 1000:.1f} m）'
                f' · 断面宽 {(sec.v_hi - sec.v_lo) / 1000:.2f} m · 竖向比例放大 {sz / sx:.1f}×</text>')
 
-    # Limits.
-    ceiling_top = sec.ceiling - lay.beam_clearance_mm
-    reserve = 0.0
-    if lay.crossing_zone == "top" and sec.zone_crossings:
-        reserve = sec.crossing_height + rules.clearance_mm.default
-    out.append(f'<rect x="{X(sec.v_lo):.1f}" y="{Y(sec.ceiling + 200):.1f}" width="{(sec.v_hi - sec.v_lo) * sx:.1f}" '
-               f'height="{200 * sz:.1f}" fill="url(#hatch)" stroke="#6b7280"/>')
-    out.append(_hline(X(sec.v_lo), X(sec.v_hi), Y(sec.ceiling), "#dc2626", f"梁底 {rel(sec.ceiling)}", dash="6 3"))
-    if reserve:
-        out.append(f'<rect x="{X(sec.v_lo):.1f}" y="{Y(ceiling_top):.1f}" width="{(sec.v_hi - sec.v_lo) * sx:.1f}" '
-                   f'height="{reserve * sz:.1f}" fill="#fde68a" opacity="0.35"/>')
-        out.append(f'<text x="{X(sec.v_hi) - 4:.1f}" y="{Y(ceiling_top) + 12:.1f}" text-anchor="end" fill="#92400e">'
-                   f'横穿层 {reserve:.0f} mm（{len(sec.zone_crossings)} 根横穿管线）</text>')
+    # Limits: every beam over the corridor as its own silhouette (crossing beams light — they are
+    # behind the section plane at intervals; beams along the corridor dark), clipped to the width.
+    roof = z_hi - 30
+    for b in sorted(sec.beams, key=lambda b: (not b.crossing, -b.bottom)):
+        x0, x1 = X(max(b.v_lo, sec.v_lo)), X(min(b.v_hi, sec.v_hi))
+        if x1 <= x0 or b.bottom >= roof:
+            continue
+        fill = "#e5e7eb" if b.crossing else "url(#hatch)"
+        out.append(f'<rect x="{x0:.1f}" y="{Y(roof):.1f}" width="{x1 - x0:.1f}" height="{(roof - b.bottom) * sz:.1f}" '
+                   f'fill="{fill}" stroke="#9ca3af" stroke-width="0.6" opacity="0.9"/>')
+    out.append(f'<text x="{X(sec.v_hi) - 4:.1f}" y="{Y(roof) + 12:.1f}" text-anchor="end" fill="#6b7280">'
+               '浅灰：横跨梁（各梁只限制其下方的管线）；斜线：顺走廊梁</text>')
+    out.append(_hline(X(sec.v_lo), X(sec.v_hi), Y(sec.ceiling), "#dc2626", f"最低横跨梁底 {rel(sec.ceiling)}", dash="6 3"))
     min_bottom = sec.floor_z + rules.headroom.min_clear_mm + lay.support_reserve_mm
     out.append(_hline(X(sec.v_lo), X(sec.v_hi), Y(min_bottom), "#ea580c",
                       f"净高控制 {rel(min_bottom)}（{rules.headroom.min_clear_mm / 1000:.1f} m + 横担 {lay.support_reserve_mm:.0f}）", dash="4 3"))
     for v in (sec.v_lo, sec.v_hi):
-        out.append(f'<line x1="{X(v):.1f}" y1="{Y(z_lo):.1f}" x2="{X(v):.1f}" y2="{Y(sec.ceiling + 200):.1f}" stroke="#6b7280" stroke-width="1.5"/>')
-    for b in sec.beams:
-        out.append(f'<rect x="{X(b.v_lo):.1f}" y="{Y(sec.ceiling + 200):.1f}" width="{max((b.v_hi - b.v_lo) * sx, 1):.1f}" '
-                   f'height="{(sec.ceiling + 200 - b.bottom) * sz:.1f}" fill="url(#hatch)" stroke="#6b7280" opacity="0.8"/>')
+        out.append(f'<line x1="{X(v):.1f}" y1="{Y(z_lo):.1f}" x2="{X(v):.1f}" y2="{Y(roof):.1f}" stroke="#6b7280" stroke-width="1.5"/>')
+    if sec.zone_crossings:
+        out.append(f'<text x="{X(sec.v_lo) + 4:.1f}" y="{Y(z_lo) - 6:.1f}" fill="#92400e">'
+                   f'{len(sec.zone_crossings)} 根横穿管线从管线束上方通过（≤ {sec.crossing_limit:.0f} mm）'
+                   + (f'，{len(sec.large_crossings)} 根大尺寸横穿按节点处理' if sec.large_crossings else '') + '</text>')
 
     # Strands.
     placements = layout.placements if layout else {}
