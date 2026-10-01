@@ -2,6 +2,7 @@
  "original": {
   "name": "原模型",
   "hard": 175,
+  "n2_unresolved": 0,
   "hard_node": 0,
   "nodes": {},
   "clearance": 43,
@@ -14,58 +15,64 @@
  },
  "headroom": {
   "name": "净高最优",
-  "hard": 47,
-  "hard_node": 40,
+  "hard": 30,
+  "n2_unresolved": 8,
+  "hard_node": 15,
   "nodes": {
-   "横穿翻弯": 3,
-   "出线引出": 28,
-   "大尺寸横穿": 9
+   "横穿翻弯": 7,
+   "大尺寸横穿": 8
   },
-  "clearance": 116,
-  "hard_structure": 4,
+  "clearance": 80,
+  "hard_structure": 8,
   "stations": 36,
   "lowest_mm": 2498,
   "median_lowest_mm": 2560,
   "median_levels": 1.0,
-  "max_levels": 2
+  "max_levels": 2,
+  "n2_nodes": 30
  },
  "changes": {
   "name": "改动最少",
-  "hard": 28,
-  "hard_node": 25,
+  "hard": 26,
+  "n2_unresolved": 7,
+  "hard_node": 18,
   "nodes": {
-   "横穿翻弯": 3,
+   "横穿翻弯": 7,
    "大尺寸横穿": 10,
-   "出线引出": 12
+   "出线引出": 1
   },
-  "clearance": 72,
-  "hard_structure": 4,
+  "clearance": 80,
+  "hard_structure": 8,
   "stations": 36,
-  "lowest_mm": 2300,
-  "median_lowest_mm": 2300,
+  "lowest_mm": 2309,
+  "median_lowest_mm": 2309,
   "median_levels": 2.0,
-  "max_levels": 3
+  "max_levels": 3,
+  "n2_nodes": 26
  },
  "supports": {
   "name": "支吊架最省",
-  "hard": 43,
-  "hard_node": 34,
+  "hard": 27,
+  "n2_unresolved": 7,
+  "hard_node": 16,
   "nodes": {
-   "横穿翻弯": 3,
-   "出线引出": 22,
-   "大尺寸横穿": 9
+   "横穿翻弯": 7,
+   "大尺寸横穿": 8,
+   "出线引出": 1
   },
-  "clearance": 114,
-  "hard_structure": 4,
+  "clearance": 93,
+  "hard_structure": 8,
   "stations": 36,
   "lowest_mm": 2498,
   "median_lowest_mm": 2560,
   "median_levels": 1.0,
-  "max_levels": 2
+  "max_levels": 2,
+  "n2_nodes": 30
  },
  "gold": {
   "name": "人工方案",
   "hard": 1,
+  "n2_unresolved": 0,
   "hard_node": 0,
   "nodes": {},
   "clearance": 64,

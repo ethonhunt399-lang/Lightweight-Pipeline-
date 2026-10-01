@@ -48,6 +48,8 @@ class Element:
     size_text: str = ""
     solid: Solid | None = None
     parts: list[Solid] | None = None   # fittings: one leg per connector (more exact than the fitted box)
+    leg_conns: list[dict] | None = None   # the connector of each leg (same order as parts)
+    centre: np.ndarray | None = None      # fittings: point where the connector axes meet (mm)
     connectors: list[dict] = field(default_factory=list)
     record: dict = field(default_factory=dict, repr=False)
 
@@ -231,13 +233,14 @@ def fitting_legs(e: Element) -> list[Solid] | None:
         centre = origins.mean(axis=0)
     ins = e.insulation_mm
     inward = [(centre - o) / max(float(np.linalg.norm(centre - o)), 1e-9) for o in origins]
-    legs = []
+    legs, leg_conns = [], []
     for idx, (c, o) in enumerate(zip(conns, origins)):
         length = float(np.linalg.norm(centre - o))
         if (c.get("diameter_m") or 0) > 0:
             r = c["diameter_m"] * M / 2 + ins
             end = centre if length > 1 else o + np.array(c["direction"]) * -1.0
             legs.append(capsule(o, end, r))
+            leg_conns.append(c)
         elif (c.get("width_m") or 0) > 0 and (c.get("height_m") or 0) > 0:
             hw, hh = c["width_m"] * M / 2 + ins, c["height_m"] * M / 2 + ins
             if length < 1:
@@ -256,6 +259,8 @@ def fitting_legs(e: Element) -> list[Solid] | None:
                     half_in_plane = hw * abs(float(np.dot(x_axis, p))) + hh * abs(float(np.dot(y_axis, p)))
                     ext = half_in_plane * float(np.tan(min(turn, 2.0) / 2))
             legs.append(swept_box(o, centre + d * ext, x_axis, hw, hh))
+            leg_conns.append(c)
+    e.leg_conns, e.centre = leg_conns, centre
     return legs or None
 
 

@@ -87,6 +87,7 @@ class LayoutPreferences(_Strict):
     ducts_top: int = 30
     system_together: int = 20
     exit_side: int = 40
+    exit_top: int = 30
 
 
 class Layout(_Strict):

@@ -15,6 +15,7 @@ from .detect import CLEARANCE, HARD, Conflict, connection_graph, detect_conflict
 from .geometry import Solid
 from .package import Package
 from .rules import RuleSet
+from .nodes import side_exits
 from .section import Section, overlaps
 from .solver import SCHEMES, Layout
 
@@ -27,8 +28,8 @@ def translate(solid: Solid, t: np.ndarray) -> Solid:
     return s
 
 
-def apply(package: Package, sec: Section, layout: Layout, rules: RuleSet | None = None
-          ) -> tuple[Package, dict[str, np.ndarray]]:
+def apply(package: Package, sec: Section, layout: Layout, rules: RuleSet | None = None, nodes: bool = True
+          ) -> tuple[Package, dict[str, np.ndarray], list]:
     """A copy of the package with the strands (segments and their fittings) moved.
 
     With a top crossing zone, services crossing the corridor are lifted into it (above the bundle);
@@ -45,6 +46,8 @@ def apply(package: Package, sec: Section, layout: Layout, rules: RuleSet | None 
         moved.solid = translate(e.solid, t)
         if e.parts:
             moved.parts = [translate(p, t) for p in e.parts]
+        if e.centre is not None:
+            moved.centre = e.centre + t
         rec = dict(e.record)
         for field in ("start", "end"):
             if rec.get(field):
@@ -63,26 +66,46 @@ def apply(package: Package, sec: Section, layout: Layout, rules: RuleSet | None 
         for key in st.segments + st.fittings:
             move(key, t)
 
+    graph = connection_graph(package)
     if rules is not None and rules.layout.crossing_zone == "top" and sec.zone_crossings and layout.placements:
-        graph = connection_graph(package)
-        for c in sec.zone_crossings:
-            # Just above the strands this service passes over.
+        clr = rules.clearance_mm.default
+        cor = sec.corridor
+        placed: list[tuple[float, float, float, float, float, float]] = []   # s_lo, s_hi, v_lo, v_hi, z_lo, z_hi
+        for c in sorted(sec.zone_crossings, key=lambda c: c.s):
+            e = package.elements.get(c.key)
+            if e is None or e.solid is None:
+                continue
+            lo, hi = e.solid.aabb()
+            c_slo, c_shi = sorted((cor.s_of(lo), cor.s_of(hi)))
+            # Just above the strands this service passes over …
             tops = [(layout.placements[st.id].z if st.id in layout.placements else st.z) + st.height
                     for st in sec.strands if st.s_lo - 1 <= c.s <= st.s_hi + 1]
             if not tops:
                 continue
-            zone_bottom = max(tops) + rules.clearance_mm.default
-            if c.z_lo >= zone_bottom:
+            z = max(tops) + clr
+            # … and above crossing services already placed next to it (stacked, not overlapping).
+            for _ in range(len(placed) + 1):
+                hit = [p for p in placed if overlaps(p[0], p[1], c_slo, c_shi, clr) and overlaps(p[2], p[3], c.v_lo, c.v_hi)
+                       and overlaps(p[4], p[5], z, z + c.height, clr)]
+                if not hit:
+                    break
+                z = max(p[5] for p in hit) + clr
+            if c.z_lo >= z and not any(overlaps(p[0], p[1], c_slo, c_shi, clr) and overlaps(p[2], p[3], c.v_lo, c.v_hi)
+                                       and overlaps(p[4], p[5], c.z_lo, c.z_hi, clr) for p in placed):
+                placed.append((c_slo, c_shi, c.v_lo, c.v_hi, c.z_lo, c.z_hi))
                 continue
-            key = c.key
-            t = np.array([0.0, 0.0, zone_bottom - c.z_lo])
-            move(key, t)
+            t = np.array([0.0, 0.0, z - c.z_lo])
+            move(c.key, t)
+            placed.append((c_slo, c_shi, c.v_lo, c.v_hi, z, z + c.height))
             # Fittings of the crossing run inside the corridor go with it.
-            for other in graph.get(key, ()):
-                e = package.elements.get(other)
-                if e is not None and e.origin == "mep_family" and e.solid is not None and in_corridor(e.solid.center, sec.corridor):
+            for other in graph.get(c.key, ()):
+                f = package.elements.get(other)
+                if f is not None and f.origin == "mep_family" and f.solid is not None and in_corridor(f.solid.center, cor):
                     move(other, t)
-    return _replace(package, elements), moves
+    made = []
+    if nodes and rules is not None and layout.placements:
+        made = side_exits(package, elements, sec, layout, rules, moves, move, graph)
+    return _replace(package, elements), moves, made
 
 
 def _replace(package: Package, elements: dict) -> Package:
@@ -141,13 +164,16 @@ NODE_LARGE = "大尺寸横穿"         # crossing service too large for the zone
 NODE_CROSSING = "横穿翻弯"        # a lifted crossing service against its own fittings or risers (N1)
 
 
-def node_kind(c: Conflict, sec: Section, moves: dict) -> str | None:
+def node_kind(c: Conflict, sec: Section, moves: dict, handled: set | None = None) -> str | None:
     """Conflicts that a layout leaves to the node library by construction (transitions are not modelled)."""
     strand_of = {k: st.id for st in sec.strands for k in st.segments}
     fitting_of = {k: st.id for st in sec.strands for k in st.fittings}
     large = {x.key for x in sec.large_crossings}
     zone = {x.key for x in sec.zone_crossings}
     a, b = c.a, c.b
+    handled = handled or set()
+    if a in handled or b in handled:
+        return None               # an N2 node was built here: what remains is a real clash
     for x, y in ((a, b), (b, a)):
         if x in fitting_of and (y in strand_of or y in fitting_of) and fitting_of[x] != (strand_of.get(y) or fitting_of.get(y)):
             return NODE_EXIT
@@ -159,7 +185,7 @@ def node_kind(c: Conflict, sec: Section, moves: dict) -> str | None:
 
 
 def evaluate(before: Package, planned: dict[str, Package], gold: Package | None, rules: RuleSet,
-             sec: Section, moves: dict[str, dict] | None = None) -> dict:
+             sec: Section, moves: dict[str, dict] | None = None, handled: dict[str, set] | None = None) -> dict:
     """Clashes and cross-section statistics in the corridor: original, each scheme, and the human plan.
 
     For schemes, hard clashes that are node work by construction are counted separately (hard_node).
@@ -174,12 +200,14 @@ def evaluate(before: Package, planned: dict[str, Package], gold: Package | None,
         nodes = {}
         if key in planned and moves is not None:
             for c in hard:
-                kind = node_kind(c, sec, moves.get(key, {}))
+                kind = node_kind(c, sec, moves.get(key, {}), (handled or {}).get(key))
                 if kind:
                     nodes[kind] = nodes.get(kind, 0) + 1
+        fittings_with_node = (handled or {}).get(key, set())
         rows[key] = {
             "name": name,
             "hard": len(hard),
+            "n2_unresolved": sum(c.a in fittings_with_node or c.b in fittings_with_node for c in hard),
             "hard_node": sum(nodes.values()),
             "nodes": nodes,
             "clearance": sum(c.type == CLEARANCE for c in conflicts),
@@ -238,7 +266,8 @@ def review_human(gold: Package, gold_sec: Section, rules: RuleSet, ev: dict, lay
             "clearance_total": len(short), "tray_under_water": tray_under[:15], "levels": len(levels)}
 
 
-def plan_json(sec: Section, layout: Layout, rules: RuleSet, moves: dict[str, np.ndarray], package: Package) -> dict:
+def plan_json(sec: Section, layout: Layout, rules: RuleSet, moves: dict[str, np.ndarray], package: Package,
+              nodes: list | None = None) -> dict:
     strands = []
     for st in sec.strands:
         p = layout.placements.get(st.id)
@@ -261,6 +290,7 @@ def plan_json(sec: Section, layout: Layout, rules: RuleSet, moves: dict[str, np.
                     "v_lo_mm": round(sec.v_lo), "v_hi_mm": round(sec.v_hi), "notes": sec.notes,
                     "crossings": len(sec.crossings)},
         "layers": layout.layers, "strands": strands,
+        "nodes": [n.to_dict() for n in nodes or []],
         "moves": {k: [round(float(x), 1) for x in t] for k, t in moves.items()},
     }
 

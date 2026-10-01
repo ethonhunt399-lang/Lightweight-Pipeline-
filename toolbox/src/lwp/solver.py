@@ -266,6 +266,8 @@ class _Model:
                     m.AddBoolOr([same.Not(), blocking.Not(), bad])
                     self.exit_viol.append(bad)
         terms.append(w.exit_side * sum(self.exit_viol))
+        # Strands with side exits on the top layer: their risers then cross nothing above them.
+        terms.append(w.exit_top * sum(self.layer[i] for i, s in enumerate(items) if s.exits))
         self.pref = sum(terms)
 
     def solve(self, objective, maximize=False, hint=None, seconds=10.0, seed=7):

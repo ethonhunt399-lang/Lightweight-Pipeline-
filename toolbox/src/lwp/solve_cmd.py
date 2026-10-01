@@ -64,6 +64,8 @@ def cmd_solve(args) -> int:
     layouts: dict[str, Layout] = {}
     planned: dict[str, Package] = {}
     all_moves: dict[str, dict] = {}
+    node_counts: dict[str, int] = {}
+    handled: dict[str, set] = {}
     schemes = args.schemes.split(",") if args.schemes else SCHEME_ORDER
     region = _region(corridor)
     for scheme in schemes:
@@ -75,17 +77,21 @@ def cmd_solve(args) -> int:
             for d in layout.diagnosis:
                 print("    " + d)
             continue
-        moved, moves = apply(package, sec, layout, rules)
+        moved, moves, nodes = apply(package, sec, layout, rules)
+        node_counts[scheme] = len(nodes)
+        handled[scheme] = {n.fitting for n in nodes}
         planned[scheme] = moved
         all_moves[scheme] = moves
-        write_json(out / f"plan_{scheme}.json", plan_json(sec, layout, rules, moves, package))
+        write_json(out / f"plan_{scheme}.json", plan_json(sec, layout, rules, moves, package, nodes))
         (out / f"section_{scheme}.svg").write_text(draw(sec, rules, layout, f"方案：{SCHEMES[scheme]}"), encoding="utf-8")
         conflicts = detect_conflicts(moved, rules)
         data = build_data(moved, rules, conflicts, None, package, "原模型", region=region,
                           title_suffix=f" · 走廊 {corridor.name} · {SCHEMES[scheme]}")
         write_viewer(out / f"view_{scheme}.html", data, f"走廊 {corridor.name} · {SCHEMES[scheme]}")
 
-    evaluation = evaluate(package, planned, gold, rules, sec, all_moves)
+    evaluation = evaluate(package, planned, gold, rules, sec, all_moves, handled)
+    for k, n in node_counts.items():
+        evaluation[k]["n2_nodes"] = n
     review = None
     if gold is not None:
         gold_sec = extract(gold, corridor, rules)
