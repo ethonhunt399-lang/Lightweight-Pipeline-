@@ -14,7 +14,33 @@
   "lowest_mm": 2498,
   "median_lowest_mm": 2498,
   "median_levels": 4.0,
-  "max_levels": 5
+  "max_levels": 5,
+  "zones": {
+   "lane": {
+    "min_mm": 2498,
+    "median_mm": 2570,
+    "levels_mm": [
+     2450,
+     2500,
+     2550,
+     2600,
+     2750
+    ],
+    "cells": 53
+   },
+   "stall": {
+    "min_mm": 2498,
+    "median_mm": 2600,
+    "levels_mm": [
+     2450,
+     2500,
+     2550,
+     2600,
+     3050
+    ],
+    "cells": 754
+   }
+  }
  },
  "headroom": {
   "name": "净高最优",
@@ -35,6 +61,31 @@
   "median_lowest_mm": 2400,
   "median_levels": 1.0,
   "max_levels": 3,
+  "zones": {
+   "lane": {
+    "min_mm": 2598,
+    "median_mm": 2750,
+    "levels_mm": [
+     2550,
+     2700,
+     2750,
+     2800,
+     2900,
+     3050,
+     3150
+    ],
+    "cells": 36
+   },
+   "stall": {
+    "min_mm": 2350,
+    "median_mm": 2400,
+    "levels_mm": [
+     2400,
+     3050
+    ],
+    "cells": 756
+   }
+  },
   "n2_nodes": 30,
   "n0_pieces": 65,
   "n0_repairs": 64,
@@ -59,6 +110,31 @@
   "median_lowest_mm": 2300,
   "median_levels": 1.0,
   "max_levels": 2,
+  "zones": {
+   "lane": {
+    "min_mm": 2600,
+    "median_mm": 2700,
+    "levels_mm": [
+     2600,
+     2650,
+     2700,
+     2750,
+     2850,
+     3050,
+     3150
+    ],
+    "cells": 36
+   },
+   "stall": {
+    "min_mm": 2250,
+    "median_mm": 2300,
+    "levels_mm": [
+     2300,
+     3050
+    ],
+    "cells": 751
+   }
+  },
   "n2_nodes": 29,
   "n0_pieces": 59,
   "n0_repairs": 63,
@@ -84,6 +160,33 @@
   "median_lowest_mm": 2300,
   "median_levels": 1.0,
   "max_levels": 2,
+  "zones": {
+   "lane": {
+    "min_mm": 2600,
+    "median_mm": 2798,
+    "levels_mm": [
+     2600,
+     2650,
+     2750,
+     2800,
+     2850,
+     2900,
+     3050,
+     3150
+    ],
+    "cells": 36
+   },
+   "stall": {
+    "min_mm": 2250,
+    "median_mm": 2300,
+    "levels_mm": [
+     2300,
+     2750,
+     3050
+    ],
+    "cells": 744
+   }
+  },
   "n2_nodes": 30,
   "n0_pieces": 63,
   "n0_repairs": 63,
@@ -104,7 +207,34 @@
   "lowest_mm": 2480,
   "median_lowest_mm": 2616,
   "median_levels": 3.0,
-  "max_levels": 9
+  "max_levels": 9,
+  "zones": {
+   "lane": {
+    "min_mm": 2610,
+    "median_mm": 2680,
+    "levels_mm": [
+     2600,
+     2650,
+     2700,
+     2800,
+     2850,
+     3050
+    ],
+    "cells": 29
+   },
+   "stall": {
+    "min_mm": 2380,
+    "median_mm": 2800,
+    "levels_mm": [
+     2450,
+     2600,
+     2800,
+     2950,
+     3050
+    ],
+    "cells": 704
+   }
+  }
  },
  "review": {
   "findings": [

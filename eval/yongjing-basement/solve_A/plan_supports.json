@@ -2,7 +2,7 @@
  "schema": "lwp.layout_plan",
  "schema_version": "0.1.0",
  "tool": "lwp 0.1.0",
- "created": "2026-10-02T02:14:00",
+ "created": "2026-10-02T11:14:03",
  "source": {
   "project": "雍景致臻江东-机电（管综调整前）-地下室",
   "exported": "2026-09-30T15:07:03Z",
@@ -33,19 +33,19 @@
    "stage": "层数最少",
    "status": "OPTIMAL",
    "value": 1,
-   "time_s": 9.92
+   "time_s": 14.3
   },
   {
    "stage": "横担总长最短",
    "status": "FEASIBLE",
    "value": 4398,
-   "time_s": 9.11
+   "time_s": 8.82
   },
   {
    "stage": "排布原则 + 改动",
    "status": "FEASIBLE",
    "value": 4265982,
-   "time_s": 10.02
+   "time_s": 14.94
   }
  ],
  "metrics": {

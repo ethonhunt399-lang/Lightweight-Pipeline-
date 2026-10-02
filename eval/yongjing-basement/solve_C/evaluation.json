@@ -14,7 +14,30 @@
   "lowest_mm": 2498,
   "median_lowest_mm": 2498,
   "median_levels": 3.0,
-  "max_levels": 4
+  "max_levels": 4,
+  "zones": {
+   "lane": {
+    "min_mm": 2498,
+    "median_mm": 2516,
+    "levels_mm": [
+     2450,
+     2500
+    ],
+    "cells": 487
+   },
+   "stall": {
+    "min_mm": 2498,
+    "median_mm": 2600,
+    "levels_mm": [
+     2450,
+     2500,
+     2550,
+     2600,
+     3050
+    ],
+    "cells": 222
+   }
+  }
  },
  "headroom": {
   "name": "净高最优",
@@ -34,6 +57,28 @@
   "median_lowest_mm": 2300,
   "median_levels": 1.0,
   "max_levels": 2,
+  "zones": {
+   "lane": {
+    "min_mm": 2250,
+    "median_mm": 2300,
+    "levels_mm": [
+     2300
+    ],
+    "cells": 470
+   },
+   "stall": {
+    "min_mm": 2286,
+    "median_mm": 2600,
+    "levels_mm": [
+     2300,
+     2500,
+     2600,
+     2650,
+     3050
+    ],
+    "cells": 200
+   }
+  },
   "n2_nodes": 37,
   "n0_pieces": 66,
   "n0_repairs": 69,
@@ -57,6 +102,27 @@
   "median_lowest_mm": 2300,
   "median_levels": 1.0,
   "max_levels": 2,
+  "zones": {
+   "lane": {
+    "min_mm": 2300,
+    "median_mm": 2300,
+    "levels_mm": [
+     2300
+    ],
+    "cells": 468
+   },
+   "stall": {
+    "min_mm": 2250,
+    "median_mm": 2600,
+    "levels_mm": [
+     2300,
+     2500,
+     2600,
+     3050
+    ],
+    "cells": 216
+   }
+  },
   "n2_nodes": 38,
   "n0_pieces": 70,
   "n0_repairs": 73,
@@ -81,6 +147,28 @@
   "median_lowest_mm": 2300,
   "median_levels": 1.0,
   "max_levels": 2,
+  "zones": {
+   "lane": {
+    "min_mm": 2250,
+    "median_mm": 2300,
+    "levels_mm": [
+     2300
+    ],
+    "cells": 406
+   },
+   "stall": {
+    "min_mm": 2200,
+    "median_mm": 2600,
+    "levels_mm": [
+     2300,
+     2500,
+     2600,
+     2650,
+     3050
+    ],
+    "cells": 216
+   }
+  },
   "n2_nodes": 37,
   "n0_pieces": 70,
   "n0_repairs": 77,
@@ -101,7 +189,29 @@
   "lowest_mm": 2616,
   "median_lowest_mm": 2616,
   "median_levels": 2.0,
-  "max_levels": 7
+  "max_levels": 7,
+  "zones": {
+   "lane": {
+    "min_mm": 2616,
+    "median_mm": 2618,
+    "levels_mm": [
+     2600,
+     2650
+    ],
+    "cells": 463
+   },
+   "stall": {
+    "min_mm": 2636,
+    "median_mm": 2900,
+    "levels_mm": [
+     2650,
+     2850,
+     2900,
+     3050
+    ],
+    "cells": 191
+   }
+  }
  },
  "review": {
   "findings": [

@@ -172,9 +172,10 @@ def _page(sec: Section, rules: RuleSet, layouts: dict[str, Layout], ev: dict, ha
             m.get("layers", "—"), m.get("moved", "—"),
             f"{m['support_length_mm'] / 1000:.1f} m" if m else "—",
             m.get("tray_below_water", "—"),
+            _zone(r.get("zones", {}).get("lane")),
         ]) + "</tr>")
     table = ("<table><tr><th>方案</th><th>硬碰撞</th><th>排布 / 待节点</th><th>其中与梁柱</th><th>净距不足</th><th>水在电上：平行 / 易漏 / 交叉</th><th>引出 / 接驳</th><th>最低管底</th>"
-             "<th>管底中位</th><th>断面层数中位</th><th>排布层数</th><th>移动管线</th><th>横担总长</th><th>电在水下</th></tr>"
+             "<th>管底中位</th><th>断面层数中位</th><th>排布层数</th><th>移动管线</th><th>横担总长</th><th>电在水下</th><th>车道净高：最低 / 中位 / 分级</th></tr>"
              + "".join(rows) + "</table>")
     sections = [("原模型", "section_original.svg", None)]
     sections += [(SCHEMES[k], f"section_{k}.svg", k) for k in SCHEME_ORDER if k in layouts and layouts[k].placements]
@@ -249,6 +250,12 @@ def _pos(layout: Layout, s, sec: Section) -> str:
     if p is None:
         return "原位"
     return f"L{p.layer + 1} / {(p.v - sec.corridor.v0) / 1000:.2f} / {(p.z - sec.floor_z) / 1000:.2f}"
+
+
+def _zone(z) -> str:
+    if not z:
+        return "—"
+    return f"{z['min_mm'] / 1000:.2f} / {z['median_mm'] / 1000:.2f} / {len(z['levels_mm'])} 级"
 
 
 def _m(v) -> str:

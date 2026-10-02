@@ -79,8 +79,8 @@ clearance_mm:
 headroom:
   floor_level: auto          # auto：取机电构件下方最近的主模型标高
   min_clear_mm: 2200         # JGJ 100-2015 小型车车道及停车位最小净高 2.2 m；2026-10-01 确认为硬性最低值
-  lane_clear_mm: null        # 车道、车位分开控制（已确认）；控制值与分区待图纸（建筑车位布置）提供，暂按 2200
-  stall_clear_mm: null
+  lane_clear_mm: null        # 2026-10-02：车道不设单一控制值。硬下限仍为 2200；车道净高“尽量统一、允许分级”，
+  stall_clear_mm: null       #   作为扩大范围后全局排布的优化目标与方案研讨重点（评估中统计车道净高的最低值、中位值与分级数）
   confirmed: true
   note: 以楼层标高为地面、机电外轮廓（含保温）底为顶计算；综合支吊架横担预留在 R2 加入
 
