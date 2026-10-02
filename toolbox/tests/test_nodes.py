@@ -61,3 +61,24 @@ def test_side_exit_rises_over_neighbour():
     assert "BR" in moves and moves["BR"][2] > 0  # the branch is lifted with the node
     assert element_distance(moved.elements["BR"], moved.elements["B"])[0] > 0
     assert "B" not in moves or not np.any(moves["B"])
+
+
+def test_elbows_and_buildability():
+    from lwp.fittings import elbowize
+    from lwp.rules import Construct
+    # A jog: run along X, up 300 mm, along X again. Each piece turns at both ends.
+    z = 4000.0
+    p = [np.array(x, float) for x in ((0, 0, z), (1000, 0, z), (1000, 0, z + 300), (2000, 0, z + 300))]
+    keys = ["P1#j1", "P1#j2", "P1#j3"]
+    els = {}
+    for i, k in enumerate(keys):
+        e = pipe(k, p[i] / 1000, p[i + 1] / 1000)
+        e.connectors = [{"id": 0, "origin": list(p[i] / 1000), "connected": [{"key": keys[i - 1]}] if i else []},
+                        {"id": 1, "origin": list(p[i + 1] / 1000), "connected": [{"key": keys[i + 1]}] if i < 2 else []}]
+        els[k] = e
+    geo = elbowize(els, keys, Construct())
+    assert len(geo.turns) == 2
+    # DN150 (Ø168): R = 1.5 × 168 = 252, two 90° take-offs + 50 > 300 → the riser is too short for 90° elbows.
+    assert [i.key for i in geo.issues] == ["P1#j2"]
+    assert geo.issues[0].fix.endswith("°") or geo.issues[0].fix == "无"
+    assert els["P1#j1"].parts and len(els["P1#j1"].parts) == 3        # cut-back run + two arc chords

@@ -45,18 +45,18 @@
  },
  "headroom": {
   "name": "净高最优",
-  "hard": 45,
-  "hard_preexisting": 8,
+  "hard": 51,
+  "hard_preexisting": 10,
   "n2_unresolved": 10,
-  "hard_node": 20,
+  "hard_node": 23,
   "nodes": {
    "横穿翻弯": 10,
-   "大尺寸横穿": 10
+   "大尺寸横穿": 13
   },
-  "clearance": 98,
-  "hard_structure": 4,
+  "clearance": 64,
+  "hard_structure": 5,
   "water_parallel_tray": 2,
-  "water_crossing_tray": 33,
+  "water_crossing_tray": 39,
   "water_leak_tray": 0,
   "stations": 36,
   "lowest_mm": 2500,
@@ -81,7 +81,6 @@
     "min_mm": 2450,
     "median_mm": 2500,
     "levels_mm": [
-     2450,
      2500,
      3050
     ],
@@ -91,22 +90,26 @@
   "n2_nodes": 30,
   "n0_pieces": 22,
   "n0_repairs": 42,
-  "open_joints": 0
+  "open_joints": 0,
+  "turns": 98,
+  "unbuildable": 2,
+  "offsets": 5,
+  "doubling_back": 2
  },
  "changes": {
   "name": "改动最少",
-  "hard": 34,
+  "hard": 37,
   "hard_preexisting": 10,
-  "n2_unresolved": 8,
-  "hard_node": 19,
+  "n2_unresolved": 9,
+  "hard_node": 20,
   "nodes": {
-   "大尺寸横穿": 10,
+   "大尺寸横穿": 11,
    "横穿翻弯": 9
   },
-  "clearance": 65,
+  "clearance": 71,
   "hard_structure": 4,
   "water_parallel_tray": 1,
-  "water_crossing_tray": 26,
+  "water_crossing_tray": 38,
   "water_leak_tray": 0,
   "stations": 36,
   "lowest_mm": 2400,
@@ -140,22 +143,26 @@
   "n2_nodes": 30,
   "n0_pieces": 22,
   "n0_repairs": 43,
-  "open_joints": 0
+  "open_joints": 0,
+  "turns": 100,
+  "unbuildable": 2,
+  "offsets": 9,
+  "doubling_back": 0
  },
  "supports": {
   "name": "支吊架最省",
-  "hard": 60,
+  "hard": 61,
   "hard_preexisting": 10,
-  "n2_unresolved": 15,
-  "hard_node": 31,
+  "n2_unresolved": 16,
+  "hard_node": 32,
   "nodes": {
-   "大尺寸横穿": 14,
+   "大尺寸横穿": 15,
    "横穿翻弯": 17
   },
-  "clearance": 68,
+  "clearance": 63,
   "hard_structure": 4,
   "water_parallel_tray": 2,
-  "water_crossing_tray": 32,
+  "water_crossing_tray": 33,
   "water_leak_tray": 0,
   "stations": 36,
   "lowest_mm": 2400,
@@ -189,7 +196,11 @@
   "n2_nodes": 30,
   "n0_pieces": 24,
   "n0_repairs": 43,
-  "open_joints": 0
+  "open_joints": 0,
+  "turns": 96,
+  "unbuildable": 0,
+  "offsets": 6,
+  "doubling_back": 2
  },
  "gold": {
   "name": "人工方案",

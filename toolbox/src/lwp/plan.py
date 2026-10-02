@@ -17,6 +17,7 @@ from .geometry import Solid
 from .package import Package
 from .rules import RuleSet
 from .connect import reconnect
+from .fittings import elbowize
 from .nodes import crossing_hump, end_transitions, riser_offsets, side_exits
 from .section import Section, is_leak_prone, overlaps
 from .solver import SCHEMES, Layout
@@ -92,7 +93,8 @@ def apply(package: Package, sec: Section, layout: Layout, rules: RuleSet | None 
             z = layout.crossings.get(c.key)
             if z is not None and abs(z - c.z_lo) > 0.5:
                 made_ = (crossing_hump(package, elements, sec, layout, c.key, z - c.z_lo, moves, move, graph,
-                                       offsets.get(c.key, 0.0)) if nodes else None)
+                                       offsets.get(c.key, 0.0), rules.layout.bends if rules else None)
+                         if nodes else None)
                 if made_ is None:
                     move_crossing(c.key, np.array([0.0, 0.0, z - c.z_lo]))
                 else:
@@ -135,6 +137,9 @@ def apply(package: Package, sec: Section, layout: Layout, rules: RuleSet | None 
         links.ends = end_transitions(package, elements, sec, moves, move, graph)
     if nodes:
         links.repairs, links.open = reconnect(package, elements, moves)
+        if rules is not None:
+            created = [k for k in elements if "#j" in k or "#h" in k]
+            links.geometry = elbowize(elements, created, rules.layout.bends)
     return _replace(package, elements), moves, made, links
 
 
@@ -145,6 +150,7 @@ class Links:
     open: list = field(default_factory=list)
     ends: list = field(default_factory=list)       # N3 end transitions
     humps: list = field(default_factory=list)      # N1 pieces of crossing services raised over the bundle only
+    geometry: object = None                        # elbows and buildability of the created pieces
 
     @property
     def pieces(self) -> int:
@@ -153,7 +159,8 @@ class Links:
     def to_dict(self) -> dict:
         return {"repairs": [r.to_dict() for r in self.repairs], "open": [j.to_dict() for j in self.open],
                 "pieces": self.pieces, "stretched": sum(abs(r.stretch_mm) > 1 for r in self.repairs),
-                "end_transitions": [e.to_dict() for e in self.ends], "n1_pieces": len(self.humps)}
+                "end_transitions": [e.to_dict() for e in self.ends], "n1_pieces": len(self.humps),
+                "node_geometry": self.geometry.to_dict() if self.geometry is not None else None}
 
 
 def _replace(package: Package, elements: dict) -> Package:

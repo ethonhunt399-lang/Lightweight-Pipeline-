@@ -2,7 +2,7 @@
  "schema": "lwp.layout_plan",
  "schema_version": "0.1.0",
  "tool": "lwp 0.1.0",
- "created": "2026-10-02T14:20:16",
+ "created": "2026-10-02T16:12:18",
  "source": {
   "project": "雍景致臻江东-机电（管综调整前）-地下室",
   "exported": "2026-09-30T15:07:03Z",
@@ -33,25 +33,25 @@
    "stage": "与固定构件、大尺寸横穿碰撞，水管跨越桥架，桥架上方易漏节点最少",
    "status": "OPTIMAL",
    "value": 0,
-   "time_s": 6.95
+   "time_s": 6.78
   },
   {
    "stage": "层数最少",
    "status": "FEASIBLE",
    "value": 2,
-   "time_s": 10.43
+   "time_s": 9.98
   },
   {
    "stage": "横担总长最短",
    "status": "FEASIBLE",
    "value": 4422,
-   "time_s": 13.62
+   "time_s": 13.5
   },
   {
    "stage": "车道上方管底最高",
    "status": "FEASIBLE",
    "value": 4300,
-   "time_s": 9.77
+   "time_s": 9.92
   },
   {
    "stage": "排布原则 + 改动",
@@ -1776,7 +1776,71 @@
   "pieces": 24,
   "stretched": 26,
   "end_transitions": [],
-  "n1_pieces": 76
+  "n1_pieces": 76,
+  "node_geometry": {
+   "turns": 96,
+   "unbuildable": [],
+   "offset": [
+    {
+     "piece": "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-00427790#j1",
+     "length_mm": 150,
+     "needed_mm": 650,
+     "needed_45_mm": 299,
+     "fix": "30°"
+    },
+    {
+     "piece": "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f15#j4",
+     "length_mm": 134,
+     "needed_mm": 650,
+     "needed_45_mm": 299,
+     "fix": "30°"
+    },
+    {
+     "piece": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429486#j6",
+     "length_mm": 150,
+     "needed_mm": 650,
+     "needed_45_mm": 299,
+     "fix": "30°"
+    },
+    {
+     "piece": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294a5#j8",
+     "length_mm": 150,
+     "needed_mm": 650,
+     "needed_45_mm": 299,
+     "fix": "30°"
+    },
+    {
+     "piece": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294b5#j10",
+     "length_mm": 150,
+     "needed_mm": 650,
+     "needed_45_mm": 299,
+     "fix": "30°"
+    },
+    {
+     "piece": "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432aad#j15",
+     "length_mm": 170,
+     "needed_mm": 231,
+     "needed_45_mm": 125,
+     "fix": "60°"
+    }
+   ],
+   "doubling_back": [
+    {
+     "piece": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fee8#j18",
+     "length_mm": 3766,
+     "needed_mm": 0,
+     "needed_45_mm": 0,
+     "fix": "折返"
+    },
+    {
+     "piece": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff54#j21",
+     "length_mm": 2578,
+     "needed_mm": 0,
+     "needed_45_mm": 0,
+     "fix": "折返"
+    }
+   ]
+  }
  },
  "moves": {
   "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff3f": [

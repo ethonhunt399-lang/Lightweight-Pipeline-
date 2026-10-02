@@ -491,10 +491,11 @@ def _piece(base: Element, key: str, p0: np.ndarray, p1: np.ndarray, sec_, links:
 
 
 def crossing_hump(package: Package, elements: dict[str, Element], sec: Section, layout, key: str, dz: float,
-                  moves: dict[str, np.ndarray], move, graph, extra: float = 0.0) -> list[str] | None:
+                  moves: dict[str, np.ndarray], move, graph, extra: float = 0.0, bends=None) -> list[str] | None:
     """Raise the crossing service `key` by dz over the bundle only. None: it lies entirely over the bundle
     (raise it whole). Returns the keys of the pieces made."""
     from .connect import _section
+    from .fittings import offset_angle, riser_radius
     e = elements.get(key)
     r = e.record if e is not None else {}
     if e is None or not r.get("start") or not r.get("end"):
@@ -554,6 +555,15 @@ def crossing_hump(package: Package, elements: dict[str, Element], sec: Section, 
         # This end stays at its level: a run at the old level and a riser take over its joint.
         side = "a" if at_a else "b"
         q_in, m_in = (p0, m0) if at_a else (p1, m1)
+        if bends is not None:
+            # A short rise is made as a sloped offset: start it further out so that both elbows fit.
+            ang = offset_angle(dz, riser_radius(e, sec_, bends), bends.min_straight_mm)
+            if ang is not None and ang < 90:
+                run_out = abs(dz) / math.tan(math.radians(ang))
+                out_dir = (a - p0) if at_a else (b - p1)
+                n_ = float(np.linalg.norm(out_dir))
+                if n_ > run_out + 50:
+                    q_in = q_in + out_dir / n_ * run_out
         k_run, k_rise = f"{key}#h{side}1", f"{key}#h{side}2"
         run = _piece(e, k_run, o, q_in, sec_, [key, key], "N1")
         rise = _piece(e, k_rise, q_in, m_in, sec_, [key, key], "N1")
