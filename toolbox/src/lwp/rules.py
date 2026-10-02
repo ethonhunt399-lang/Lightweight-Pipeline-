@@ -90,6 +90,7 @@ class LayoutPreferences(_Strict):
     system_together: int = 20
     exit_side: int = 40
     exit_top: int = 30
+    tray_bottom: int = 5                  # per 10 mm a tray bottom lies below tray_bottom_preferred_mm
 
 
 class TrayWater(_Strict):
@@ -100,6 +101,7 @@ class TrayWater(_Strict):
     leak_prone_over_tray: str = "forbid"   # flanges, valves, unions, air vents not directly above a tray
     leak_prone_margin_mm: float = 100      # widening of the tray footprint for leak-prone items
     leak_prone_pattern: str = "法兰|活接|由任|排气|阀"   # family/type names of leak-prone pipe fittings
+    crossing_above_mm: float = 200         # water crossing above a tray: clear distance (plus a drip shield)
     confirmed: bool = False
 
 
@@ -114,6 +116,7 @@ class Layout(_Strict):
     tray_water: TrayWater = TrayWater()
     tray_top_clearance_mm: float = 50     # tray top to beam / slab / the layer above (cable laying space)
     elevation_step_mm: float = 50         # layer bottoms on a grid relative to the floor (0: free)
+    tray_bottom_preferred_mm: float = 2500   # tray bottom above the floor, preferred (hard limit: headroom)
     confirmed: bool = False
     preferences: LayoutPreferences = LayoutPreferences()
 

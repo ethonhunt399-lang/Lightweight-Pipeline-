@@ -5,7 +5,7 @@
 # 单位：毫米。
 
 name: 小区地下室默认规则
-version: 0.2.0
+version: 0.3.0
 
 # ---------------------------------------------------------------------------
 # 系统分类。group 用于净距矩阵，pressure 用于“有压让无压”等排布规则（R1 使用）。
@@ -70,7 +70,7 @@ clearance_mm:
   pairs:
     - {a: power, b: water,     mm: 150, confirmed: true, note: 强电桥架与水管；GB 50303 交叉净距 0.3 m 为更严的参照值}
     - {a: weak,  b: water,     mm: 60,  confirmed: true, note: 弱电、消防电桥架与水管}
-    - {a: power, b: weak,      mm: 50,  confirmed: true, note: 强弱电桥架之间}
+    - {a: power, b: weak,      mm: 300, confirmed: true, note: 强弱电桥架之间；2026-10-02 按电气设计说明改为 300（原按人工模型校准 50）。有接地金属隔板时可局部减小，作为例外登记}
     - {a: any,   b: structure, mm: 50,  confirmed: true, note: 机电与梁、柱外表面}
 
 # ---------------------------------------------------------------------------
@@ -109,6 +109,7 @@ layout:
   crossing_zone_max_mm: 250    # 只为高度不超过该值的横穿管预留；更大的横穿管（大风管等）在节点处局部翻弯，列为节点冲突
   elevation_step_mm: 50        # 2026-10-01 确认：层底标高按 50 mm 一档（相对楼面）
   tray_top_clearance_mm: 50    # 桥架顶距梁底 / 楼板 / 上层管线。GB 51348 为“不宜小于 0.3 m”，取值待工程师确定
+  tray_bottom_preferred_mm: 2500   # 2026-10-02 确认（电气设计说明）：桥架底边不宜低于 2.5 m（软）；不应低于 2.2 m（硬，同净高下限）
   tray_water:                  # 2026-10-01 工程师确认：电上水下
     parallel_over_tray: forbid     # 不允许水管长距离平行覆盖在桥架正上方
     parallel_max_mm: 500           # 平面上沿桥架方向重叠超过该长度视为平行覆盖
@@ -116,11 +117,13 @@ layout:
     leak_prone_over_tray: forbid   # 桥架正上方避免法兰、阀门、活接、排气阀等易漏节点
     leak_prone_margin_mm: 100      # 易漏节点按桥架平面外扩该距离判断
     leak_prone_pattern: "法兰|活接|由任|排气|阀"   # 管件族/类型名；管道附件（阀门等）全部计入
+    crossing_above_mm: 200         # 2026-10-02 确认（电气设计说明）：水管在桥架上方交叉时间距 ≥ 200 mm，并设防水挡板
     confirmed: true
   confirmed: false
   preferences:                 # 软约束权重（越大越优先）
     trays_above_water: 50      # 电上水下：桥架层位尽量不低于水管（平面不重叠时只作偏好）
-    ducts_top: 30              # 大风管优先放在上层
+    ducts_top: 0               # 2026-10-02 取消：电气设计说明要求桥架与风道交叉时桥架上返
+    tray_bottom: 5             # 桥架底低于 2.5 m 时每 10 mm 的扣分
     system_together: 20        # 同一系统尽量同层
     exit_side: 40              # 出线方向：向一侧拐出走廊的管线排在同层该侧
     exit_top: 30               # 有侧向引出的管线优先放在上层（引出立管不穿越上层）

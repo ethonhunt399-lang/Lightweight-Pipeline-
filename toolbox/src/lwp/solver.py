@@ -249,6 +249,8 @@ class _Model:
                     else:
                         m.Add(self.v[i] + _i(st.width / 2) + cc <= _i(c.v_lo)).OnlyEnforceIf(opts[0])
                         m.Add(self.v[i] - _i(st.width / 2) - cc >= _i(c.v_hi)).OnlyEnforceIf(opts[1])
+                    if c.group == "water" and st.domain == "tray":
+                        cc = max(cc, _i(lay.tray_water.crossing_above_mm))   # water crossing over a tray
                     m.Add(self.z[i] + _i(st.height) + cc <= zc).OnlyEnforceIf(opts[2])
                     if hard_tw and c.group == "water" and st.domain == "tray":
                         # The tray goes above the water crossing; where the height does not allow it, the
@@ -384,6 +386,14 @@ class _Model:
         terms.append(w.trays_above_water * sum(self.tray_viol))
         ducts = [i for i, s in enumerate(items) if s.domain == "duct"]
         terms.append(w.ducts_top * sum(self.layer[i] for i in ducts))
+        # Trays preferably with their bottom at or above the preferred height (electrical design notes).
+        self.tray_short = []
+        pref_bottom = _i(sec.floor_z + lay.tray_bottom_preferred_mm)
+        for t in trays:
+            sh = m.NewIntVar(0, 1000, f"tb{t}")
+            m.Add(10 * sh >= pref_bottom - self.z[t])
+            self.tray_short.append(sh)
+        terms.append(w.tray_bottom * sum(self.tray_short))
         systems: dict[str, list[int]] = {}
         for i, s in enumerate(items):
             systems.setdefault(s.system, []).append(i)
@@ -511,6 +521,7 @@ def _layout(model: _Model, solver, scheme: str, status: str, stages: list[dict])
         "sum_dz_mm": sum(solver.Value(v) for v in model.dz),
         "sum_dv_mm": sum(solver.Value(v) for v in model.dv),
         "tray_below_water": sum(solver.Value(v) for v in model.tray_viol),
+        "trays_below_preferred": sum(solver.Value(v) > 0 for v in model.tray_short),
         "system_splits": sum(solver.Value(v) for v in model.split),
         "exit_side_violations": sum(solver.Value(v) for v in model.exit_viol),
         "crossings_over_bundle": len(sec.zone_crossings),

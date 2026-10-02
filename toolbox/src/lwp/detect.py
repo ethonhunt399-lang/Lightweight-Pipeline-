@@ -102,7 +102,7 @@ def detect_conflicts(package: Package, rules: RuleSet) -> list[Conflict]:
     in_scope = scope_test(package)
     elements = [e for e in package.elements.values() if e.solid is not None and e.kind not in IGNORED_KINDS]
     near = near_pairs(connection_graph(package), rules.connected_hops_ignored)
-    margin = rules.clearance_mm.max_mm
+    margin = max(rules.clearance_mm.max_mm, rules.layout.tray_water.crossing_above_mm)
     conflicts: list[Conflict] = []
 
     for i, j in candidate_pairs(elements, margin):
@@ -113,6 +113,8 @@ def detect_conflicts(package: Package, rules: RuleSet) -> list[Conflict]:
             continue
         wall = a.kind == "wall" or b.kind == "wall"
         required, pair_rule = (0.0, None) if wall else rules.clearance_mm.required(a.group, b.group)
+        if not wall and _water_over_tray(a, b):
+            required = max(required, rules.layout.tray_water.crossing_above_mm)
         # Cheap reject before the exact distance.
         lo_a, hi_a = a.solid.aabb()
         lo_b, hi_b = b.solid.aabb()
@@ -138,6 +140,19 @@ def detect_conflicts(package: Package, rules: RuleSet) -> list[Conflict]:
     order = {HARD: 0, CLEARANCE: 1, JOINT: 2, OVERLAP: 3, PENETRATION: 4}
     conflicts.sort(key=lambda c: (order[c.type], c.distance_mm))
     return conflicts
+
+
+def _water_over_tray(a: Element, b: Element) -> bool:
+    """Water above a tray with overlapping plan footprints (stricter clearance: water crossing over a tray)."""
+    if a.group == "water" and b.domain == "tray":
+        w, t = a, b
+    elif b.group == "water" and a.domain == "tray":
+        w, t = b, a
+    else:
+        return False
+    wl, wh = w.solid.aabb()
+    tl, th = t.solid.aabb()
+    return wl[2] >= th[2] - 1 and wl[0] < th[0] and tl[0] < wh[0] and wl[1] < th[1] and tl[1] < wh[1]
 
 
 def element_distance(a: Element, b: Element):
