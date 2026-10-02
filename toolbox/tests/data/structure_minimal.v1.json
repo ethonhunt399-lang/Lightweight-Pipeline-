@@ -1,0 +1,382 @@
+{
+ "schema": "slbh.structure",
+ "version": "1.0.0",
+ "project": {
+  "id": "example",
+  "name": "示例",
+  "building": "示例栋"
+ },
+ "scope": "一层（1F 墙柱 + 2F 梁板）",
+ "tier": "bid",
+ "units": "mm",
+ "origin": {
+  "desc": "1 × A 轴交点",
+  "grids": [
+   "1",
+   "A"
+  ]
+ },
+ "levels": [
+  {
+   "name": "1F",
+   "elevation": -60.0,
+   "source": "levels"
+  },
+  {
+   "name": "2F",
+   "elevation": 4940.0,
+   "source": "levels"
+  }
+ ],
+ "sources": [
+  {
+   "id": "S-201",
+   "title": "一层墙柱定位图"
+  },
+  {
+   "id": "S-301",
+   "title": "二层梁配筋图"
+  },
+  {
+   "id": "S-207",
+   "title": "二层结构布置图"
+  },
+  {
+   "id": "levels",
+   "title": "结构标高表"
+  }
+ ],
+ "grids": [
+  {
+   "name": "1",
+   "a": [
+    0,
+    -2000
+   ],
+   "b": [
+    0,
+    10000
+   ]
+  },
+  {
+   "name": "2",
+   "a": [
+    10000,
+    -2000
+   ],
+   "b": [
+    10000,
+    10000
+   ]
+  },
+  {
+   "name": "A",
+   "a": [
+    -2000,
+    0
+   ],
+   "b": [
+    12000,
+    0
+   ]
+  },
+  {
+   "name": "B",
+   "a": [
+    -2000,
+    8000
+   ],
+   "b": [
+    12000,
+    8000
+   ]
+  }
+ ],
+ "members": [
+  {
+   "uuid": "e67da18e-af1b-5fdd-a49c-173025bd294c",
+   "key": "示例栋|1F|柱|KZ1|0,0",
+   "type": "column",
+   "mark": "KZ1",
+   "level": "1F",
+   "grade": "C40",
+   "geom": {
+    "shape": "rect",
+    "center": [
+     0,
+     0
+    ],
+    "b": 600,
+    "h": 600,
+    "rot": 0,
+    "outline": [
+     [
+      -300,
+      -300
+     ],
+     [
+      300,
+      -300
+     ],
+     [
+      300,
+      300
+     ],
+     [
+      -300,
+      300
+     ]
+    ],
+    "base": {
+     "level": "1F",
+     "offset": 0.0
+    },
+    "top": {
+     "level": "2F",
+     "offset": 0.0
+    },
+    "z": [
+     -60,
+     4940
+    ]
+   },
+   "basis": {
+    "source": "S-201",
+    "rule": "图纸",
+    "inferred_fields": [],
+    "inferred": false
+   },
+   "status": "ok",
+   "extra": {}
+  },
+  {
+   "uuid": "7f9f1d8f-9887-548a-b315-2235798c91b9",
+   "key": "示例栋|1F|墙|Q20|100,40",
+   "type": "wall",
+   "mark": "Q20",
+   "level": "1F",
+   "grade": "C40",
+   "geom": {
+    "shape": "straight",
+    "a": [
+     10000,
+     0
+    ],
+    "b": [
+     10000,
+     8000
+    ],
+    "thickness": 200,
+    "outline": [
+     [
+      9900,
+      0
+     ],
+     [
+      10100,
+      0
+     ],
+     [
+      10100,
+      8000
+     ],
+     [
+      9900,
+      8000
+     ]
+    ],
+    "base": {
+     "level": "1F",
+     "offset": 0.0
+    },
+    "top": {
+     "level": "2F",
+     "offset": 0.0
+    },
+    "z": [
+     -60,
+     4940
+    ]
+   },
+   "basis": {
+    "source": "S-201",
+    "rule": "图纸（编号按墙厚推定）",
+    "inferred_fields": [
+     "mark"
+    ],
+    "inferred": false
+   },
+   "status": "ok",
+   "extra": {}
+  },
+  {
+   "uuid": "7efa1bfc-ae7e-557a-badf-dfde1972f04a",
+   "key": "示例栋|2F|梁|KL1|50,0|1",
+   "type": "beam",
+   "mark": "KL1",
+   "level": "2F",
+   "grade": "C35",
+   "geom": {
+    "a": [
+     300,
+     0
+    ],
+    "b": [
+     9900,
+     0
+    ],
+    "b_w": 300,
+    "h": 800,
+    "top": {
+     "level": "2F",
+     "offset": 0.0
+    },
+    "z": [
+     4140,
+     4940
+    ]
+   },
+   "basis": {
+    "source": "S-301",
+    "rule": "图纸",
+    "inferred_fields": [],
+    "inferred": false
+   },
+   "status": "ok",
+   "extra": {
+    "kind": "KL",
+    "span_no": 1
+   }
+  },
+  {
+   "uuid": "9b6c2577-139e-56b1-9e4d-b640f2c2bcc5",
+   "key": "示例栋|2F|梁|L?|50,60|1",
+   "type": "beam",
+   "mark": "L?",
+   "level": "2F",
+   "grade": "C35",
+   "geom": {
+    "a": [
+     0,
+     6000
+    ],
+    "b": [
+     9900,
+     6000
+    ],
+    "b_w": 400,
+    "h": 1300,
+    "top": {
+     "level": "2F",
+     "offset": 0.0
+    },
+    "z": [
+     3640,
+     4940
+    ]
+   },
+   "basis": {
+    "source": "S-301",
+    "rule": "推定：无集中标注，默认截面",
+    "inferred_fields": [
+     "b",
+     "h",
+     "mark"
+    ],
+    "inferred": true
+   },
+   "status": "review",
+   "extra": {}
+  },
+  {
+   "uuid": "94abc5fc-c704-5312-99ba-636738fe239f",
+   "key": "示例栋|2F|板|LB|50,40",
+   "type": "slab",
+   "mark": "LB",
+   "level": "2F",
+   "grade": "C35",
+   "geom": {
+    "outline": [
+     [
+      0,
+      0
+     ],
+     [
+      10000,
+      0
+     ],
+     [
+      10000,
+      8000
+     ],
+     [
+      0,
+      8000
+     ]
+    ],
+    "holes": [
+     [
+      [
+       4000,
+       3000
+      ],
+      [
+       6000,
+       3000
+      ],
+      [
+       6000,
+       5000
+      ],
+      [
+       4000,
+       5000
+      ]
+     ]
+    ],
+    "thickness": 120,
+    "top": {
+     "level": "2F",
+     "offset": 0.0
+    },
+    "z": [
+     4820,
+     4940
+    ]
+   },
+   "basis": {
+    "source": "S-207",
+    "rule": "图纸（除注明外 120）",
+    "inferred_fields": [],
+    "inferred": false
+   },
+   "status": "ok",
+   "extra": {}
+  }
+ ],
+ "issues": [
+  {
+   "id": "I-001",
+   "kind": "missing_annotation",
+   "members": [
+    "9b6c2577-139e-56b1-9e4d-b640f2c2bcc5"
+   ],
+   "source": "S-301",
+   "at": [
+    5000,
+    6000
+   ],
+   "grid_ref": "B 轴 -2.0 m / 1 轴 -5.0 m",
+   "text": "图上有梁、无集中标注，按默认截面 400×1300",
+   "ask": "该梁的编号和截面？",
+   "impact": [
+    "geometry",
+    "quantity",
+    "headroom"
+   ]
+  }
+ ],
+ "provenance": {
+  "generator": "tools/struct/examples（手写示例）"
+ }
+}

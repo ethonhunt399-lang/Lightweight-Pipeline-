@@ -39,3 +39,12 @@ uv run lwp struct structure_1F_v2.json --title "罗湖美术馆 1栋 一层 结�
 - 罗湖双T板区（结构布置图注 4.100～4.700 预应力板）在结构 JSON 里仍按 4.940 统一板顶，肋间净高偏高；肋高 800 为推定。
 - 柱、墙为轮廓拟合的包围盒（L 形墙偏大，不影响净高）。
 - 轴网只收能对上轴号的线（偏差 ≤ 0.5 m）。
+
+## 补充：改读结构数据格式 v1（同日）
+
+- 翻模线定了正式格式 slbh.structure v1（规范副本 `docs/structure-v1.md`，源在 SLBH 仓库 `tools/struct/`）。
+  `structjson.load_structure` 自动识别：v1 构件以 `uuid` 为身份，`basis.inferred` 取自文件；旧写法保留一个版本。
+- 罗湖一层 v1 结果与旧写法逐项一致（梁 162、推定 33、覆盖 2011.8 m²、各档面积、最低 3.66 m）；唯一变化是板在 v1 里
+  标为推定（板厚、板顶未按板参数表分区），所以 ≥ 4.6 m 一档的"推定控制"面积从 8.2 m² 变为 1023.2 m²。
+- 测试样例 `toolbox/tests/data/structure_minimal.v1.json` 为合成数据。
+

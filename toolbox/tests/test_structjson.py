@@ -102,3 +102,41 @@ def test_slab_not_a_clash_and_not_drawn(structure):
     hm = data["headroom"]
     assert hm["others"] and any(s <= -2 for s in hm["src"])   # slab cells point to a label
     assert sum(hm["inf"]) > 0
+
+
+# ---------------------------------------------------------------- slbh.structure v1
+V1_SAMPLE = __import__("pathlib").Path(__file__).parent / "data" / "structure_minimal.v1.json"
+
+
+def test_v1_load():
+    rules = load_rules()
+    pkg = load_structure(V1_SAMPLE, rules)
+    data = json.loads(V1_SAMPLE.read_text(encoding="utf-8"))
+    assert set(pkg.elements) == {m["uuid"] for m in data["members"]}      # identity = uuid from the file
+    kinds = sorted(e.kind for e in pkg.elements.values())
+    assert kinds == ["beam", "beam", "column", "slab", "wall"]
+    inferred = {e.record["mark"]: e.inferred for e in pkg.elements.values()}
+    assert inferred == {"KZ1": False, "Q20": False, "KL1": False, "L?": True, "LB": False}   # taken from the file
+    assert [lv.name for lv in pkg.host_levels()] == ["1F", "2F"]
+    assert [g.name for g in pkg.grids] == ["1", "2", "A", "B"]
+
+
+def test_v1_headroom():
+    rules = load_rules()
+    pkg = load_structure(V1_SAMPLE, rules)
+    hmap = headroom_map.build(pkg, -60.0)
+    clear, key = cell_at(hmap, 2250, 4250)          # slab only
+    assert clear == pytest.approx(4880)
+    clear, key = cell_at(hmap, 5250, 5750)          # under the inferred 1300 beam (y = 6000 ± 200 + half cell)
+    assert clear == pytest.approx(3700) and pkg.elements[key].inferred
+    clear, key = cell_at(hmap, 5250, 4250)          # opening 4000–6000 × 3000–5000
+    assert np.isnan(clear)
+
+
+def test_v1_rejects_other_major_version(tmp_path):
+    data = json.loads(V1_SAMPLE.read_text(encoding="utf-8"))
+    data["version"] = "2.0.0"
+    p = tmp_path / "v2.json"
+    p.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    with pytest.raises(ValueError):
+        load_structure(p, load_rules())

@@ -1,7 +1,14 @@
 """Read a structure JSON produced from construction drawings (SLBH 施工图翻模) into a Package.
 
 The structure is known before any MEP model exists, so this gives an early clear-height estimate:
-beam bottoms and slab bottoms above the floor below. Format (units mm, plan origin at the project grid origin):
+beam bottoms and slab bottoms above the floor below.
+
+Two formats are read:
+
+* **slbh.structure v1** (current; spec in docs/structure-v1.md, copied from the SLBH repo
+  tools/struct/STRUCTURE_V1.md). Identity is the member `uuid`; "inferred" is taken from the file
+  (`basis.inferred`), never guessed here.
+* the earlier ad-hoc structure JSON (kept for one version, removed once all projects are on v1):
 
     z:          {col_bottom, col_top, slab_top, slab_th}      floor below = col_bottom
     beams:      [{a: [x, y], b: [x, y], w, h, top, mark, basis, key?, uuid?, depth_src?, inferred?}]
@@ -10,8 +17,9 @@ beam bottoms and slab bottoms above the floor below. Format (units mm, plan orig
     grid:       [[[x, y], [x, y]], ...]  grid_labels: [[name, [x, y]], ...]   (bubble positions)
     sources:    {name: drawing}           optional, shown in the viewer title
 
-A beam is `inferred` when the file says so; otherwise when its depth does not come from its own
-annotation (depth_src not in label / label_h_drawn_w, or basis "无集中标注…" / "密排…").
+  In that format a beam is `inferred` when the file says so; otherwise when its depth does not come from its
+  own annotation (depth_src not in label / label_h_drawn_w, or basis "无集中标注…" / "密排…").
+
 Beams are exact boxes; columns and walls are boxes fitted to their outline (L-shaped walls are approximate).
 """
 
@@ -47,10 +55,74 @@ def ring_area(pts) -> float:
     return 0.5 * float(np.dot(p[:, 0], np.roll(p[:, 1], -1)) - np.dot(p[:, 1], np.roll(p[:, 0], -1)))
 
 
+V1_SCHEMA = "slbh.structure"
+V1_TYPE_LABEL = {"column": "柱", "wall": "墙", "beam": "梁", "slab": "楼板"}
+
+
 def load_structure(path: str | Path, rules: RuleSet, title: str = "", floor_name: str = "1F",
                    upper_name: str = "2F") -> Package:
+    """floor_name / upper_name only apply to the earlier format; v1 files name their own levels."""
     path = Path(path)
     data = json.loads(path.read_text(encoding="utf-8-sig"))
+    if data.get("schema") == V1_SCHEMA:
+        return _load_v1(path, data, rules, title)
+    return _load_legacy(path, data, rules, title, floor_name, upper_name)
+
+
+def _load_v1(path: Path, data: dict, rules: RuleSet, title: str) -> Package:
+    if not str(data.get("version", "")).startswith("1."):
+        raise ValueError(f"{path}: slbh.structure major version 1 expected, got {data.get('version')}")
+    levels = sorted((Level(name=lv["name"], elevation=float(lv["elevation"]), source="HOST") for lv in data["levels"]),
+                    key=lambda lv: lv.elevation)
+    elements: dict[str, Element] = {}
+    for m in data["members"]:
+        t, g, b = m["type"], m["geom"], m["basis"]
+        z0, z1 = float(g["z"][0]), float(g["z"][1])
+        common = dict(key=m["uuid"], origin="obstacle", category=f"{m['level']} {V1_TYPE_LABEL.get(t, t)}",
+                      level=m["level"], group="structure", basis=b["rule"], inferred=bool(b["inferred"]),
+                      record={"key": m["key"], "mark": m["mark"], "status": m["status"], "source": b["source"],
+                              "inferred_fields": b["inferred_fields"], "grade": m["grade"]})
+        if t == "beam":
+            p0 = np.array([g["a"][0], g["a"][1], (z0 + z1) / 2], float)
+            p1 = np.array([g["b"][0], g["b"][1], (z0 + z1) / 2], float)
+            d = p1 - p0
+            w, h = float(g["b_w"]), float(g["h"])
+            elements[m["uuid"]] = Element(
+                kind="beam", domain="structure", family="结构梁",
+                type_name=f"{m['mark']} {w:.0f}×{h:.0f}，顶 {z1 / 1000:.3f}", system_type=m["mark"],
+                size_text=f"{w:.0f}×{h:.0f}", solid=swept_box(p0, p1, np.array([-d[1], d[0], 0.0]), w / 2, h / 2),
+                **common)
+        elif t in ("column", "wall"):
+            pts = np.asarray(g["outline"], float)
+            pts3 = np.vstack([np.c_[pts, np.full(len(pts), z0)], np.c_[pts, np.full(len(pts), z1)]])
+            label = V1_TYPE_LABEL[t]
+            size = (f"{g['b']:.0f}×{g['h']:.0f}" if g.get("shape") == "rect" else f"D{g['d']:.0f}" if g.get("shape") == "round"
+                    else f"厚 {g['thickness']:.0f}" if "thickness" in g else "异形")
+            elements[m["uuid"]] = Element(
+                kind=t, domain="wall" if t == "wall" else "structure", family=label,
+                type_name=f"{m['mark']} {size}".strip(), system_type=m["mark"], size_text=size,
+                solid=box_from_points(pts3), **{**common, "group": "wall" if t == "wall" else "structure"})
+        elif t == "slab":
+            outer = np.asarray(g["outline"], float)
+            footprint = [outer] + [np.asarray(h_, float) for h_ in g.get("holes", [])]
+            pts3 = np.vstack([np.c_[outer, np.full(len(outer), z0)], np.c_[outer, np.full(len(outer), z1)]])
+            elements[m["uuid"]] = Element(
+                kind="slab", domain="structure", family="楼板",
+                type_name=f"板厚 {float(g['thickness']):.0f}，顶 {z1 / 1000:.3f}", system_type=m["mark"],
+                size_text=f"板底 {z0 / 1000:.3f}", solid=box_from_points(pts3), footprint=footprint, **common)
+    grids = [Grid(name=gd["name"], start=np.asarray(gd["a"], float), end=np.asarray(gd["b"], float))
+             for gd in data.get("grids", [])]
+    proj = data.get("project", {})
+    manifest = {"project_name": title or f"{proj.get('name', proj.get('id', ''))} {proj.get('building', '')}".strip(),
+                "view_name": f"施工图翻模结构 · {data.get('scope', '')} · {data.get('tier', '')}",
+                "created_at_utc": "", "schema_version": f"{V1_SCHEMA} {data['version']}",
+                "sources": {s_["id"]: s_.get("title", "") for s_ in data.get("sources", [])},
+                "issues": len(data.get("issues", []))}
+    return Package(path=path, manifest=manifest, elements=elements, levels=levels, grids=grids,
+                   warnings=[], classifier=Classifier(rules))
+
+
+def _load_legacy(path: Path, data: dict, rules: RuleSet, title: str, floor_name: str, upper_name: str) -> Package:
     z = data["z"]
     floor_z, col_top = float(z["col_bottom"]), float(z["col_top"])
     slab_top, slab_th = float(z["slab_top"]), float(z["slab_th"])
