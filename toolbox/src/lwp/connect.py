@@ -25,6 +25,7 @@ from .package import Element, Package
 
 M = 1000.0
 OPEN_MM = 1.0          # connectors farther apart than this are an open joint
+SHIFTS_MM = (300.0, 600.0, 1000.0, 1500.0, 2000.0)   # set-backs tried for a transition (N3)
 MIN_RUN_MM = 1.0       # a run may be shortened down to this (two strands now side by side)
 
 
@@ -205,8 +206,21 @@ def reconnect(package: Package, elements: dict[str, Element], moves: dict[str, n
         elements[k] = _set_axis(elements[k], s0 + ax * lo, s0 + ax * hi)
     repairs: list[Repair] = []
     left: list[Joint] = []
-    near = obstacles if obstacles is not None else [e for e in elements.values() if e.solid is not None]
+    near = list(obstacles) if obstacles is not None else [e for e in elements.values() if e.solid is not None]
     boxes = np.array([np.concatenate(e.solid.aabb()) for e in near]) if near else np.zeros((0, 6))
+    slot = {e.key: i for i, e in enumerate(near)}
+
+    def seen(e: Element) -> None:
+        """Keep the obstacle list current: later transitions must avoid earlier ones."""
+        nonlocal boxes
+        box = np.concatenate(e.solid.aabb())
+        if e.key in slot:
+            near[slot[e.key]] = e
+            boxes[slot[e.key]] = box
+        else:
+            slot[e.key] = len(near)
+            near.append(e)
+            boxes = np.vstack([boxes, box]) if len(boxes) else box[None, :]
     count = 0
     for j in joints:
         ea, eb = elements[j.a], elements[j.b]
@@ -243,24 +257,53 @@ def reconnect(package: Package, elements: dict[str, Element], moves: dict[str, n
                 new_end = end + out * d_ax
                 host = _set_axis(host, s0 if at_end else new_end, new_end if at_end else s1)
                 elements[host_key] = host
+                seen(host)
                 end = new_end
         d = target - end
         pieces: list[str] = []
         if float(np.linalg.norm(d)) > OPEN_MM:
-            dz = np.array([0.0, 0.0, d[2]])
-            dh = d - dz
-            orders = []
-            if np.linalg.norm(dz) > OPEN_MM and np.linalg.norm(dh) > OPEN_MM:
-                orders = [[end, end + dz, target], [end, end + dh, target]]
-            else:
-                orders = [[end, target]]
+            # Where along the run the transition is made (N3): at the joint, or set back along the run so that
+            # it falls where nothing is in the way; then the order of the vertical and horizontal pieces.
+            shifts = [0.0]
+            if axis is not None:
+                s0_, s1_ = _axis(host)
+                room = float(np.linalg.norm(s1_ - s0_)) - 100.0
+                shifts += [x for x in SHIFTS_MM if x < room]
+                out_dir = (end - (s0_ if np.linalg.norm(end - s1_) < 1 else s1_))
+                out_dir = out_dir / max(float(np.linalg.norm(out_dir)), 1e-9)
             best = None
-            for pts in orders:
-                solids = [_piece_solid(sec, pts[i], pts[i + 1], run_axis) for i in range(len(pts) - 1)]
-                hits = _hits(solids, near, boxes, {host_key, other_key})
-                if best is None or hits < best[0]:
-                    best = (hits, pts, solids)
-            _, pts, solids = best
+            for shift in shifts:
+                start = end - out_dir * shift if shift else end
+                dd = target - start
+                ax = float(np.dot(dd, out_dir)) if shift else 0.0
+                perp = dd - (out_dir * ax if shift else 0.0)
+                dz = np.array([0.0, 0.0, perp[2]])
+                dh = perp - dz
+                if np.linalg.norm(dz) > OPEN_MM and np.linalg.norm(dh) > OPEN_MM:
+                    orders = [[start, start + dz, start + perp], [start, start + dh, start + perp]]
+                else:
+                    orders = [[start, start + perp]]
+                for pts in orders:
+                    if shift:
+                        pts = pts + [target]
+                    pts = [p for i, p in enumerate(pts) if i == 0 or float(np.linalg.norm(p - pts[i - 1])) > OPEN_MM]
+                    if len(pts) < 2:
+                        continue
+                    solids = [_piece_solid(sec, pts[i], pts[i + 1], run_axis) for i in range(len(pts) - 1)]
+                    hits = _hits(solids, near, boxes, {host_key, other_key})
+                    rank_ = (hits, shift, len(solids))
+                    if best is None or rank_ < best[0]:
+                        best = (rank_, pts, solids, shift)
+                if best is not None and best[0][0] == 0:
+                    break
+            _, pts, solids, shift = best
+            if shift:
+                s0_, s1_ = _axis(host)
+                at_end_ = np.linalg.norm(end - s1_) < np.linalg.norm(end - s0_)
+                host = _set_axis(host, s0_ if at_end_ else pts[0], pts[0] if at_end_ else s1_)
+                elements[host_key] = host
+                seen(host)
+                stretch -= shift
             prev_key, prev_cid = host_key, hconn.get("id")
             for i, sol in enumerate(solids):
                 count += 1
@@ -290,6 +333,7 @@ def reconnect(package: Package, elements: dict[str, Element], moves: dict[str, n
                      "connected": [{"key": nxt_key, "connector_id": cb_id(j, other_key) if last else 0}]},
                 ]
                 elements[key] = piece
+                seen(piece)
                 pieces.append(key)
                 prev_key, prev_cid = key, 1
         repairs.append(Repair(host_key, other_key, stretch, pieces, float(np.linalg.norm(target - end))))

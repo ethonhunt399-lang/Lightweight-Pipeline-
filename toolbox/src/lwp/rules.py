@@ -91,6 +91,7 @@ class LayoutPreferences(_Strict):
     exit_side: int = 40
     exit_top: int = 30
     tray_bottom: int = 5                  # per 10 mm a tray bottom lies below tray_bottom_preferred_mm
+    end_beams: int = 40                   # per run that would clash with a beam just beyond the corridor end
 
 
 class TrayWater(_Strict):
@@ -116,6 +117,8 @@ class Layout(_Strict):
     tray_water: TrayWater = TrayWater()
     tray_top_clearance_mm: float = 50     # tray top to beam / slab / the layer above (cable laying space)
     elevation_step_mm: float = 50         # layer bottoms on a grid relative to the floor (0: free)
+    lane_priority_max_mm: float = 300     # lanes may be kept up to this much higher than the lowest bottom
+    slab_thickness_mm: float = 250        # roof slab: crossing services may rise between beams to its underside
     tray_bottom_preferred_mm: float = 2500   # tray bottom above the floor, preferred (hard limit: headroom)
     confirmed: bool = False
     preferences: LayoutPreferences = LayoutPreferences()

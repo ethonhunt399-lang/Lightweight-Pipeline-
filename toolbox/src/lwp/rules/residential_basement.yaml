@@ -79,8 +79,8 @@ clearance_mm:
 headroom:
   floor_level: auto          # auto：取机电构件下方最近的主模型标高
   min_clear_mm: 2200         # JGJ 100-2015 小型车车道及停车位最小净高 2.2 m；2026-10-01 确认为硬性最低值
-  lane_clear_mm: null        # 车道、车位分开控制（已确认）；控制值与分区待图纸（建筑车位布置）提供，暂按 2200
-  stall_clear_mm: null
+  lane_clear_mm: null        # 2026-10-02：车道不设单一控制值。硬下限仍为 2200；车道净高“尽量统一、允许分级”，
+  stall_clear_mm: null       #   作为扩大范围后全局排布的优化目标与方案研讨重点（评估中统计车道净高的最低值、中位值与分级数）
   confirmed: true
   note: 以楼层标高为地面、机电外轮廓（含保温）底为顶计算；综合支吊架横担预留在 R2 加入
 
@@ -107,6 +107,8 @@ layout:
   moved_threshold_mm: 20       # 位移小于该值视为未动
   crossing_zone: top           # 横穿走廊的支管走在管线束上方：顶部预留“横穿层”（横穿管最大高度 + 净距）；none 不预留
   crossing_zone_max_mm: 250    # 只为高度不超过该值的横穿管预留；更大的横穿管（大风管等）在节点处局部翻弯，列为节点冲突
+  lane_priority_max_mm: 300    # 车道优先：在不降低整体最低管底的前提下，车道上方最多再抬高 300 mm（避免为车道把管线全部叠层）
+  slab_thickness_mm: 250       # 地下室顶板厚（结构图：未注明板厚 250 mm；人防区 200）。横穿支管可在梁间升至板底
   elevation_step_mm: 50        # 2026-10-01 确认：层底标高按 50 mm 一档（相对楼面）
   tray_top_clearance_mm: 50    # 桥架顶距梁底 / 楼板 / 上层管线。GB 51348 为“不宜小于 0.3 m”，取值待工程师确定
   tray_bottom_preferred_mm: 2500   # 2026-10-02 确认（电气设计说明）：桥架底边不宜低于 2.5 m（软）；不应低于 2.2 m（硬，同净高下限）

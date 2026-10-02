@@ -178,7 +178,9 @@ def side_exits(package: Package, elements: dict[str, Element], sec: Section, lay
     for c in sec.crossings:
         if c.key in moves and c.key not in crossing_z:
             crossing_z[c.key] = c.z_lo + float(moves[c.key][2])
-    z_min = sec.floor_z + rules.headroom.min_clear_mm
+    # Routes may pass under neighbours, but never below the bundle's lowest bottom (no clear height lost).
+    bottoms = [layout.placements[st.id].z if st.id in layout.placements else st.z for st in sec.strands]
+    z_min = max(sec.floor_z + rules.headroom.min_clear_mm, min(bottoms, default=-math.inf))
     z_max = sec.ceiling_max if math.isfinite(sec.ceiling_max) else sec.ceiling
     nodes: list[Node] = []
 
@@ -315,3 +317,121 @@ def _branch_chain(elements, start: list[str], stop: set[str], moves, graph, cor)
         chain.append(k)
         queue.extend(graph.get(k, ()))
     return chain, drops
+
+
+# ---------------------------------------------------------------------------------------------------------
+# N3 — end transition: where a moved strand continues beyond the corridor, its continuation (elbows,
+# couplings and horizontal runs) is carried along with the same offset as far as needed, so that the
+# transition back to the original route is made where it is clear, not in the crowd at the corridor end.
+
+END_REACH = 6000.0   # mm beyond the corridor end a continuation may be carried
+END_DEPTH = 6        # elements of a continuation that may be carried
+
+
+@dataclass
+class EndTransition:
+    strand: str
+    end: str                  # "start" / "end" of the corridor
+    carried: list[str]
+    hits_before: int
+    hits_after: int
+
+    def to_dict(self) -> dict:
+        return {"strand": self.strand, "end": self.end, "carried": self.carried,
+                "hits_before": self.hits_before, "hits_after": self.hits_after}
+
+
+def _continuation(elements, start: str, member: set[str], cor, beyond, graph) -> list[str]:
+    """Elements following `start` away from the corridor: 2-connector fittings and horizontal runs."""
+    chain, seen, k = [], set(member), start
+    while k is not None and len(chain) < END_DEPTH:
+        seen.add(k)
+        e = elements.get(k)
+        if e is None or e.solid is None or not e.is_mep:
+            break
+        c = e.solid.center
+        if not beyond(cor.s_of(c)) or abs(cor.s_of(c) - (cor.s0 if beyond(cor.s0 - 1) else cor.s1)) > END_REACH:
+            break
+        if e.origin == "mep_curve":
+            r = e.record
+            if abs((r["end"][2] - r["start"][2]) * 1000) > 100:
+                break          # a vertical run: the transition happens here anyway
+        elif len([cc for cc in e.connectors if cc.get("connected")]) > 2:
+            break              # a tee: its other branches stay; transition before it
+        chain.append(k)
+        nxt = [n for n in graph.get(k, ()) if n not in seen]
+        k = nxt[0] if len(nxt) == 1 else None
+    return chain
+
+
+def end_transitions(package: Package, elements: dict[str, Element], sec: Section, moves: dict[str, np.ndarray],
+                    move, graph: dict[str, set[str]]) -> list[EndTransition]:
+    from .connect import _hits, _piece_solid, _section
+
+    cor = sec.corridor
+    member = {k for st in sec.strands for k in st.segments + st.fittings}
+    near = [e for e in elements.values() if e.solid is not None]
+    boxes = np.array([np.concatenate(e.solid.aabb()) for e in near])
+    out: list[EndTransition] = []
+
+    def jog_hits(a: Element, b: Element, t: np.ndarray, skip: set[str]) -> int:
+        """Clashes of the simplest jog between a (moved by t) and b (in place) at their joint."""
+        for c in a.connectors:
+            if any(r.get("key") == b.key for r in c.get("connected") or []) and c.get("origin"):
+                p = np.array(c["origin"]) * 1000
+                q = p + t
+                sec_ = _section(a, c)
+                dz = np.array([0.0, 0.0, t[2]])
+                best = None
+                for pts in ([q, q - dz, p], [q, q - (t - dz), p]):
+                    pts = [x for i, x in enumerate(pts) if i == 0 or np.linalg.norm(x - pts[i - 1]) > 1]
+                    if len(pts) < 2:
+                        return 0
+                    h = _hits([_piece_solid(sec_, pts[i], pts[i + 1], None) for i in range(len(pts) - 1)], near, boxes, skip)
+                    best = h if best is None else min(best, h)
+                return best or 0
+        return 0
+
+    for st in sec.strands:
+        keys = st.segments + st.fittings
+        t = next((moves[k] for k in keys if k in moves and np.linalg.norm(moves[k]) > 0.5), None)
+        if t is None:
+            continue
+        for side, beyond in (("start", lambda s: s < cor.s0), ("end", lambda s: s > cor.s1)):
+            # Joints of the strand to elements beyond this end of the corridor.
+            for k in keys:
+                for n in graph.get(k, ()):
+                    if n in member or n in moves:
+                        continue
+                    e = elements.get(n)
+                    if e is None or e.solid is None or not beyond(cor.s_of(e.solid.center)):
+                        continue
+                    chain = _continuation(elements, n, member | {k}, cor, beyond, graph)
+                    if not chain:
+                        continue
+                    skip = set(keys) | set(chain)
+                    # Candidate: carry the first d elements (d = 0: transition at the corridor end).
+                    best = None
+                    for d in range(0, len(chain) + 1):
+                        moved_hits = 0
+                        for x in chain[:d]:
+                            el = elements[x]
+                            parts = el.parts or [el.solid]
+                            from .plan import translate
+                            moved_hits += _hits([translate(p, t) for p in parts], near, boxes, skip)
+                        a = elements[chain[d - 1]] if d else elements[k]
+                        b = elements.get(chain[d]) if d < len(chain) else None
+                        if b is None:
+                            nxt = [m for m in graph.get(chain[-1], ()) if m not in skip] if d else []
+                            b = elements.get(nxt[0]) if nxt else None
+                        jh = jog_hits(a, b, t, skip) if b is not None else 0
+                        score = (moved_hits + jh, d)
+                        if best is None or score < best[0]:
+                            best = (score, d)
+                    (hits, _), d = best
+                    base = (None, 0)
+                    if d:
+                        for x in chain[:d]:
+                            move(x, t)
+                        out.append(EndTransition(st.id, side, chain[:d], -1, hits))
+    return out
