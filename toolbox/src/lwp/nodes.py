@@ -178,7 +178,9 @@ def side_exits(package: Package, elements: dict[str, Element], sec: Section, lay
     for c in sec.crossings:
         if c.key in moves and c.key not in crossing_z:
             crossing_z[c.key] = c.z_lo + float(moves[c.key][2])
-    z_min = sec.floor_z + rules.headroom.min_clear_mm
+    # Routes may pass under neighbours, but never below the bundle's lowest bottom (no clear height lost).
+    bottoms = [layout.placements[st.id].z if st.id in layout.placements else st.z for st in sec.strands]
+    z_min = max(sec.floor_z + rules.headroom.min_clear_mm, min(bottoms, default=-math.inf))
     z_max = sec.ceiling_max if math.isfinite(sec.ceiling_max) else sec.ceiling
     nodes: list[Node] = []
 

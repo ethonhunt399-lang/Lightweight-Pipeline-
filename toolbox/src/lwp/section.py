@@ -59,6 +59,7 @@ class Beam:
     label: str
     s_lo: float = -np.inf     # extent along the corridor (mm)
     s_hi: float = np.inf
+    top: float = np.nan       # top of the beam (≈ top of the slab)
 
 
 @dataclass
@@ -263,7 +264,7 @@ def extract(package: Package, corridor: Corridor, rules: RuleSet) -> Section:
             along = abs(float(np.dot(e.solid.axes[long_axis], corridor.u)))
             crossing = along < 0.95
             # Every beam limits only the strands under it (overlapping across and along the corridor).
-            beams.append(Beam(e.key, v_lo, v_hi, float(lo[2]), crossing, e.type_name, s_lo, s_hi))
+            beams.append(Beam(e.key, v_lo, v_hi, float(lo[2]), crossing, e.type_name, s_lo, s_hi, float(hi[2])))
             if crossing and v_lo < corridor.v1 and v_hi > corridor.v0:
                 if lo[2] < ceiling:
                     ceiling, ceiling_key = float(lo[2]), e.key
@@ -299,10 +300,21 @@ def extract(package: Package, corridor: Corridor, rules: RuleSet) -> Section:
     if not np.isfinite(ceiling_max):
         ceiling_max = ceiling
     # Crossing services run between the crossing beams; they pass under beams running along the corridor.
+    # Only beams over the part where the bundle can be matter: outside it the service can drop locally (N1).
+    # Between the crossing beams the service can rise to the underside of the slab.
+    slab = rules.layout.slab_thickness_mm
+    across = sorted((b for b in beams if b.crossing and np.isfinite(b.top)), key=lambda b: b.s_lo)
     for c in crossings:
-        under = [b.bottom for b in beams if not b.crossing and overlaps(b.v_lo, b.v_hi, c.v_lo, c.v_hi)
+        lo_v, hi_v = max(c.v_lo, v_lo), min(c.v_hi, v_hi)
+        under = [b.bottom for b in beams if not b.crossing and overlaps(b.v_lo, b.v_hi, lo_v, hi_v)
                  and b.s_lo - 1 <= c.s <= b.s_hi + 1]
-        c.ceiling = min(under) if under else ceiling_max
+        if under:
+            c.ceiling = min(under)
+            continue
+        before = [b for b in across if b.s_hi <= c.s]
+        after = [b for b in across if b.s_lo >= c.s]
+        bay = ([before[-1]] if before else []) + ([after[0]] if after else [])
+        c.ceiling = min(b.top for b in bay) - slab if bay and slab > 0 else ceiling_max
     members = {k for st in strands for k in st.segments + st.fittings}
     pattern = rules.layout.tray_water.leak_prone_pattern
     zone_keys = {c.key for c in crossings}

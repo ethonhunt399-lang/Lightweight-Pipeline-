@@ -228,8 +228,10 @@ class _Model:
             fixed_v = {f.id: f.v for f in sec.fixed}
             for ci, c in enumerate(zone):
                 h = _i(c.height)
-                hi = min(ceiling_top, _i(c.ceiling - lay.beam_clearance_mm)) - h
-                zc = m.NewIntVar(floor, max(floor, hi), f"cz{ci}")
+                hi = _i(c.ceiling - lay.beam_clearance_mm) - h      # in the beam bay: up to the slab
+                # Crossing services only go up (lowering one would take clear height away).
+                lo_c = _i(c.z_lo)
+                zc = m.NewIntVar(lo_c, max(lo_c, hi), f"cz{ci}")
                 self.cz[c.key] = zc
                 s0, s1 = c.s - c.height / 2, c.s + c.height / 2
                 for i, st in enumerate(items):
@@ -332,6 +334,28 @@ class _Model:
         for k in range(K):
             m.Add(self.low <= self.bot[k] + big * (1 - self.used[k]))
         self.n_layers = sum(self.used)
+
+        # Drive lanes first: the lowest bottom of the strands that lie over a drive lane (drawing zones).
+        lanes = [b for b in sec.bands if b["zone"] == "lane"]
+        self.lane_low = None
+        self.on_lane = []
+        if lanes and any(b["zone"] == "stall" for b in sec.bands):
+            self.lane_low = m.NewIntVar(floor - 5000, ceiling_top, "lane_low")
+            for i, s in enumerate(items):
+                on = m.NewBoolVar(f"onlane{i}")
+                for bi, b in enumerate(lanes):
+                    left = m.NewBoolVar(f"ll{i}_{bi}")
+                    right = m.NewBoolVar(f"lr{i}_{bi}")
+                    m.Add(self.v[i] + _i(s.width / 2) <= _i(b["v_lo"])).OnlyEnforceIf(left)
+                    m.Add(self.v[i] - _i(s.width / 2) >= _i(b["v_hi"])).OnlyEnforceIf(right)
+                    m.AddBoolOr([left, right, on])
+                m.Add(self.lane_low <= self.z[i] + big * (1 - on))
+                self.on_lane.append(on)
+            # Gain over lanes counts only up to a margin above the overall lowest bottom: lanes come first
+            # among equally good plans, not at any price (no stacking everything off the lanes).
+            self.lane_gain = m.NewIntVar(floor - 5000, ceiling_top, "lane_gain")
+            m.Add(self.lane_gain <= self.lane_low)
+            m.Add(self.lane_gain <= self.low + _i(lay.lane_priority_max_mm))
 
         self.dv, self.dz, self.moved = [], [], []
         thr = _i(lay.moved_threshold_mm)
@@ -471,6 +495,11 @@ def solve(sec: Section, rules: RuleSet, scheme: str, seconds: float = 2.0) -> La
                 ("排布原则 + 改动", 1000 * model.pref + model.change, False, None)]
     else:
         raise ValueError(f"unknown scheme {scheme!r}")
+    if model.lane_low is not None:
+        # Drive lanes before stalls: right after the scheme's own first goal, the clear height over lanes is
+        # raised (by at most lane_priority_max_mm above the overall lowest bottom).
+        lane = ("车道上方管底最高", model.lane_gain, True, 0)
+        plan.insert({"headroom": 1, "changes": 1, "supports": 2}[scheme], lane)
 
     if model.wot or model.leak_viol:
         plan.insert(0, ("水管跨越桥架、桥架上方易漏节点最少", sum(model.wot) + sum(model.leak_viol), False, 0))
@@ -526,6 +555,9 @@ def _layout(model: _Model, solver, scheme: str, status: str, stages: list[dict])
         "exit_side_violations": sum(solver.Value(v) for v in model.exit_viol),
         "crossings_over_bundle": len(sec.zone_crossings),
         "crossings_lifted": sum(solver.Value(v) > 20 for v in model.cdz),
+        "lane_lowest_bottom_above_floor_mm": (round(solver.Value(model.lane_low) - sec.floor_z)
+                                              if model.lane_low is not None else None),
+        "strands_over_lanes": sum(solver.Value(v) for v in model.on_lane),
         "water_crossing_over_tray": sum(solver.Value(v) for v in model.wot),
         "leak_prone_over_tray": sum(solver.Value(v) for v in model.leak_viol),
         "tray_water": {"parallel": "forbid" if model.hard_par else "soft",
