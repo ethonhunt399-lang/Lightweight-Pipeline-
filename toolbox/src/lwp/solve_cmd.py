@@ -165,7 +165,8 @@ def _page(sec: Section, rules: RuleSet, layouts: dict[str, Layout], ev: dict, ha
         m = lay.metrics if lay else {}
         rows.append("<tr>" + "".join(f"<td>{x}</td>" for x in [
             f"<b>{escape(r['name'])}</b>",
-            r["hard"], (f"{r['hard'] - r['hard_node']} / {r['hard_node']}" if key in layouts else "—"),
+            f"{r['hard']}（原有 {r.get('hard_preexisting', '—')}）" if key not in ("original",) else r["hard"],
+            (f"{r['hard'] - r['hard_node']} / {r['hard_node']}" if key in layouts else "—"),
             r["hard_structure"], r["clearance"], f"{r.get('water_parallel_tray', '—')} / {r.get('water_leak_tray', '—')} / {r.get('water_crossing_tray', '—')}",
             (f"{r['n2_nodes']} / {r['n0_repairs']}" if "n2_nodes" in r else "—"),
             _m(r.get("lowest_mm")), _m(r.get("median_lowest_mm")), r.get("median_levels", "—"),

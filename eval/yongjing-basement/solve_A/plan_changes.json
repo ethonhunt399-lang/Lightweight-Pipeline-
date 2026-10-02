@@ -2,7 +2,7 @@
  "schema": "lwp.layout_plan",
  "schema_version": "0.1.0",
  "tool": "lwp 0.1.0",
- "created": "2026-10-02T12:59:43",
+ "created": "2026-10-02T14:19:16",
  "source": {
   "project": "雍景致臻江东-机电（管综调整前）-地下室",
   "exported": "2026-09-30T15:07:03Z",
@@ -30,28 +30,28 @@
  "status": "FEASIBLE",
  "stages": [
   {
-   "stage": "与大尺寸横穿碰撞、水管跨越桥架、桥架上方易漏节点最少",
+   "stage": "与固定构件、大尺寸横穿碰撞，水管跨越桥架，桥架上方易漏节点最少",
    "status": "OPTIMAL",
    "value": 0,
-   "time_s": 8.14
+   "time_s": 9.28
   },
   {
    "stage": "改动量最小",
    "status": "FEASIBLE",
    "value": 48179,
-   "time_s": 31.35
+   "time_s": 30.52
   },
   {
    "stage": "车道上方管底最高",
    "status": "FEASIBLE",
    "value": 4300,
-   "time_s": 19.49
+   "time_s": 17.0
   },
   {
    "stage": "排布原则",
    "status": "FEASIBLE",
    "value": 3870,
-   "time_s": 26.28
+   "time_s": 28.1
   }
  ],
  "metrics": {
@@ -74,6 +74,8 @@
   "leak_prone_over_tray": 0,
   "beams_beyond_ends": 0,
   "large_crossing_clashes": 0,
+  "fixed_obstacle_clashes": 0,
+  "fixed_obstacles": 0,
   "tray_water": {
    "parallel": "forbid",
    "crossing": "allow"
@@ -1569,22 +1571,13 @@
     "gap_mm": 130
    },
    {
-    "host": "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042ce4d",
-    "other": "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042cefd",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042ce4d#j14"
-    ],
-    "gap_mm": 252
-   },
-   {
     "host": "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042ce59",
     "other": "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042ceff",
     "stretch_mm": 0,
     "pieces": [
-     "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042ce59#j15"
+     "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042ce59#j14"
     ],
-    "gap_mm": 202
+    "gap_mm": 50
    },
    {
     "host": "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042d65d",
@@ -1661,8 +1654,8 @@
     "other": "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432aba",
     "stretch_mm": 0,
     "pieces": [
-     "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432aad#j16",
-     "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432aad#j17"
+     "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432aad#j15",
+     "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432aad#j16"
     ],
     "gap_mm": 3695
    },
@@ -1674,24 +1667,6 @@
     "gap_mm": 0
    },
    {
-    "host": "HOST|1cc9db34-edb0-49d1-8684-1149f8cf018f-00433e79",
-    "other": "HOST|1cc9db34-edb0-49d1-8684-1149f8cf018f-00433f9d",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|1cc9db34-edb0-49d1-8684-1149f8cf018f-00433e79#j18"
-    ],
-    "gap_mm": 150
-   },
-   {
-    "host": "HOST|1cc9db34-edb0-49d1-8684-1149f8cf018f-00433e8b",
-    "other": "HOST|1cc9db34-edb0-49d1-8684-1149f8cf018f-00433f9d",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|1cc9db34-edb0-49d1-8684-1149f8cf018f-00433e8b#j19"
-    ],
-    "gap_mm": 150
-   },
-   {
     "host": "HOST|1cc9db34-edb0-49d1-8684-1149f8cf018f-0043409a",
     "other": "HOST|1cc9db34-edb0-49d1-8684-1149f8cf018f-004340bc",
     "stretch_mm": 562,
@@ -1699,22 +1674,13 @@
     "gap_mm": 0
    },
    {
-    "host": "HOST|3ca031cd-0f8a-4a75-8c67-ea2cedaf6971-00434ab5",
-    "other": "HOST|3ca031cd-0f8a-4a75-8c67-ea2cedaf6971-00434ac9",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|3ca031cd-0f8a-4a75-8c67-ea2cedaf6971-00434ab5#j20"
-    ],
-    "gap_mm": 252
-   },
-   {
     "host": "HOST|3ca031cd-0f8a-4a75-8c67-ea2cedaf6971-00434ab9",
     "other": "HOST|3ca031cd-0f8a-4a75-8c67-ea2cedaf6971-00434acb",
     "stretch_mm": 0,
     "pieces": [
-     "HOST|3ca031cd-0f8a-4a75-8c67-ea2cedaf6971-00434ab9#j21"
+     "HOST|3ca031cd-0f8a-4a75-8c67-ea2cedaf6971-00434ab9#j17"
     ],
-    "gap_mm": 202
+    "gap_mm": 50
    },
    {
     "host": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fed0",
@@ -1735,7 +1701,7 @@
     "other": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400aa",
     "stretch_mm": 0,
     "pieces": [
-     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043feeb#j22"
+     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043feeb#j18"
     ],
     "gap_mm": 316
    },
@@ -1758,7 +1724,7 @@
     "other": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400c4",
     "stretch_mm": 0,
     "pieces": [
-     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff0f#j23"
+     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff0f#j19"
     ],
     "gap_mm": 280
    },
@@ -1781,8 +1747,8 @@
     "other": "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004273c9",
     "stretch_mm": 0,
     "pieces": [
-     "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004273c8#j24",
-     "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004273c8#j25"
+     "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004273c8#j20",
+     "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004273c8#j21"
     ],
     "gap_mm": 570
    },
@@ -1791,13 +1757,13 @@
     "other": "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-004292ad",
     "stretch_mm": 0,
     "pieces": [
-     "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-004292ac#j26"
+     "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-004292ac#j22"
     ],
     "gap_mm": 462
    }
   ],
   "open": [],
-  "pieces": 26,
+  "pieces": 22,
   "stretched": 28,
   "end_transitions": [],
   "n1_pieces": 80
@@ -2193,6 +2159,21 @@
    0.0,
    252.5
   ],
+  "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042cefd": [
+   0.0,
+   0.0,
+   252.5
+  ],
+  "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042ce56": [
+   0.0,
+   0.0,
+   252.5
+  ],
+  "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042ceff": [
+   0.0,
+   0.0,
+   252.5
+  ],
   "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042ce59": [
    0.0,
    0.0,
@@ -2258,12 +2239,32 @@
    0.0,
    150.0
   ],
+  "HOST|1cc9db34-edb0-49d1-8684-1149f8cf018f-00433f9d": [
+   0.0,
+   0.0,
+   150.0
+  ],
   "HOST|1cc9db34-edb0-49d1-8684-1149f8cf018f-00433e8b": [
    0.0,
    0.0,
    150.0
   ],
   "HOST|3ca031cd-0f8a-4a75-8c67-ea2cedaf6971-00434ab5": [
+   0.0,
+   0.0,
+   252.5
+  ],
+  "HOST|3ca031cd-0f8a-4a75-8c67-ea2cedaf6971-00434ac9": [
+   0.0,
+   0.0,
+   252.5
+  ],
+  "HOST|3ca031cd-0f8a-4a75-8c67-ea2cedaf6971-00434ab7": [
+   0.0,
+   0.0,
+   252.5
+  ],
+  "HOST|3ca031cd-0f8a-4a75-8c67-ea2cedaf6971-00434acb": [
    0.0,
    0.0,
    252.5

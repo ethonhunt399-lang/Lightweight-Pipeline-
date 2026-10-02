@@ -131,6 +131,7 @@ class Section:
     ceiling_max: float = np.inf   # highest crossing-beam bottom: upper bound for any layer
     leaks: list = field(default_factory=list)       # leak-prone water items not on a strand (LeakItem)
     bands: list = field(default_factory=list)       # across the corridor: drive lane / stall intervals (drawings)
+    obstacles: list = field(default_factory=list)   # MEP that stays: (key, s_lo, s_hi, v_lo, v_hi, z_lo, z_hi, group)
 
     crossing_limit: float = 250.0
 
@@ -345,10 +346,28 @@ def extract(package: Package, corridor: Corridor, rules: RuleSet) -> Section:
         _, _, lv, hv = _plan_extent(e, corridor)
         on = next((k for k in graph.get(e.key, ()) if k in zone_keys), None)
         leaks.append(LeakItem(e.key, corridor.s_of(cpt), lv, hv, float(lo[2]), float(hi[2]), on))
+    # MEP elements that stay where they are (not in a strand, not a crossing service and not one of their own
+    # branches or fittings): obstacles the strands keep clear of.
+    near_moving = set(members) | {c.key for c in crossings}
+    for k in list(near_moving):
+        for n in graph.get(k, ()):
+            near_moving.add(n)
+            near_moving.update(graph.get(n, ()))
+    obstacles = []
+    for e in package.mep():
+        if e.key in near_moving or e.solid is None:
+            continue
+        lo, hi = e.solid.aabb()
+        s0_, s1_, v0_, v1_ = _plan_extent(e, corridor)
+        if s1_ < corridor.s0 or s0_ > corridor.s1 or v1_ < v_lo or v0_ > v_hi:
+            continue
+        if hi[2] < floor_z + rules.headroom.min_clear_mm or lo[2] > ceiling_max:
+            continue
+        obstacles.append((e.key, s0_, s1_, v0_, v1_, float(lo[2]), float(hi[2]), e.group))
     sec = Section(corridor=corridor, floor_z=floor_z, floor_name=floor.name if floor else "", ceiling=ceiling,
                   ceiling_key=ceiling_key, v_lo=v_lo, v_hi=v_hi, strands=strands, beams=beams,
                   crossings=crossings, blocked=blocked, notes=notes, crossing_limit=rules.layout.crossing_zone_max_mm,
-                  ceiling_max=ceiling_max, leaks=leaks)
+                  ceiling_max=ceiling_max, leaks=leaks, obstacles=obstacles)
     if sec.large_crossings:
         sec.notes.append(f"{len(sec.large_crossings)} 根横穿管高度超过 {rules.layout.crossing_zone_max_mm:.0f} mm"
                          f"（{'、'.join(sorted({c.label for c in sec.large_crossings}))}），不从管线束上方通过，按节点冲突处理")

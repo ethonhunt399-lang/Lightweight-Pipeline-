@@ -2,6 +2,7 @@
  "original": {
   "name": "原模型",
   "hard": 175,
+  "hard_preexisting": 175,
   "n2_unresolved": 0,
   "hard_node": 0,
   "nodes": {},
@@ -44,20 +45,21 @@
  },
  "headroom": {
   "name": "净高最优",
-  "hard": 58,
+  "hard": 45,
+  "hard_preexisting": 8,
   "n2_unresolved": 10,
   "hard_node": 20,
   "nodes": {
    "横穿翻弯": 10,
    "大尺寸横穿": 10
   },
-  "clearance": 107,
+  "clearance": 98,
   "hard_structure": 4,
-  "water_parallel_tray": 0,
-  "water_crossing_tray": 28,
+  "water_parallel_tray": 2,
+  "water_crossing_tray": 33,
   "water_leak_tray": 0,
   "stations": 36,
-  "lowest_mm": 2498,
+  "lowest_mm": 2500,
   "median_lowest_mm": 2500,
   "median_levels": 2.0,
   "max_levels": 3,
@@ -87,22 +89,23 @@
    }
   },
   "n2_nodes": 30,
-  "n0_pieces": 27,
-  "n0_repairs": 47,
+  "n0_pieces": 22,
+  "n0_repairs": 42,
   "open_joints": 0
  },
  "changes": {
   "name": "改动最少",
-  "hard": 37,
+  "hard": 34,
+  "hard_preexisting": 10,
   "n2_unresolved": 8,
-  "hard_node": 21,
+  "hard_node": 19,
   "nodes": {
    "大尺寸横穿": 10,
-   "横穿翻弯": 11
+   "横穿翻弯": 9
   },
-  "clearance": 77,
+  "clearance": 65,
   "hard_structure": 4,
-  "water_parallel_tray": 0,
+  "water_parallel_tray": 1,
   "water_crossing_tray": 26,
   "water_leak_tray": 0,
   "stations": 36,
@@ -135,23 +138,24 @@
    }
   },
   "n2_nodes": 30,
-  "n0_pieces": 26,
-  "n0_repairs": 47,
+  "n0_pieces": 22,
+  "n0_repairs": 43,
   "open_joints": 0
  },
  "supports": {
   "name": "支吊架最省",
-  "hard": 66,
+  "hard": 60,
+  "hard_preexisting": 10,
   "n2_unresolved": 15,
-  "hard_node": 33,
+  "hard_node": 31,
   "nodes": {
    "大尺寸横穿": 14,
-   "横穿翻弯": 19
+   "横穿翻弯": 17
   },
-  "clearance": 83,
+  "clearance": 68,
   "hard_structure": 4,
-  "water_parallel_tray": 0,
-  "water_crossing_tray": 30,
+  "water_parallel_tray": 2,
+  "water_crossing_tray": 32,
   "water_leak_tray": 0,
   "stations": 36,
   "lowest_mm": 2400,
@@ -183,13 +187,14 @@
    }
   },
   "n2_nodes": 30,
-  "n0_pieces": 28,
-  "n0_repairs": 47,
+  "n0_pieces": 24,
+  "n0_repairs": 43,
   "open_joints": 0
  },
  "gold": {
   "name": "人工方案",
   "hard": 1,
+  "hard_preexisting": 0,
   "n2_unresolved": 0,
   "hard_node": 0,
   "nodes": {},

@@ -356,6 +356,23 @@ class _Model:
                     m.AddBoolOr(o)
                     self.large_viol.append(o[4])
 
+        # MEP that stays in place (offsets of other lines, equipment connections, risers): strands pass beside,
+        # under or over it; a clash that cannot be avoided counts (minimised first).
+        self.fixed_viol = []
+        if "obstacles" not in relax:
+            for oi, (ok, os0, os1, ov0, ov1, oz0, oz1, og) in enumerate(sec.obstacles):
+                for i, st in enumerate(items):
+                    cc = _i(clear.required(st.group, og)[0])
+                    if not overlaps(st.s_lo, st.s_hi, os0, os1, cc):
+                        continue
+                    o = [m.NewBoolVar(f"fx{oi}_{i}_{x}") for x in range(5)]
+                    m.Add(self.v[i] + _i(st.width / 2) + cc <= _i(ov0)).OnlyEnforceIf(o[0])
+                    m.Add(self.v[i] - _i(st.width / 2) - cc >= _i(ov1)).OnlyEnforceIf(o[1])
+                    m.Add(self.z[i] + _i(st.height) + cc <= _i(oz0)).OnlyEnforceIf(o[2])
+                    m.Add(self.z[i] >= _i(oz1) + cc).OnlyEnforceIf(o[3])
+                    m.AddBoolOr(o)
+                    self.fixed_viol.append(o[4])
+
         # Leak-prone items (flanges, valves, unions, air vents) not directly above a tray: the tray keeps
         # out from under them, or runs above them. Where impossible it counts, minimised first.
         self.leak_viol = []
@@ -571,9 +588,9 @@ def solve(sec: Section, rules: RuleSet, scheme: str, seconds: float = 2.0) -> La
         lane = ("车道上方管底最高", model.lane_gain, True, 0)
         plan.insert({"headroom": 1, "changes": 1, "supports": 2}[scheme], lane)
 
-    if model.wot or model.leak_viol or model.large_viol:
-        plan.insert(0, ("与大尺寸横穿碰撞、水管跨越桥架、桥架上方易漏节点最少",
-                        sum(model.wot) + sum(model.leak_viol) + sum(model.large_viol), False, 0))
+    if model.wot or model.leak_viol or model.large_viol or model.fixed_viol:
+        plan.insert(0, ("与固定构件、大尺寸横穿碰撞，水管跨越桥架，桥架上方易漏节点最少",
+                        sum(model.wot) + sum(model.leak_viol) + sum(model.large_viol) + sum(model.fixed_viol), False, 0))
     solver, status, hint = None, "UNKNOWN", None
     for name, objective, maximize, tol in plan:
         solver, status, value = stage(name, objective, maximize, hint)
@@ -635,6 +652,8 @@ def _layout(model: _Model, solver, scheme: str, status: str, stages: list[dict])
         "leak_prone_over_tray": sum(solver.Value(v) for v in model.leak_viol),
         "beams_beyond_ends": sum(solver.Value(v) for v in model.end_viol),
         "large_crossing_clashes": sum(solver.Value(v) for v in model.large_viol),
+        "fixed_obstacle_clashes": sum(solver.Value(v) for v in model.fixed_viol),
+        "fixed_obstacles": len(model.sec.obstacles),
         "tray_water": {"parallel": "forbid" if model.hard_par else "soft",
                        "crossing": "forbid" if model.hard_tw else "allow"},
     }

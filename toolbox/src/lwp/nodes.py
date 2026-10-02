@@ -364,6 +364,33 @@ def _continuation(elements, start: str, member: set[str], cor, beyond, graph) ->
     return chain
 
 
+def _tree_layers(elements, start: str, stop: set[str], cor, beyond, graph, moves) -> list[list[str]]:
+    """What follows `start` away from the corridor, layer by layer (tees with all their branches); vertical runs,
+    elements beyond reach or already moved end it."""
+    end_s = cor.s0 if beyond(cor.s0 - 1) else cor.s1
+    layers, seen, frontier = [], set(stop), [start]
+    while frontier and len(layers) < END_DEPTH:
+        layer = []
+        for k in frontier:
+            if k in seen:
+                continue
+            seen.add(k)
+            e = elements.get(k)
+            if e is None or e.solid is None or not e.is_mep or k in moves:
+                continue
+            c = e.solid.center
+            if not beyond(cor.s_of(c)) or abs(cor.s_of(c) - end_s) > END_REACH:
+                continue
+            if e.origin == "mep_curve" and abs((e.record["end"][2] - e.record["start"][2]) * 1000) > 100:
+                continue
+            layer.append(k)
+        if not layer:
+            break
+        layers.append(layer)
+        frontier = [n for k in layer for n in graph.get(k, ()) if n not in seen]
+    return layers
+
+
 def end_transitions(package: Package, elements: dict[str, Element], sec: Section, moves: dict[str, np.ndarray],
                     move, graph: dict[str, set[str]]) -> list[EndTransition]:
     from .connect import _hits, _piece_solid, _section
@@ -406,34 +433,36 @@ def end_transitions(package: Package, elements: dict[str, Element], sec: Section
                     e = elements.get(n)
                     if e is None or e.solid is None or not beyond(cor.s_of(e.solid.center)):
                         continue
-                    chain = _continuation(elements, n, member | {k}, cor, beyond, graph)
-                    if not chain:
+                    layers = _tree_layers(elements, n, member | {k}, cor, beyond, graph, moves)
+                    if not layers:
                         continue
-                    skip = set(keys) | set(chain)
-                    # Candidate: carry the first d elements (d = 0: transition at the corridor end).
+                    every = {x for layer in layers for x in layer}
+                    skip = set(keys) | every
+                    from .plan import translate
+                    # Candidate: carry the first d layers of what follows (d = 0: transition at the corridor
+                    # end). Tees go with their branches; each branch end left behind gets a transition.
                     best = None
-                    for d in range(0, len(chain) + 1):
+                    for d in range(0, len(layers) + 1):
+                        carried = [x for layer in layers[:d] for x in layer]
                         moved_hits = 0
-                        for x in chain[:d]:
+                        for x in carried:
                             el = elements[x]
-                            parts = el.parts or [el.solid]
-                            from .plan import translate
-                            moved_hits += _hits([translate(p, t) for p in parts], near, boxes, skip)
-                        a = elements[chain[d - 1]] if d else elements[k]
-                        b = elements.get(chain[d]) if d < len(chain) else None
-                        if b is None:
-                            nxt = [m for m in graph.get(chain[-1], ()) if m not in skip] if d else []
-                            b = elements.get(nxt[0]) if nxt else None
-                        jh = jog_hits(a, b, t, skip) if b is not None else 0
+                            moved_hits += _hits([translate(p_, t) for p_ in (el.parts or [el.solid])], near, boxes, skip)
+                        jh = 0
+                        frontier = [(k, n)] if not d else [
+                            (x, y) for x in carried for y in graph.get(x, ())
+                            if y not in carried and y not in member and y != k and y not in moves]
+                        for x, y in frontier:
+                            if elements.get(y) is not None:
+                                jh += jog_hits(elements[x], elements[y], t, skip)
                         score = (moved_hits + jh, d)
                         if best is None or score < best[0]:
-                            best = (score, d)
-                    (hits, _), d = best
-                    base = (None, 0)
+                            best = (score, d, carried)
+                    (hits, _), d, carried = best
                     if d:
-                        for x in chain[:d]:
+                        for x in carried:
                             move(x, t)
-                        out.append(EndTransition(st.id, side, chain[:d], -1, hits))
+                        out.append(EndTransition(st.id, side, carried, -1, hits))
     return out
 
 
@@ -547,14 +576,28 @@ def crossing_hump(package: Package, elements: dict[str, Element], sec: Section, 
                               for nc in nb.connectors]
             elements[nb.key] = nb2
     g.connectors = conns
-    # Fittings on the raised part go up with it; the rest stay.
+    # Everything of this line on the raised part goes up with it: fittings, and offsets of the line itself
+    # (short runs and elbows over the bundle); the rest stays.
     v_lo_r, v_hi_r = sorted((cor.v_of(m0), cor.v_of(m1)))
-    for other in graph.get(key, ()):
+    members = {k for st in sec.strands for k in st.segments + st.fittings}
+    crossings = {c.key for c in sec.crossings}
+    queue, seen = list(graph.get(key, ())), {key}
+    while queue:
+        other = queue.pop()
+        if other in seen:
+            continue
+        seen.add(other)
         f = elements.get(other)
-        if f is not None and f.origin == "mep_family" and f.solid is not None and other not in moves:
-            v = cor.v_of(f.solid.center)
-            if v_lo_r - 1 <= v <= v_hi_r + 1:
-                move(other, up)
+        if f is None or f.solid is None or not f.is_mep or other in members or other in crossings or other in moves:
+            continue
+        lo, hi = f.solid.aabb()
+        vs = sorted((cor.v_of(lo), cor.v_of(hi)))
+        if vs[0] < min(v_lo_r, lo_v) - 1 or vs[1] > max(v_hi_r, hi_v) + 1:
+            continue                                   # beyond the bundle: stays at its level
+        if f.origin == "mep_curve" and abs((f.record["end"][2] - f.record["start"][2]) * 1000) > 100:
+            continue                                   # a drop: it is stretched where it joins
+        move(other, up)
+        queue.extend(graph.get(other, ()))
     return made
 
 
@@ -568,43 +611,3 @@ def riser_offsets(sec: Section, heights: dict[str, float], clearance: float) -> 
         out[c.key] = sum(o.height + clearance for o in below)
     return out
 
-
-def strand_orphans(package: Package, elements: dict[str, Element], sec: Section, moves: dict[str, np.ndarray],
-                   move, graph) -> list[str]:
-    """Pieces of a strand's run left out of it (short runs, slightly offset segments, couplings) that continue
-    it along the corridor: they move with the strand instead of being jogged back to."""
-    cor = sec.corridor
-    member = {k for st in sec.strands for k in st.segments + st.fittings}
-    carried = []
-    for st in sec.strands:
-        keys = st.segments + st.fittings
-        t = next((moves[k] for k in keys if k in moves and np.linalg.norm(moves[k]) > 0.5), None)
-        if t is None:
-            continue
-        queue = deque(n for k in keys for n in graph.get(k, ()) if n not in member)
-        seen = set(member)
-        while queue:
-            n = queue.popleft()
-            if n in seen or n in moves:
-                continue
-            seen.add(n)
-            e = elements.get(n)
-            if e is None or e.solid is None or not e.is_mep:
-                continue
-            c = e.solid.center
-            if not (cor.s0 - 1 <= cor.s_of(c) <= cor.s1 + 1):
-                continue                # beyond the ends: N3
-            if e.origin == "mep_curve":
-                r = e.record
-                d = (np.array(r["end"]) - np.array(r["start"])) * 1000
-                n_ = float(np.linalg.norm(d))
-                if n_ < 1 or abs(d[2]) > 0.1 * n_ or abs(float(np.dot(d / n_, cor.u))) < 0.95:
-                    continue            # not running along the corridor: a branch (N2) or a drop
-            elif len([cc for cc in e.connectors if cc.get("connected")]) > 2:
-                continue                # a tee off the run: branches are N2's
-            if abs(cor.v_of(c) - (st.v + 0)) > 600:
-                continue                # not on the strand's line
-            move(n, t)
-            carried.append(n)
-            queue.extend(m for m in graph.get(n, ()) if m not in seen)
-    return carried

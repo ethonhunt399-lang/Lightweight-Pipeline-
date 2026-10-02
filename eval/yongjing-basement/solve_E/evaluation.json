@@ -2,6 +2,7 @@
  "original": {
   "name": "原模型",
   "hard": 84,
+  "hard_preexisting": 84,
   "n2_unresolved": 0,
   "hard_node": 0,
   "nodes": {},
@@ -30,110 +31,111 @@
  },
  "headroom": {
   "name": "净高最优",
-  "hard": 29,
+  "hard": 22,
+  "hard_preexisting": 4,
   "n2_unresolved": 4,
-  "hard_node": 13,
+  "hard_node": 9,
   "nodes": {
-   "横穿翻弯": 13
+   "横穿翻弯": 9
   },
-  "clearance": 138,
+  "clearance": 62,
   "hard_structure": 0,
-  "water_parallel_tray": 4,
-  "water_crossing_tray": 19,
+  "water_parallel_tray": 2,
+  "water_crossing_tray": 11,
   "water_leak_tray": 0,
   "stations": 23,
   "lowest_mm": 2534,
-  "median_lowest_mm": 2750,
-  "median_levels": 1.0,
+  "median_lowest_mm": 2550,
+  "median_levels": 2.0,
   "max_levels": 2,
   "zones": {
    "lane": {
-    "min_mm": 2516,
-    "median_mm": 2750,
+    "min_mm": 2500,
+    "median_mm": 2550,
     "levels_mm": [
-     2600,
-     2750
+     2550,
+     2600
     ],
-    "cells": 417
+    "cells": 414
    }
   },
-  "n2_nodes": 25,
-  "n0_pieces": 45,
-  "n0_repairs": 40,
+  "n2_nodes": 26,
+  "n0_pieces": 34,
+  "n0_repairs": 33,
   "open_joints": 0
  },
  "changes": {
   "name": "改动最少",
-  "hard": 29,
-  "n2_unresolved": 16,
-  "hard_node": 1,
+  "hard": 26,
+  "hard_preexisting": 10,
+  "n2_unresolved": 9,
+  "hard_node": 5,
   "nodes": {
-   "横穿翻弯": 1
+   "横穿翻弯": 5
   },
-  "clearance": 133,
+  "clearance": 107,
   "hard_structure": 0,
   "water_parallel_tray": 0,
-  "water_crossing_tray": 14,
+  "water_crossing_tray": 11,
   "water_leak_tray": 0,
   "stations": 23,
-  "lowest_mm": 2294,
-  "median_lowest_mm": 2300,
+  "lowest_mm": 2344,
+  "median_lowest_mm": 2350,
   "median_levels": 2.0,
   "max_levels": 3,
   "zones": {
    "lane": {
-    "min_mm": 2250,
-    "median_mm": 2300,
+    "min_mm": 2300,
+    "median_mm": 2350,
     "levels_mm": [
-     2250,
-     2300,
+     2350,
      2600
     ],
-    "cells": 417
+    "cells": 406
    }
   },
   "n2_nodes": 26,
-  "n0_pieces": 43,
-  "n0_repairs": 40,
+  "n0_pieces": 39,
+  "n0_repairs": 38,
   "open_joints": 0
  },
  "supports": {
   "name": "支吊架最省",
-  "hard": 20,
-  "n2_unresolved": 7,
-  "hard_node": 6,
-  "nodes": {
-   "横穿翻弯": 6
-  },
-  "clearance": 106,
+  "hard": 6,
+  "hard_preexisting": 2,
+  "n2_unresolved": 1,
+  "hard_node": 0,
+  "nodes": {},
+  "clearance": 81,
   "hard_structure": 0,
   "water_parallel_tray": 1,
-  "water_crossing_tray": 9,
+  "water_crossing_tray": 12,
   "water_leak_tray": 0,
   "stations": 23,
-  "lowest_mm": 2394,
-  "median_lowest_mm": 2400,
+  "lowest_mm": 2350,
+  "median_lowest_mm": 2350,
   "median_levels": 1.0,
   "max_levels": 2,
   "zones": {
    "lane": {
-    "min_mm": 2350,
-    "median_mm": 2400,
+    "min_mm": 2300,
+    "median_mm": 2350,
     "levels_mm": [
-     2400,
+     2350,
      2600
     ],
-    "cells": 409
+    "cells": 416
    }
   },
   "n2_nodes": 26,
-  "n0_pieces": 35,
-  "n0_repairs": 35,
+  "n0_pieces": 40,
+  "n0_repairs": 32,
   "open_joints": 0
  },
  "gold": {
   "name": "人工方案",
   "hard": 1,
+  "hard_preexisting": 0,
   "n2_unresolved": 0,
   "hard_node": 0,
   "nodes": {},
@@ -164,7 +166,7 @@
  },
  "review": {
   "findings": [
-   "人工方案管底有 8 个不同标高；净高最优方案只需 1 层，支吊架层数可减少、排布更规整",
+   "人工方案管底有 8 个不同标高；支吊架最省方案只需 1 层，支吊架层数可减少、排布更规整",
    "人工方案在走廊内仍有 1 处硬碰撞（见下表）",
    "人工方案有 150 处净距低于规则要求（按已确认的校准净距）"
   ],

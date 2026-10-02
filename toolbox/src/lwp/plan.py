@@ -334,6 +334,8 @@ def evaluate(before: Package, planned: dict[str, Package], gold: Package | None,
     For schemes, hard clashes that are node work by construction are counted separately (hard_node).
     """
     rows = {}
+    base = lambda k: k.split("#")[0]
+    before_hard = {frozenset((c.a, c.b)) for c in corridor_conflicts(before, rules, sec.corridor) if c.type == HARD}
     subjects = [("original", "原模型", before)] + [(k, SCHEMES[k], p) for k, p in planned.items()]
     if gold is not None:
         subjects.append(("gold", "人工方案", gold))
@@ -350,6 +352,8 @@ def evaluate(before: Package, planned: dict[str, Package], gold: Package | None,
         rows[key] = {
             "name": name,
             "hard": len(hard),
+            # Clashes the original model already had between the same elements (not introduced by the plan).
+            "hard_preexisting": sum(frozenset((base(c.a), base(c.b))) in before_hard for c in hard) if key != "original" else len(hard),
             "n2_unresolved": sum(c.a in fittings_with_node or c.b in fittings_with_node for c in hard),
             "hard_node": sum(nodes.values()),
             "nodes": nodes,
