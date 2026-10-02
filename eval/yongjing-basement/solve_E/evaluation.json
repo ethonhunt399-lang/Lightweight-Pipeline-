@@ -30,23 +30,23 @@
  },
  "headroom": {
   "name": "净高最优",
-  "hard": 32,
-  "n2_unresolved": 6,
+  "hard": 31,
+  "n2_unresolved": 5,
   "hard_node": 10,
   "nodes": {
    "横穿翻弯": 4,
    "大尺寸横穿": 6
   },
-  "clearance": 30,
+  "clearance": 32,
   "hard_structure": 3,
   "water_parallel_tray": 0,
-  "water_crossing_tray": 16,
+  "water_crossing_tray": 11,
   "water_leak_tray": 0,
   "stations": 23,
   "lowest_mm": 2534,
   "median_lowest_mm": 2850,
   "median_levels": 1.0,
-  "max_levels": 3,
+  "max_levels": 2,
   "zones": {
    "lane": {
     "min_mm": 2534,
@@ -57,42 +57,42 @@
      2850,
      3250
     ],
-    "cells": 415
+    "cells": 414
    }
   },
   "n2_nodes": 25,
-  "n0_pieces": 46,
-  "n0_repairs": 41,
+  "n0_pieces": 49,
+  "n0_repairs": 42,
   "open_joints": 0
  },
  "changes": {
   "name": "改动最少",
-  "hard": 9,
-  "n2_unresolved": 3,
-  "hard_node": 5,
+  "hard": 22,
+  "n2_unresolved": 10,
+  "hard_node": 10,
   "nodes": {
-   "大尺寸横穿": 2,
-   "横穿翻弯": 3
+   "横穿翻弯": 9,
+   "大尺寸横穿": 1
   },
-  "clearance": 56,
-  "hard_structure": 1,
-  "water_parallel_tray": 2,
-  "water_crossing_tray": 21,
+  "clearance": 47,
+  "hard_structure": 4,
+  "water_parallel_tray": 1,
+  "water_crossing_tray": 10,
   "water_leak_tray": 0,
   "stations": 23,
-  "lowest_mm": 2300,
-  "median_lowest_mm": 2300,
+  "lowest_mm": 2450,
+  "median_lowest_mm": 2450,
   "median_levels": 2.0,
-  "max_levels": 4,
+  "max_levels": 3,
   "zones": {
    "lane": {
-    "min_mm": 2250,
-    "median_mm": 2300,
+    "min_mm": 2400,
+    "median_mm": 2450,
     "levels_mm": [
-     2300,
-     3500
+     2450,
+     3050
     ],
-    "cells": 406
+    "cells": 414
    }
   },
   "n2_nodes": 25,
@@ -102,17 +102,17 @@
  },
  "supports": {
   "name": "支吊架最省",
-  "hard": 26,
+  "hard": 29,
   "n2_unresolved": 5,
   "hard_node": 15,
   "nodes": {
    "横穿翻弯": 11,
    "大尺寸横穿": 4
   },
-  "clearance": 41,
-  "hard_structure": 1,
-  "water_parallel_tray": 0,
-  "water_crossing_tray": 7,
+  "clearance": 36,
+  "hard_structure": 0,
+  "water_parallel_tray": 1,
+  "water_crossing_tray": 8,
   "water_leak_tray": 0,
   "stations": 23,
   "lowest_mm": 2534,
@@ -124,15 +124,15 @@
     "min_mm": 2500,
     "median_mm": 2550,
     "levels_mm": [
-     2550,
-     2900
+     2500,
+     2550
     ],
-    "cells": 411
+    "cells": 405
    }
   },
   "n2_nodes": 25,
-  "n0_pieces": 48,
-  "n0_repairs": 44,
+  "n0_pieces": 45,
+  "n0_repairs": 38,
   "open_joints": 0
  },
  "gold": {

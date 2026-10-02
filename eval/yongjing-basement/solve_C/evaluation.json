@@ -41,36 +41,35 @@
  },
  "headroom": {
   "name": "净高最优",
-  "hard": 52,
+  "hard": 56,
   "n2_unresolved": 8,
-  "hard_node": 26,
+  "hard_node": 25,
   "nodes": {
-   "横穿翻弯": 26
+   "横穿翻弯": 25
   },
-  "clearance": 101,
+  "clearance": 104,
   "hard_structure": 33,
-  "water_parallel_tray": 0,
-  "water_crossing_tray": 10,
+  "water_parallel_tray": 4,
+  "water_crossing_tray": 9,
   "water_leak_tray": 0,
   "stations": 31,
   "lowest_mm": 2516,
   "median_lowest_mm": 2750,
   "median_levels": 1.0,
-  "max_levels": 2,
+  "max_levels": 3,
   "zones": {
    "lane": {
     "min_mm": 2516,
     "median_mm": 2750,
     "levels_mm": [
      2500,
-     2750,
-     3050
+     2750
     ],
-    "cells": 428
+    "cells": 460
    },
    "stall": {
     "min_mm": 2516,
-    "median_mm": 2914,
+    "median_mm": 2948,
     "levels_mm": [
      2500,
      2750,
@@ -80,7 +79,7 @@
    }
   },
   "n2_nodes": 38,
-  "n0_pieces": 75,
+  "n0_pieces": 82,
   "n0_repairs": 77,
   "open_joints": 0
  },
@@ -92,8 +91,8 @@
   "nodes": {
    "横穿翻弯": 9
   },
-  "clearance": 60,
-  "hard_structure": 8,
+  "clearance": 63,
+  "hard_structure": 9,
   "water_parallel_tray": 0,
   "water_crossing_tray": 7,
   "water_leak_tray": 0,
@@ -113,7 +112,7 @@
    },
    "stall": {
     "min_mm": 2450,
-    "median_mm": 2878,
+    "median_mm": 2855,
     "levels_mm": [
      2500,
      2800,
@@ -124,28 +123,29 @@
    }
   },
   "n2_nodes": 38,
-  "n0_pieces": 65,
+  "n0_pieces": 68,
   "n0_repairs": 66,
   "open_joints": 0
  },
  "supports": {
   "name": "支吊架最省",
-  "hard": 59,
-  "n2_unresolved": 12,
-  "hard_node": 27,
+  "hard": 49,
+  "n2_unresolved": 7,
+  "hard_node": 25,
   "nodes": {
-   "横穿翻弯": 27
+   "横穿翻弯": 24,
+   "出线引出": 1
   },
-  "clearance": 90,
-  "hard_structure": 36,
+  "clearance": 88,
+  "hard_structure": 34,
   "water_parallel_tray": 0,
-  "water_crossing_tray": 7,
+  "water_crossing_tray": 11,
   "water_leak_tray": 0,
   "stations": 31,
   "lowest_mm": 2516,
   "median_lowest_mm": 2750,
   "median_levels": 1.0,
-  "max_levels": 2,
+  "max_levels": 3,
   "zones": {
    "lane": {
     "min_mm": 2516,
@@ -153,25 +153,24 @@
     "levels_mm": [
      2500,
      2750,
-     3050
-    ],
-    "cells": 415
-   },
-   "stall": {
-    "min_mm": 2516,
-    "median_mm": 2948,
-    "levels_mm": [
-     2500,
-     2750,
-     2950,
      3050,
      3150
     ],
-    "cells": 200
+    "cells": 383
+   },
+   "stall": {
+    "min_mm": 2516,
+    "median_mm": 2750,
+    "levels_mm": [
+     2500,
+     2750,
+     3050
+    ],
+    "cells": 216
    }
   },
-  "n2_nodes": 39,
-  "n0_pieces": 74,
+  "n2_nodes": 38,
+  "n0_pieces": 79,
   "n0_repairs": 77,
   "open_joints": 0
  },

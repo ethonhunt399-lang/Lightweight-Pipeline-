@@ -195,13 +195,15 @@ class _Model:
             for bm in sec.beams:
                 limits.append((bm.v_lo, bm.v_hi, bm.s_lo, bm.s_hi, bm.bottom - cb))
         seen = set()
+        self.end_viol = []
         for v0, v1, s0, s1, top_limit in limits:
             key = (_i(v0 / 10), _i(v1 / 10), _i(s0 / 200), _i(s1 / 200), _i(top_limit / 10))
             if key in seen:
                 continue
             seen.add(key)
             for i, s in enumerate(items):
-                if not overlaps(s.s_lo, s.s_hi, s0, s1):
+                if not overlaps(s.s_full_lo if s.s_full_lo is not None else s.s_lo,
+                                s.s_full_hi if s.s_full_hi is not None else s.s_hi, s0, s1):
                     continue
                 top = top_limit - (max(0.0, tray_top - cb) if s.domain == "tray" else 0.0)   # cable laying space
                 if _i(top) >= ceiling_top:
@@ -210,6 +212,13 @@ class _Model:
                 m.Add(self.v[i] + _i(s.width / 2) + cb <= _i(v0)).OnlyEnforceIf(opts[0])
                 m.Add(self.v[i] - _i(s.width / 2) - cb >= _i(v1)).OnlyEnforceIf(opts[1])
                 m.Add(self.z[i] + _i(s.height) <= _i(top)).OnlyEnforceIf(opts[2])
+                if s1 < sec.corridor.s0 or s0 > sec.corridor.s1:
+                    # A beam beyond the corridor end: the run may instead make its transition before it (N3);
+                    # a clash there is minimised first rather than forbidden.
+                    viol = m.NewBoolVar(f"ev{i}_{len(seen)}")
+                    m.AddBoolOr(opts + [viol])
+                    self.end_viol.append(viol)
+                    continue
                 m.AddBoolOr(opts)
 
         # Crossing services in the zone above the bundle: each gets a height (bottom) of its own. A strand
@@ -418,6 +427,8 @@ class _Model:
             m.Add(10 * sh >= pref_bottom - self.z[t])
             self.tray_short.append(sh)
         terms.append(w.tray_bottom * sum(self.tray_short))
+        # Beams just beyond the corridor ends: avoided where the headroom allows (else N3 / N1 work).
+        terms.append(w.end_beams * sum(self.end_viol))
         systems: dict[str, list[int]] = {}
         for i, s in enumerate(items):
             systems.setdefault(s.system, []).append(i)
@@ -560,6 +571,7 @@ def _layout(model: _Model, solver, scheme: str, status: str, stages: list[dict])
         "strands_over_lanes": sum(solver.Value(v) for v in model.on_lane),
         "water_crossing_over_tray": sum(solver.Value(v) for v in model.wot),
         "leak_prone_over_tray": sum(solver.Value(v) for v in model.leak_viol),
+        "beams_beyond_ends": sum(solver.Value(v) for v in model.end_viol),
         "tray_water": {"parallel": "forbid" if model.hard_par else "soft",
                        "crossing": "forbid" if model.hard_tw else "allow"},
     }

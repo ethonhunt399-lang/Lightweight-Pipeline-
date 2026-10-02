@@ -17,7 +17,7 @@ from .geometry import Solid
 from .package import Package
 from .rules import RuleSet
 from .connect import reconnect
-from .nodes import side_exits
+from .nodes import end_transitions, side_exits
 from .section import Section, is_leak_prone, overlaps
 from .solver import SCHEMES, Layout
 
@@ -122,6 +122,8 @@ def apply(package: Package, sec: Section, layout: Layout, rules: RuleSet | None 
     if nodes and rules is not None and layout.placements:
         made = side_exits(package, elements, sec, layout, rules, moves, move, graph)
     links = Links()
+    if nodes and layout.placements:
+        links.ends = end_transitions(package, elements, sec, moves, move, graph)
     if nodes:
         links.repairs, links.open = reconnect(package, elements, moves)
     return _replace(package, elements), moves, made, links
@@ -132,6 +134,7 @@ class Links:
     """Re-connections made after the moves (N0) and joints left open."""
     repairs: list = field(default_factory=list)
     open: list = field(default_factory=list)
+    ends: list = field(default_factory=list)       # N3 end transitions
 
     @property
     def pieces(self) -> int:
@@ -139,7 +142,8 @@ class Links:
 
     def to_dict(self) -> dict:
         return {"repairs": [r.to_dict() for r in self.repairs], "open": [j.to_dict() for j in self.open],
-                "pieces": self.pieces, "stretched": sum(abs(r.stretch_mm) > 1 for r in self.repairs)}
+                "pieces": self.pieces, "stretched": sum(abs(r.stretch_mm) > 1 for r in self.repairs),
+                "end_transitions": [e.to_dict() for e in self.ends]}
 
 
 def _replace(package: Package, elements: dict) -> Package:

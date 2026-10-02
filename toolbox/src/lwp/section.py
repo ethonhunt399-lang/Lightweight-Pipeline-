@@ -38,6 +38,8 @@ class Strand:
     movable: bool = True
     reason: str = ""          # why not movable
     exits: set = field(default_factory=set)   # sides where the strand leaves the corridor: "left" (−v) / "right" (+v)
+    s_full_lo: float | None = None   # extent along the corridor including the parts beyond its ends
+    s_full_hi: float | None = None
     segments: list[str] = field(default_factory=list)
     fittings: list[str] = field(default_factory=list)
 
@@ -226,6 +228,7 @@ def extract(package: Package, corridor: Corridor, rules: RuleSet) -> Section:
                 width=float(width), height=float(height), v=float(np.mean([_v(e, corridor) for e in c])),
                 z=float(min(e.solid.aabb()[0][2] for e in c)),
                 s_lo=max(min(x[0] for x in ext), corridor.s0), s_hi=min(max(x[1] for x in ext), corridor.s1),
+                s_full_lo=min(x[0] for x in ext), s_full_hi=max(x[1] for x in ext),
                 segments=[e.key for e in c],
             )
             if st.domain == "pipe" and (slope > 1e-3 or not st.pressure):
@@ -249,12 +252,15 @@ def extract(package: Package, corridor: Corridor, rules: RuleSet) -> Section:
             sid = next((owner[r["key"]] for r in conn.get("connected") or [] if r.get("key") in owner), None)
             c.ends.append((corridor.v_of(o), sid))
 
+    overhang = max([0.0] + [max(corridor.s0 - (st.s_full_lo or corridor.s0), (st.s_full_hi or corridor.s1) - corridor.s1)
+                             for st in strands])
     # Structure.
     beams, ceiling, ceiling_key, ceiling_max = [], np.inf, "", -np.inf
     blocked = []
     for e in package.obstacles():
         s_lo, s_hi, v_lo, v_hi = _plan_extent(e, corridor)
-        if s_hi < corridor.s0 or s_lo > corridor.s1:
+        # Beams just beyond the ends count too: strands reach past the corridor (their whole runs move).
+        if s_hi < corridor.s0 - overhang or s_lo > corridor.s1 + overhang:
             continue
         lo, hi = e.solid.aabb()
         if e.kind == "beam":
@@ -265,11 +271,14 @@ def extract(package: Package, corridor: Corridor, rules: RuleSet) -> Section:
             crossing = along < 0.95
             # Every beam limits only the strands under it (overlapping across and along the corridor).
             beams.append(Beam(e.key, v_lo, v_hi, float(lo[2]), crossing, e.type_name, s_lo, s_hi, float(hi[2])))
-            if crossing and v_lo < corridor.v1 and v_hi > corridor.v0:
+            beyond = s_hi < corridor.s0 or s_lo > corridor.s1
+            if crossing and not beyond and v_lo < corridor.v1 and v_hi > corridor.v0:
                 if lo[2] < ceiling:
                     ceiling, ceiling_key = float(lo[2]), e.key
                 ceiling_max = max(ceiling_max, float(lo[2]))
         elif e.kind in ("column", "wall"):
+            if s_hi < corridor.s0 or s_lo > corridor.s1:
+                continue          # only beams beyond the ends matter (runs reaching past the corridor)
             if v_hi < corridor.v0 - SIDE_EXTENSION or v_lo > corridor.v1 + SIDE_EXTENSION:
                 continue
             blocked.append((v_lo, v_hi, e.kind))
@@ -303,10 +312,11 @@ def extract(package: Package, corridor: Corridor, rules: RuleSet) -> Section:
     # Only beams over the part where the bundle can be matter: outside it the service can drop locally (N1).
     # Between the crossing beams the service can rise to the underside of the slab.
     slab = rules.layout.slab_thickness_mm
-    across = sorted((b for b in beams if b.crossing and np.isfinite(b.top)), key=lambda b: b.s_lo)
+    inside = [b for b in beams if not (b.s_hi < corridor.s0 or b.s_lo > corridor.s1)]
+    across = sorted((b for b in inside if b.crossing and np.isfinite(b.top)), key=lambda b: b.s_lo)
     for c in crossings:
         lo_v, hi_v = max(c.v_lo, v_lo), min(c.v_hi, v_hi)
-        under = [b.bottom for b in beams if not b.crossing and overlaps(b.v_lo, b.v_hi, lo_v, hi_v)
+        under = [b.bottom for b in inside if not b.crossing and overlaps(b.v_lo, b.v_hi, lo_v, hi_v)
                  and b.s_lo - 1 <= c.s <= b.s_hi + 1]
         if under:
             c.ceiling = min(under)
@@ -379,6 +389,8 @@ def _attach_fittings(package: Package, corridor: Corridor, strands: list[Strand]
             s_lo, s_hi, _, _ = _plan_extent(f, corridor)
             s.s_lo = max(min(s.s_lo, s_lo), corridor.s0)
             s.s_hi = min(max(s.s_hi, s_hi), corridor.s1)
+            s.s_full_lo = min(s.s_full_lo if s.s_full_lo is not None else s_lo, s_lo)
+            s.s_full_hi = max(s.s_full_hi if s.s_full_hi is not None else s_hi, s_hi)
     members = {k for s in strands for k in s.segments + s.fittings}
     for s in strands:
         for key in s.segments + s.fittings:

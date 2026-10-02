@@ -44,17 +44,17 @@
  },
  "headroom": {
   "name": "净高最优",
-  "hard": 88,
-  "n2_unresolved": 12,
+  "hard": 83,
+  "n2_unresolved": 9,
   "hard_node": 44,
   "nodes": {
    "横穿翻弯": 22,
    "大尺寸横穿": 22
   },
-  "clearance": 32,
-  "hard_structure": 26,
+  "clearance": 35,
+  "hard_structure": 25,
   "water_parallel_tray": 0,
-  "water_crossing_tray": 24,
+  "water_crossing_tray": 26,
   "water_leak_tray": 0,
   "stations": 36,
   "lowest_mm": 2498,
@@ -82,78 +82,75 @@
      2850,
      3050
     ],
-    "cells": 749
+    "cells": 743
    }
   },
   "n2_nodes": 30,
-  "n0_pieces": 63,
+  "n0_pieces": 64,
   "n0_repairs": 63,
   "open_joints": 0
  },
  "changes": {
   "name": "改动最少",
-  "hard": 61,
+  "hard": 67,
   "n2_unresolved": 11,
-  "hard_node": 34,
+  "hard_node": 39,
   "nodes": {
-   "横穿翻弯": 21,
-   "大尺寸横穿": 13
+   "横穿翻弯": 22,
+   "大尺寸横穿": 17
   },
-  "clearance": 37,
-  "hard_structure": 28,
+  "clearance": 49,
+  "hard_structure": 23,
   "water_parallel_tray": 0,
-  "water_crossing_tray": 20,
+  "water_crossing_tray": 19,
   "water_leak_tray": 0,
   "stations": 36,
-  "lowest_mm": 2400,
-  "median_lowest_mm": 2400,
-  "median_levels": 2.0,
+  "lowest_mm": 2498,
+  "median_lowest_mm": 2650,
+  "median_levels": 1.0,
   "max_levels": 3,
   "zones": {
    "lane": {
-    "min_mm": 2408,
-    "median_mm": 3110,
+    "min_mm": 2600,
+    "median_mm": 2956,
     "levels_mm": [
      2750,
+     2950,
      3000,
      3050,
-     3100,
      3150,
-     3200,
-     3250
+     3350
     ],
     "cells": 36
    },
    "stall": {
-    "min_mm": 2400,
-    "median_mm": 2800,
+    "min_mm": 2498,
+    "median_mm": 2650,
     "levels_mm": [
-     2400,
-     2750,
-     2800,
+     2650,
      3050
     ],
     "cells": 753
    }
   },
-  "n2_nodes": 27,
+  "n2_nodes": 30,
   "n0_pieces": 63,
   "n0_repairs": 62,
   "open_joints": 0
  },
  "supports": {
   "name": "支吊架最省",
-  "hard": 85,
-  "n2_unresolved": 14,
-  "hard_node": 47,
+  "hard": 87,
+  "n2_unresolved": 13,
+  "hard_node": 46,
   "nodes": {
    "横穿翻弯": 22,
-   "大尺寸横穿": 25
+   "大尺寸横穿": 24
   },
-  "clearance": 39,
+  "clearance": 31,
   "hard_structure": 26,
   "water_parallel_tray": 0,
-  "water_crossing_tray": 24,
+  "water_crossing_tray": 22,
   "water_leak_tray": 0,
   "stations": 36,
   "lowest_mm": 2498,
@@ -185,7 +182,7 @@
    }
   },
   "n2_nodes": 30,
-  "n0_pieces": 63,
+  "n0_pieces": 64,
   "n0_repairs": 63,
   "open_joints": 0
  },

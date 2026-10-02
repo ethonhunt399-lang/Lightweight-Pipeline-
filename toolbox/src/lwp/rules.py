@@ -91,6 +91,7 @@ class LayoutPreferences(_Strict):
     exit_side: int = 40
     exit_top: int = 30
     tray_bottom: int = 5                  # per 10 mm a tray bottom lies below tray_bottom_preferred_mm
+    end_beams: int = 40                   # per run that would clash with a beam just beyond the corridor end
 
 
 class TrayWater(_Strict):
