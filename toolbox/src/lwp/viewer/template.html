@@ -420,19 +420,26 @@
   const hmGroup = new THREE.Group();
   let hmPlane = null;
   if (HM && HM.nx) {
+    // Cells controlled by an element with inferred dimensions are hatched (4 px per cell).
+    const S = HM.inf ? 4 : 1;
     const canvas = document.createElement("canvas");
-    canvas.width = HM.nx; canvas.height = HM.ny;
+    canvas.width = HM.nx * S; canvas.height = HM.ny * S;
     const ctx = canvas.getContext("2d");
-    const img = ctx.createImageData(HM.nx, HM.ny);
-    const counts = BANDS.map(() => 0);
+    const img = ctx.createImageData(HM.nx * S, HM.ny * S);
+    const counts = BANDS.map(() => 0), inferred = BANDS.map(() => 0);
     for (let j = 0; j < HM.ny; j++) for (let i = 0; i < HM.nx; i++) {
       const v = HM.cm[j * HM.nx + i];
-      const o = ((HM.ny - 1 - j) * HM.nx + i) * 4;
-      if (v < 0) { img.data[o + 3] = 0; continue; }
+      if (v < 0) continue;
       const b = BANDS.findIndex(x => v * 10 < x[0]);
+      const hatch = HM.inf && HM.inf[j * HM.nx + i];
       counts[b]++;
+      if (hatch) inferred[b]++;
       const c = new THREE.Color(BANDS[b][1]);
-      img.data[o] = c.r * 255; img.data[o + 1] = c.g * 255; img.data[o + 2] = c.b * 255; img.data[o + 3] = 190;
+      for (let dv = 0; dv < S; dv++) for (let du = 0; du < S; du++) {
+        const o = (((HM.ny - 1 - j) * S + dv) * HM.nx * S + i * S + du) * 4;
+        const k = hatch && (du + dv) % 4 === 0 ? 0.25 : 1;
+        img.data[o] = c.r * 255 * k; img.data[o + 1] = c.g * 255 * k; img.data[o + 2] = c.b * 255 * k; img.data[o + 3] = 190;
+      }
     }
     ctx.putImageData(img, 0, 0);
     const tex = new THREE.CanvasTexture(canvas);
@@ -443,8 +450,10 @@
     hmGroup.add(hmPlane);
     const total = counts.reduce((a, b) => a + b, 0) || 1;
     $("hmLegend").innerHTML = BANDS.map((b, k) => '<div class="row"><span class="sw" style="background:' + b[1] + '"></span>' + b[2]
-      + '<span class="cnt">' + (counts[k] * HM.cell * HM.cell).toFixed(0) + " m² · " + Math.round(counts[k] * 100 / total) + "%</span></div>").join("")
-      + '<div class="sub">按 ' + HM.cell + " m 网格统计构件或梁底距楼面的最小值；点击分区图查看数值和控制构件。</div>";
+      + '<span class="cnt">' + (counts[k] * HM.cell * HM.cell).toFixed(0) + " m² · " + Math.round(counts[k] * 100 / total) + "%"
+      + (HM.inf && inferred[k] ? " · 推定 " + (inferred[k] * HM.cell * HM.cell).toFixed(0) + " m²" : "") + "</span></div>").join("")
+      + '<div class="sub">按 ' + HM.cell + " m 网格统计构件、梁底或板底距楼面的最小值；点击分区图查看数值和控制构件。"
+      + (HM.inf ? "斜纹：控制构件的尺寸为推定。" : "") + "</div>";
     if (HM.lowest) {
       const L = HM.lowest;
       const tag = tagSprite("最低 " + (L.clear / 1000).toFixed(2) + " m", "#ffd166");
@@ -455,7 +464,7 @@
         new THREE.LineBasicMaterial({ color: 0xffd166, depthTest: false }));
       stem.renderOrder = 11;
       hmGroup.add(tag, stem);
-      $("lowestText").textContent = "最低点 " + (L.clear / 1000).toFixed(2) + " m · " + L.g + (e ? " · " + e.l : "");
+      $("lowestText").textContent = "最低点 " + (L.clear / 1000).toFixed(2) + " m · " + L.g + (e ? " · " + e.l : L.t ? " · " + L.t : "");
     }
   }
   hmGroup.visible = false;
@@ -654,7 +663,8 @@
         if (v >= 0) {
           highlight(src >= 0 ? [src] : []);
           $("infoBody").innerHTML = "<div><b>净高 " + (v / 100).toFixed(2) + " m</b>" + (v * 10 < MIN_CLEAR ? " ⚠ 低于 " + (MIN_CLEAR / 1000).toFixed(1) + " m" : "")
-            + '</div><div class="sub" style="margin-bottom:6px">控制构件（黄色）</div>' + (src >= 0 ? describe(src) : "");
+            + '</div><div class="sub" style="margin-bottom:6px">' + (src <= -2 ? "控制构件（未在三维中显示）" : "控制构件（黄色）") + "</div>"
+            + (src >= 0 ? describe(src) : src <= -2 ? "<div>" + esc(HM.others[-2 - src]) + "</div>" : "");
           $("info").style.display = "block";
           return;
         }
@@ -679,6 +689,7 @@
       rows.push(["相对" + esc(REF.name), text]);
     }
     if (e.nd) rows.push(["节点", esc(NODE_MARKS[e.nd][1])]);
+    if (e.bs) rows.push(["依据", esc(e.bs) + (e.inf ? "（推定）" : "")]);
     rows.push(["几何", e.ex ? "参数化（精确）" : "包围盒（近似）"]);
     return "<table>" + rows.map(r => "<tr><td>" + r[0] + "</td><td>" + r[1] + "</td></tr>").join("") + "</table>"
       + '<div class="key">' + esc(e.k) + "</div>";

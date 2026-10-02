@@ -13,6 +13,7 @@ uv run lwp view path/to/xxx.slbh                       # 只生成三维预览�
 uv run lwp check 调整后.slbh --compare 调整前.slbh       # 预览中加入调整前后对比
 uv run lwp corridors 调整前.slbh                        # 列出直走廊候选
 uv run lwp solve 调整前.slbh --corridor C --gold 调整后.slbh --out solve_C   # 分层排布三方案 + 对比
+uv run lwp struct structure_1F.json --min-clear 3800 --out out_dir     # 施工图翻模结构 → 结构净高预估（无机电）
 uv run pytest                                          # 单元测试
 LWP_SAMPLE=path/to/xxx.slbh uv run pytest              # 加上真实导出包的端到端测试
 ```
@@ -26,12 +27,23 @@ LWP_SAMPLE=path/to/xxx.slbh uv run pytest              # 加上真实导出包�
 | headroom.json | 全部水平管段的净高 |
 | view.html | 三维预览：单文件、离线可用，浏览器直接打开 |
 
+## 结构净高预估（lwp struct）
+
+机电还没建模时，用施工图翻模得到的结构（structure JSON：梁、柱墙、板轮廓与洞口、轴网，单位 mm，格式见 `structjson.py`）
+出净高分区图：梁底、板底距下层楼面。输出 `view.html`（同一个预览器）、`headroom.json`（各档面积、其中推定构件控制的面积、
+最低点）、`headroom_grid.npz`（分区网格，供出图）。
+
+- 梁按"尺寸是否推定"分两层显示（`梁` / `梁（推定）`）；分区图上由推定构件控制的格子画斜纹，图例单列推定面积。
+  文件里梁可直接给 `inferred`；没给时按梁高来源判断（不是本梁集中标注的高度即为推定）。
+- 板只参与分区图，不画、不参与碰撞；板洞内上方没有梁的格子留空（挑空）。
+- `--min-clear` 只改分区图分档基准（默认取规则文件的最小净高）。
+
 ## 三维预览
 
 - 着色模式：系统 / 底部净高（构件底距楼面的色带）/ 调整对比（上移、下移、水平移动、新增、未变）。
 - 调整对比：同一 UniqueId 直接比较；调整时被打断或重画的管线按位置匹配（同系统、平行、平面距离 ≤ 150 mm）。
   可叠加显示参照模型（半透明），已删除或替换的构件为红色。
-- 净高分区图：0.5 m 网格，取构件（水平管段、管件、附件、风口）或梁底距楼面的最小值，按要求值分 5 档；
+- 净高分区图：0.5 m 网格，取构件（水平管段、管件、附件、风口）、梁底或板底（有板轮廓时）距楼面的最小值，按要求值分 5 档；
   点击分区图显示数值和控制构件；标出最低点，可一键定位。“只看分区图”隐藏全部构件。
 - 漫游：人眼高度 1.6 m，W/S/A/D 移动，Q/E 升降，拖动转向，滚轮调速，Shift 加速，Esc 退出；十字准星处单击选择构件。
 - 按系统开关图层；梁、柱半透明，墙更淡。
@@ -69,7 +81,8 @@ LWP_SAMPLE=path/to/xxx.slbh uv run pytest              # 加上真实导出包�
 | health.py | 模型体检 |
 | grids.py | 轴网定位 |
 | report.py | 报告输出 |
-| headroom_map.py | 净高分区图（网格化最低遮挡） |
+| headroom_map.py | 净高分区图（网格化最低遮挡，含板底）与分档统计 |
+| structjson.py | 读取施工图翻模结构 JSON（梁、柱墙、板、轴网）为导出包同构的 Package |
 | corridor.py | 走廊定义与候选 |
 | section.py | 走廊断面：管线归并、梁柱墙限制、横穿、出线方向 |
 | solver.py | CP-SAT 分层求解、三方案、无解诊断 |

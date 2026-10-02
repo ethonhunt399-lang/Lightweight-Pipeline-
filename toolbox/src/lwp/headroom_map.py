@@ -1,4 +1,8 @@
-"""Clear-height map: for each floor cell, the lowest obstruction above it (MEP incl. insulation, beams)."""
+"""Clear-height map: for each floor cell, the lowest obstruction above it (MEP incl. insulation, beams, slabs).
+
+Slabs (elements with a plan footprint) cover the cells whose centre lies inside the footprint; openings
+with nothing else above stay empty (double-height spaces).
+"""
 
 from __future__ import annotations
 
@@ -7,6 +11,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from .detect import is_horizontal, scope_test
+from .geometry import points_in_rings
 from .package import Element, Package
 
 VERTICAL = 0.95          # |axis.z| above this: the box stands upright (footprint = the other two axes)
@@ -45,16 +50,18 @@ def obstructions(package: Package) -> list[Element]:
         elif e.origin == "mep_family":
             if e.kind in ("fitting", "accessory", "terminal"):
                 result.append(e)
-        elif e.kind == "beam":
+        elif e.kind == "beam" or e.footprint is not None:
             result.append(e)
     return result
 
 
 def build(package: Package, floor_z: float, cell: float = 500.0) -> HeadroomMap:
     items = [e for e in obstructions(package) if e.solid.aabb()[0][2] > floor_z + FLOOR_STANDING]
+    # On equal bottoms the first element keeps the cell: given dimensions before inferred ones.
+    items.sort(key=lambda e: e.inferred)
     in_scope = scope_test(package)
-    lo = np.min([e.solid.aabb()[0][:2] for e in items], axis=0)
-    hi = np.max([e.solid.aabb()[1][:2] for e in items], axis=0)
+    lo = np.min([_plan_extent(e)[0] for e in items], axis=0)
+    hi = np.max([_plan_extent(e)[1] for e in items], axis=0)
     scope = package.manifest.get("scope") or {}
     if scope.get("section_box_active"):
         t = np.array(scope["section_box_transform"]).reshape(4, 4)
@@ -74,7 +81,7 @@ def build(package: Package, floor_z: float, cell: float = 500.0) -> HeadroomMap:
     for idx, e in enumerate(items):
         keys.append(e.key)
         s = e.solid
-        elo, ehi = s.aabb()
+        elo, ehi = _plan_extent(e)
         i0, i1 = max(int((elo[0] - x0) // cell), 0), min(int((ehi[0] - x0) // cell) + 1, nx)
         j0, j1 = max(int((elo[1] - y0) // cell), 0), min(int((ehi[1] - y0) // cell) + 1, ny)
         if i0 >= i1 or j0 >= j1:
@@ -82,7 +89,10 @@ def build(package: Package, floor_z: float, cell: float = 500.0) -> HeadroomMap:
         xs = x0 + (np.arange(i0, i1) + 0.5) * cell
         ys = y0 + (np.arange(j0, j1) + 0.5) * cell
         X, Y = np.meshgrid(xs, ys)
-        z = np.min([_bottom_at(p, X, Y, cell / 2) for p in (e.parts or [s])], axis=0)
+        if e.footprint is not None:
+            z = np.where(points_in_rings(X, Y, e.footprint), s.aabb()[0][2], np.inf)
+        else:
+            z = np.min([_bottom_at(p, X, Y, cell / 2) for p in (e.parts or [s])], axis=0)
         block = bottom[j0:j1, i0:i1]
         better = z < block
         block[better] = z[better]
@@ -96,6 +106,40 @@ def build(package: Package, floor_z: float, cell: float = 500.0) -> HeadroomMap:
                 clear[j, i] = np.nan
                 source[j, i] = -1
     return HeadroomMap(float(x0), float(y0), cell, nx, ny, floor_z, clear, source, keys)
+
+
+def _plan_extent(e: Element) -> tuple[np.ndarray, np.ndarray]:
+    if e.footprint is not None:
+        pts = np.vstack([np.asarray(r, float)[:, :2] for r in e.footprint])
+        return pts.min(axis=0), pts.max(axis=0)
+    lo, hi = e.solid.aabb()
+    return lo[:2], hi[:2]
+
+
+def summary(hmap: HeadroomMap, package: Package, min_clear: float) -> dict:
+    """Area per band (same bands as the viewer legend), the part controlled by inferred elements, the lowest cell."""
+    cell_m2 = (hmap.cell / 1000) ** 2
+    valid = ~np.isnan(hmap.clear)
+    vals, src = hmap.clear[valid], hmap.source[valid]
+    inferred_key = np.array([package.elements[k].inferred for k in hmap.keys] + [False])
+    inferred = inferred_key[np.where(src >= 0, src, len(hmap.keys))]
+    edges = [-np.inf, min_clear, min_clear + 200, min_clear + 400, min_clear + 800, np.inf]
+    bands = []
+    for lo, hi in zip(edges[:-1], edges[1:]):
+        m = (vals >= lo) & (vals < hi)
+        label = (f"< {hi / 1000:.1f}" if lo == -np.inf else f">= {lo / 1000:.1f}" if hi == np.inf
+                 else f"{lo / 1000:.1f}-{hi / 1000:.1f}")
+        bands.append({"band_m": label, "area_m2": round(float(m.sum()) * cell_m2, 1),
+                      "inferred_m2": round(float((m & inferred).sum()) * cell_m2, 1)})
+    lowest = hmap.lowest()
+    low = None
+    if lowest is not None:
+        e = package.elements[lowest[3]]
+        low = {"clear_mm": round(lowest[0]), "x_mm": round(lowest[1]), "y_mm": round(lowest[2]), "key": e.key,
+               "element": e.label(), "basis": e.basis, "inferred": e.inferred}
+    return {"cell_mm": hmap.cell, "floor_z_mm": hmap.floor_z, "min_clear_mm": min_clear,
+            "covered_m2": round(float(valid.sum()) * cell_m2, 1),
+            "inferred_m2": round(float(inferred.sum()) * cell_m2, 1), "bands": bands, "lowest": low}
 
 
 def _bottom_at(s, X: np.ndarray, Y: np.ndarray, half_cell: float) -> np.ndarray:
