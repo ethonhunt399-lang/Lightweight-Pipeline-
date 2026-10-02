@@ -17,7 +17,7 @@ from .geometry import Solid
 from .package import Package
 from .rules import RuleSet
 from .connect import reconnect
-from .nodes import end_transitions, side_exits
+from .nodes import crossing_hump, end_transitions, riser_offsets, side_exits
 from .section import Section, is_leak_prone, overlaps
 from .solver import SCHEMES, Layout
 
@@ -83,12 +83,20 @@ def apply(package: Package, sec: Section, layout: Layout, rules: RuleSet | None 
             if f is not None and f.origin == "mep_family" and f.solid is not None and in_corridor(f.solid.center, sec.corridor):
                 move(other, t)
 
+    humps: list[str] = []
     if layout.crossings:
         # Heights chosen by the solver (stacked, and under the trays where water must not run over them).
+        # N1: raised only over the bundle where the service is longer than that.
+        offsets = riser_offsets(sec, layout.crossings, rules.clearance_mm.default if rules else 30.0)
         for c in sec.zone_crossings:
             z = layout.crossings.get(c.key)
             if z is not None and abs(z - c.z_lo) > 0.5:
-                move_crossing(c.key, np.array([0.0, 0.0, z - c.z_lo]))
+                made_ = (crossing_hump(package, elements, sec, layout, c.key, z - c.z_lo, moves, move, graph,
+                                       offsets.get(c.key, 0.0)) if nodes else None)
+                if made_ is None:
+                    move_crossing(c.key, np.array([0.0, 0.0, z - c.z_lo]))
+                else:
+                    humps += made_
     elif rules is not None and rules.layout.crossing_zone == "top" and sec.zone_crossings and layout.placements:
         clr = rules.clearance_mm.default
         cor = sec.corridor
@@ -122,6 +130,7 @@ def apply(package: Package, sec: Section, layout: Layout, rules: RuleSet | None 
     if nodes and rules is not None and layout.placements:
         made = side_exits(package, elements, sec, layout, rules, moves, move, graph)
     links = Links()
+    links.humps = humps
     if nodes and layout.placements:
         links.ends = end_transitions(package, elements, sec, moves, move, graph)
     if nodes:
@@ -135,6 +144,7 @@ class Links:
     repairs: list = field(default_factory=list)
     open: list = field(default_factory=list)
     ends: list = field(default_factory=list)       # N3 end transitions
+    humps: list = field(default_factory=list)      # N1 pieces of crossing services raised over the bundle only
 
     @property
     def pieces(self) -> int:
@@ -143,7 +153,7 @@ class Links:
     def to_dict(self) -> dict:
         return {"repairs": [r.to_dict() for r in self.repairs], "open": [j.to_dict() for j in self.open],
                 "pieces": self.pieces, "stretched": sum(abs(r.stretch_mm) > 1 for r in self.repairs),
-                "end_transitions": [e.to_dict() for e in self.ends]}
+                "end_transitions": [e.to_dict() for e in self.ends], "n1_pieces": len(self.humps)}
 
 
 def _replace(package: Package, elements: dict) -> Package:

@@ -435,3 +435,176 @@ def end_transitions(package: Package, elements: dict[str, Element], sec: Section
                             move(x, t)
                         out.append(EndTransition(st.id, side, chain[:d], -1, hits))
     return out
+
+
+# ---------------------------------------------------------------------------------------------------------
+# N1 — crossing flip: a crossing service is raised only where it passes over the bundle. It rises just before
+# the bundle, crosses at the raised level and comes down again just after it; elsewhere it keeps its level
+# (so it stays under the beams beyond the bundle and its ends stay connected where they were).
+
+HUMP_MARGIN = 50.0    # mm between the bundle's side and the riser (plus the service's own half size)
+
+
+def _piece(base: Element, key: str, p0: np.ndarray, p1: np.ndarray, sec_, links: list[str], tag: str) -> Element:
+    from .connect import M, _piece_solid
+    d0 = p1 - p0
+    d0 = d0 / max(float(np.linalg.norm(d0)), 1e-9)
+    e = copy.copy(base)
+    e.key = key
+    e.origin, e.parts, e.leg_conns, e.centre = "mep_curve", None, None, None
+    e.solid = _piece_solid(sec_, p0, p1, None)
+    rec = {k: v for k, v in base.record.items() if k != "connectors"}
+    rec.update({"start": list(p0 / M), "end": list(p1 / M), "slope": 0, "node_piece": tag, "key": key})
+    e.record = rec
+    e.connectors = [{"id": 0, "origin": list(p0 / M), "direction": list(-d0), "connected": [{"key": links[0]}]},
+                    {"id": 1, "origin": list(p1 / M), "direction": list(d0), "connected": [{"key": links[1]}]}]
+    return e
+
+
+def crossing_hump(package: Package, elements: dict[str, Element], sec: Section, layout, key: str, dz: float,
+                  moves: dict[str, np.ndarray], move, graph, extra: float = 0.0) -> list[str] | None:
+    """Raise the crossing service `key` by dz over the bundle only. None: it lies entirely over the bundle
+    (raise it whole). Returns the keys of the pieces made."""
+    from .connect import _section
+    e = elements.get(key)
+    r = e.record if e is not None else {}
+    if e is None or not r.get("start") or not r.get("end"):
+        return None
+    cor = sec.corridor
+    a, b = np.array(r["start"]) * 1000, np.array(r["end"]) * 1000
+    L = float(np.linalg.norm(b - a))
+    va, vb = cor.v_of(a), cor.v_of(b)
+    if L < 1 or abs(vb - va) < 1:
+        return None
+    s_c = cor.s_of((a + b) / 2)
+    spans = []
+    for st in sec.strands:
+        if st.s_lo - 1 <= s_c <= st.s_hi + 1:
+            p = layout.placements.get(st.id)
+            v = p.v if p else st.v
+            spans.append((v - st.width / 2, v + st.width / 2))
+    if not spans:
+        return None
+    half = float(np.max(e.solid.half[1:])) if e.solid is not None else 50.0
+    m = HUMP_MARGIN + half + extra
+    lo_v, hi_v = min(x for x, _ in spans) - m, max(x for _, x in spans) + m
+    t_of = lambda v: (v - va) / (vb - va) * L
+    t0, t1 = sorted((t_of(lo_v), t_of(hi_v)))
+    t0, t1 = max(t0, 0.0), min(t1, L)
+    if t0 <= 50 and t1 >= L - 50:
+        return None
+    if t1 - t0 < 50:
+        return []                                 # does not reach the bundle: stays where it is
+    u = (b - a) / L
+    up = np.array([0.0, 0.0, dz])
+    p0, p1 = a + u * t0, a + u * t1
+    conn0 = e.connectors[0] if e.connectors else {}
+    sec_ = _section(e, conn0)
+    g = copy.copy(e)
+    m0 = (p0 if t0 > 50 else a) + up
+    m1 = (p1 if t1 < L - 50 else b) + up
+    g.solid = _piece(e, key, m0, m1, sec_, [key, key], "N1").solid
+    rec = dict(r)
+    rec["start"], rec["end"] = list(m0 / 1000), list(m1 / 1000)
+    g.record = rec
+    elements[key] = g
+    moves[key] = up
+    made = []
+    conns = []
+    for idx, c in enumerate(e.connectors):
+        cid = c.get("id", idx)
+        if not c.get("origin"):
+            conns.append(c)
+            continue
+        o = np.array(c["origin"]) * 1000
+        at_a = np.linalg.norm(o - a) < np.linalg.norm(o - b)
+        lifted = (at_a and t0 <= 50) or (not at_a and t1 >= L - 50)
+        if lifted:
+            conns.append({**c, "origin": list((o + up) / 1000)})
+            continue
+        # This end stays at its level: a run at the old level and a riser take over its joint.
+        side = "a" if at_a else "b"
+        q_in, m_in = (p0, m0) if at_a else (p1, m1)
+        k_run, k_rise = f"{key}#h{side}1", f"{key}#h{side}2"
+        run = _piece(e, k_run, o, q_in, sec_, [key, key], "N1")
+        rise = _piece(e, k_rise, q_in, m_in, sec_, [key, key], "N1")
+        run.connectors = [{**run.connectors[0], "connected": c.get("connected") or []},
+                          {**run.connectors[1], "connected": [{"key": k_rise, "connector_id": 0}]}]
+        rise.connectors = [{**rise.connectors[0], "connected": [{"key": k_run, "connector_id": 1}]},
+                           {**rise.connectors[1], "connected": [{"key": key, "connector_id": cid}]}]
+        elements[k_run], elements[k_rise] = run, rise
+        made += [k_run, k_rise]
+        conns.append({**c, "origin": list(m_in / 1000), "connected": [{"key": k_rise, "connector_id": 1}]})
+        # The neighbours now meet the run instead of the service.
+        for ref in c.get("connected") or []:
+            nb = elements.get(ref.get("key"))
+            if nb is None:
+                continue
+            nb2 = copy.copy(nb)
+            nb2.connectors = [{**nc, "connected": [({"key": k_run, "connector_id": 0}
+                                                    if (rr.get("key") == key and rr.get("connector_id") in (cid, None)) else rr)
+                                                   for rr in nc.get("connected") or []]}
+                              for nc in nb.connectors]
+            elements[nb.key] = nb2
+    g.connectors = conns
+    # Fittings on the raised part go up with it; the rest stay.
+    v_lo_r, v_hi_r = sorted((cor.v_of(m0), cor.v_of(m1)))
+    for other in graph.get(key, ()):
+        f = elements.get(other)
+        if f is not None and f.origin == "mep_family" and f.solid is not None and other not in moves:
+            v = cor.v_of(f.solid.center)
+            if v_lo_r - 1 <= v <= v_hi_r + 1:
+                move(other, up)
+    return made
+
+
+def riser_offsets(sec: Section, heights: dict[str, float], clearance: float) -> dict[str, float]:
+    """Services stacked over one another rise at staggered places: the higher one further out."""
+    zone = [c for c in sec.zone_crossings if c.key in heights]
+    out = {c.key: 0.0 for c in zone}
+    for c in zone:
+        below = [o for o in zone if o is not c and abs(o.s - c.s) < (o.height + c.height) / 2 + clearance
+                 and min(o.v_hi, c.v_hi) > max(o.v_lo, c.v_lo) and heights[o.key] < heights[c.key]]
+        out[c.key] = sum(o.height + clearance for o in below)
+    return out
+
+
+def strand_orphans(package: Package, elements: dict[str, Element], sec: Section, moves: dict[str, np.ndarray],
+                   move, graph) -> list[str]:
+    """Pieces of a strand's run left out of it (short runs, slightly offset segments, couplings) that continue
+    it along the corridor: they move with the strand instead of being jogged back to."""
+    cor = sec.corridor
+    member = {k for st in sec.strands for k in st.segments + st.fittings}
+    carried = []
+    for st in sec.strands:
+        keys = st.segments + st.fittings
+        t = next((moves[k] for k in keys if k in moves and np.linalg.norm(moves[k]) > 0.5), None)
+        if t is None:
+            continue
+        queue = deque(n for k in keys for n in graph.get(k, ()) if n not in member)
+        seen = set(member)
+        while queue:
+            n = queue.popleft()
+            if n in seen or n in moves:
+                continue
+            seen.add(n)
+            e = elements.get(n)
+            if e is None or e.solid is None or not e.is_mep:
+                continue
+            c = e.solid.center
+            if not (cor.s0 - 1 <= cor.s_of(c) <= cor.s1 + 1):
+                continue                # beyond the ends: N3
+            if e.origin == "mep_curve":
+                r = e.record
+                d = (np.array(r["end"]) - np.array(r["start"])) * 1000
+                n_ = float(np.linalg.norm(d))
+                if n_ < 1 or abs(d[2]) > 0.1 * n_ or abs(float(np.dot(d / n_, cor.u))) < 0.95:
+                    continue            # not running along the corridor: a branch (N2) or a drop
+            elif len([cc for cc in e.connectors if cc.get("connected")]) > 2:
+                continue                # a tee off the run: branches are N2's
+            if abs(cor.v_of(c) - (st.v + 0)) > 600:
+                continue                # not on the strand's line
+            move(n, t)
+            carried.append(n)
+            queue.extend(m for m in graph.get(n, ()) if m not in seen)
+    return carried

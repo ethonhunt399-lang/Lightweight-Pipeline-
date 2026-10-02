@@ -20,10 +20,11 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, field
 
+import numpy as np
 from ortools.sat.python import cp_model
 
 from .rules import RuleSet
-from .section import Section, Strand, overlaps
+from .section import RISER_REACH, Section, Strand, overlaps
 
 SCHEMES = {
     "headroom": "净高最优",
@@ -62,6 +63,8 @@ class _Model:
 
     def __init__(self, sec: Section, rules: RuleSet, relax: set[str] | None = None):
         relax = relax or set()
+        # "riser" relaxed: crossing services simply stay under the beams on their path.
+        self.riser = "riser" not in relax
         self.sec, self.rules = sec, rules
         lay = rules.layout
         m = self.m = cp_model.CpModel()
@@ -276,6 +279,25 @@ class _Model:
                 for f in sec.fixed:
                     if overlaps(f.s_lo, f.s_hi, s0, s1) and overlaps(f.v - f.width / 2, f.v + f.width / 2, c.v_lo, c.v_hi):
                         m.Add(zc >= _i(f.top + clear.required(f.group, c.group)[0]))
+                # Beams along the corridor on the service's path: raised above such a beam only if no strand
+                # under the service lies within a riser's reach of it (room to come down before the beam).
+                reach = _i(RISER_REACH + c.height)
+                for bi, (bv0, bv1, bb) in enumerate(c.beams):
+                    under_beam = _i(bb - lay.beam_clearance_mm) - h
+                    if under_beam >= hi:
+                        continue
+                    if not self.riser:
+                        m.Add(zc <= max(under_beam, lo_c))
+                        continue
+                    low = m.NewBoolVar(f"cb{ci}_{bi}")
+                    m.Add(zc <= under_beam).OnlyEnforceIf(low)
+                    for i, st in enumerate(items):
+                        if not overlaps(st.s_lo, st.s_hi, s0, s1):
+                            continue
+                        l_, r_ = m.NewBoolVar(f"cbl{ci}_{bi}_{i}"), m.NewBoolVar(f"cbr{ci}_{bi}_{i}")
+                        m.Add(self.v[i] + _i(st.width / 2) <= _i(bv0) - reach).OnlyEnforceIf(l_)
+                        m.Add(self.v[i] - _i(st.width / 2) >= _i(bv1) + reach).OnlyEnforceIf(r_)
+                        m.AddBoolOr([low, l_, r_])
                 dz = m.NewIntVar(0, 20000, f"cdz{ci}")
                 m.AddAbsEquality(dz, zc - _i(c.z_lo))
                 self.cdz.append(dz)
@@ -292,11 +314,47 @@ class _Model:
                     m.Add(self.cz[a.key] + _i(a.height) + cc <= self.cz[b.key]).OnlyEnforceIf(below)
                     m.Add(self.cz[b.key] + _i(b.height) + cc <= self.cz[a.key]).OnlyEnforceIf(below.Not())
                     # A water crossing running along a tray crossing (side by side in plan) stays under it.
+                    forced = False
                     if hard_par and min(a.v_hi, b.v_hi) - max(a.v_lo, b.v_lo) > tw.parallel_max_mm:
                         if a.group == "water" and b.domain == "tray":
                             m.Add(below == 1)
+                            forced = True
                         elif b.group == "water" and a.domain == "tray":
                             m.Add(below == 0)
+                            forced = True
+                    if not forced:
+                        # Otherwise they keep their order: swapping two services that overlap in plan would
+                        # make one cut through the other where it rises (N1).
+                        if a.z_hi <= b.z_lo + 1:
+                            m.Add(below == 1)
+                        elif b.z_hi <= a.z_lo + 1:
+                            m.Add(below == 0)
+
+        # Large crossing services (ducts, wide trays) stay where they are: strands pass under, over or beside
+        # them. A clash that cannot be avoided counts (minimised first) and is left to the node (N1).
+        self.large_viol = []
+        if "crossing" not in relax:
+            for li, c in enumerate(sec.large_crossings):
+                s0c, s1c = (c.s_lo, c.s_hi) if np.isfinite(c.s_lo) else (c.s - c.height / 2, c.s + c.height / 2)
+                index_ = {st.id: i for i, st in enumerate(items)}
+                for i, st in enumerate(items):
+                    cc = _i(clear.required(st.group, c.group)[0])
+                    if not overlaps(st.s_lo, st.s_hi, s0c, s1c, cc) or st.id in c.attached:
+                        continue
+                    o = [m.NewBoolVar(f"lg{li}_{i}_{x}") for x in range(5)]
+                    if c.attached and c.ends:
+                        # Branches from a strand: it reaches that strand wherever it goes.
+                        for v_, sid in c.ends:
+                            e_ = self.v[index_[sid]] if sid in index_ else _i(v_)
+                            m.Add(self.v[i] + _i(st.width / 2) + cc <= e_).OnlyEnforceIf(o[0])
+                            m.Add(self.v[i] - _i(st.width / 2) - cc >= e_).OnlyEnforceIf(o[1])
+                    else:
+                        m.Add(self.v[i] + _i(st.width / 2) + cc <= _i(c.v_lo)).OnlyEnforceIf(o[0])
+                        m.Add(self.v[i] - _i(st.width / 2) - cc >= _i(c.v_hi)).OnlyEnforceIf(o[1])
+                    m.Add(self.z[i] + _i(st.height) + cc <= _i(c.z_lo)).OnlyEnforceIf(o[2])
+                    m.Add(self.z[i] >= _i(c.z_hi) + cc).OnlyEnforceIf(o[3])
+                    m.AddBoolOr(o)
+                    self.large_viol.append(o[4])
 
         # Leak-prone items (flanges, valves, unions, air vents) not directly above a tray: the tray keeps
         # out from under them, or runs above them. Where impossible it counts, minimised first.
@@ -489,6 +547,7 @@ def solve(sec: Section, rules: RuleSet, scheme: str, seconds: float = 2.0) -> La
         return Layout(scheme, "EMPTY", {}, [], {}, diagnosis=["走廊内没有可移动的管线"])
     model = _Model(sec, rules)
     stages = []
+    relaxed_riser = False
 
     def stage(name, objective, maximize=False, hint=None):
         solver, status = model.solve(objective, maximize, hint, seconds)
@@ -512,8 +571,9 @@ def solve(sec: Section, rules: RuleSet, scheme: str, seconds: float = 2.0) -> La
         lane = ("车道上方管底最高", model.lane_gain, True, 0)
         plan.insert({"headroom": 1, "changes": 1, "supports": 2}[scheme], lane)
 
-    if model.wot or model.leak_viol:
-        plan.insert(0, ("水管跨越桥架、桥架上方易漏节点最少", sum(model.wot) + sum(model.leak_viol), False, 0))
+    if model.wot or model.leak_viol or model.large_viol:
+        plan.insert(0, ("与大尺寸横穿碰撞、水管跨越桥架、桥架上方易漏节点最少",
+                        sum(model.wot) + sum(model.leak_viol) + sum(model.large_viol), False, 0))
     solver, status, hint = None, "UNKNOWN", None
     for name, objective, maximize, tol in plan:
         solver, status, value = stage(name, objective, maximize, hint)
@@ -530,7 +590,9 @@ def solve(sec: Section, rules: RuleSet, scheme: str, seconds: float = 2.0) -> La
             else:
                 model.m.Add(objective <= value + slack)
 
-    return _layout(model, solver, scheme, status, stages)
+    layout = _layout(model, solver, scheme, status, stages)
+    layout.metrics["crossing_riser_relaxed"] = relaxed_riser
+    return layout
 
 
 def _layout(model: _Model, solver, scheme: str, status: str, stages: list[dict]) -> Layout:
@@ -572,6 +634,7 @@ def _layout(model: _Model, solver, scheme: str, status: str, stages: list[dict])
         "water_crossing_over_tray": sum(solver.Value(v) for v in model.wot),
         "leak_prone_over_tray": sum(solver.Value(v) for v in model.leak_viol),
         "beams_beyond_ends": sum(solver.Value(v) for v in model.end_viol),
+        "large_crossing_clashes": sum(solver.Value(v) for v in model.large_viol),
         "tray_water": {"parallel": "forbid" if model.hard_par else "soft",
                        "crossing": "forbid" if model.hard_tw else "allow"},
     }

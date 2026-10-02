@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 import time
 from pathlib import Path
@@ -48,6 +49,11 @@ def cmd_view(args) -> int:
 
 
 def main(argv=None) -> int:
+    # Reproducible plans: the solver model is built by iterating sets of keys, whose order depends on the
+    # string hash seed. Fix it (re-run the command once with a fixed seed).
+    if argv is None and os.environ.get("PYTHONHASHSEED") != "0":
+        os.environ["PYTHONHASHSEED"] = "0"
+        os.execv(sys.executable, [sys.executable, "-m", "lwp.cli", *sys.argv[1:]])
     parser = argparse.ArgumentParser(prog="lwp", description="管综工具箱")
     sub = parser.add_subparsers(dest="command", required=True)
     p = sub.add_parser("check", help="体检 + 碰撞、净距、净高检测")
