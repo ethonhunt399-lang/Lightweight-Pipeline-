@@ -1,0 +1,20 @@
+类别,指标,数值,来源
+规模,完整地下室平面范围,约 262 m × 254 m,docs/full-model-overview.md
+规模,调整后模型管线总长（桥架/风管/水管）,20.0 / 3.8 / 26.2 km,docs/full-model-overview.md
+规模,调整后模型构件数（机电+障碍物）,35790 + 10572,docs/full-model-overview.md
+速度,整个地下室读入+检测（调整后模型）,约 2.5 分钟,docs/full-model-overview.md
+速度,整个地下室车道净高统计（两个模型）,约 1.5 分钟,docs/lanes-headroom.md
+检测,调整前模型硬碰撞（构件对）,13039,docs/full-model-overview.md
+检测,调整后模型硬碰撞（构件对）,1378,docs/full-model-overview.md
+检测,调整后模型净距不足（构件对）,22326,docs/full-model-overview.md
+净高,车道数 / 车道面积,49 条 / 约 6600 m²,docs/lanes-headroom.md
+净高,人工方案车道主档,2.55–2.70 m（约一半长度）,docs/lanes-headroom.md
+净高,调整前车道主档,2.45–2.55 m,docs/lanes-headroom.md
+净高,人工方案横穿风管控制标高,约 2.48 m,docs/lanes-headroom.md
+求解,自动方案车道净高（中位，三条走廊）,2.60 m,docs/r1-v0-results.md §18–19
+求解,自动方案车道净高（最低，三条走廊）,2.48–2.52 m,docs/r1-v0-results.md §19
+求解,人工方案车道净高（中位：C / A / E）,2.62 / 2.68 / 3.02 m,docs/r1-v0-results.md §18
+求解,新增+原有硬碰撞（净高最优：C / A / E）,37 / 27 / 8,docs/r1-v0-results.md §19
+求解,人工方案硬碰撞（C / A / E）,3 / 1 / 1,docs/r1-v0-results.md §19
+求解,仍断开 / 折返,0 / 0,docs/r1-v0-results.md §19
+求解,每条走廊三方案求解（含 8 轮迭代）,约 5–10 分钟,docs/r1-v0-results.md §19
