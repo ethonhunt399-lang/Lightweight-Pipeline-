@@ -234,6 +234,7 @@ class _Model:
         self.cz: dict[str, cp_model.IntVar] = {}
         self.cdz = []
         self.wot = []                    # water crossing over a tray (only counted with the hard rule)
+        self.beam_viol = []              # crossing services through an oblique beam
         if lay.crossing_zone == "top" and "crossing" not in relax:
             zone = sorted(sec.zone_crossings, key=lambda c: c.s)
             index = {st.id: i for i, st in enumerate(items)}
@@ -298,6 +299,12 @@ class _Model:
                         m.Add(self.v[i] + _i(st.width / 2) <= _i(bv0) - reach).OnlyEnforceIf(l_)
                         m.Add(self.v[i] - _i(st.width / 2) >= _i(bv1) + reach).OnlyEnforceIf(r_)
                         m.AddBoolOr([low, l_, r_])
+                if np.isfinite(c.beam_cap) and "beams" not in relax:
+                    # Under an oblique crossing beam: keep below it where the height allows (minimised first).
+                    cap = _i(c.beam_cap - lay.beam_clearance_mm) - h
+                    under = m.NewBoolVar(f"bc{ci}")
+                    m.Add(zc <= cap).OnlyEnforceIf(under)
+                    self.beam_viol.append(under.Not())
                 dz = m.NewIntVar(0, 20000, f"cdz{ci}")
                 m.AddAbsEquality(dz, zc - _i(c.z_lo))
                 self.cdz.append(dz)
@@ -363,7 +370,8 @@ class _Model:
             for oi, (ok, os0, os1, ov0, ov1, oz0, oz1, og) in enumerate(sec.obstacles):
                 for i, st in enumerate(items):
                     cc = _i(clear.required(st.group, og)[0])
-                    if not overlaps(st.s_lo, st.s_hi, os0, os1, cc):
+                    if not overlaps(st.s_full_lo if st.s_full_lo is not None else st.s_lo,
+                                    st.s_full_hi if st.s_full_hi is not None else st.s_hi, os0, os1, cc):
                         continue
                     o = [m.NewBoolVar(f"fx{oi}_{i}_{x}") for x in range(5)]
                     m.Add(self.v[i] + _i(st.width / 2) + cc <= _i(ov0)).OnlyEnforceIf(o[0])
@@ -371,7 +379,10 @@ class _Model:
                     m.Add(self.z[i] + _i(st.height) + cc <= _i(oz0)).OnlyEnforceIf(o[2])
                     m.Add(self.z[i] >= _i(oz1) + cc).OnlyEnforceIf(o[3])
                     m.AddBoolOr(o)
-                    self.fixed_viol.append(o[4])
+                    if os1 < sec.corridor.s0 or os0 > sec.corridor.s1:
+                        self.end_viol.append(o[4])      # beyond the ends: avoided where headroom allows (N3)
+                    else:
+                        self.fixed_viol.append(o[4])
 
         # Leak-prone items (flanges, valves, unions, air vents) not directly above a tray: the tray keeps
         # out from under them, or runs above them. Where impossible it counts, minimised first.
@@ -588,9 +599,10 @@ def solve(sec: Section, rules: RuleSet, scheme: str, seconds: float = 2.0) -> La
         lane = ("车道上方管底最高", model.lane_gain, True, 0)
         plan.insert({"headroom": 1, "changes": 1, "supports": 2}[scheme], lane)
 
-    if model.wot or model.leak_viol or model.large_viol or model.fixed_viol:
-        plan.insert(0, ("与固定构件、大尺寸横穿碰撞，水管跨越桥架，桥架上方易漏节点最少",
-                        sum(model.wot) + sum(model.leak_viol) + sum(model.large_viol) + sum(model.fixed_viol), False, 0))
+    if model.wot or model.leak_viol or model.large_viol or model.fixed_viol or model.beam_viol:
+        plan.insert(0, ("与固定构件、大尺寸横穿、斜梁碰撞，水管跨越桥架，桥架上方易漏节点最少",
+                        sum(model.wot) + sum(model.leak_viol) + sum(model.large_viol) + sum(model.fixed_viol)
+                        + sum(model.beam_viol), False, 0))
     solver, status, hint = None, "UNKNOWN", None
     for name, objective, maximize, tol in plan:
         solver, status, value = stage(name, objective, maximize, hint)
@@ -654,6 +666,7 @@ def _layout(model: _Model, solver, scheme: str, status: str, stages: list[dict])
         "large_crossing_clashes": sum(solver.Value(v) for v in model.large_viol),
         "fixed_obstacle_clashes": sum(solver.Value(v) for v in model.fixed_viol),
         "fixed_obstacles": len(model.sec.obstacles),
+        "crossings_through_oblique_beams": sum(solver.Value(v) for v in model.beam_viol),
         "tray_water": {"parallel": "forbid" if model.hard_par else "soft",
                        "crossing": "forbid" if model.hard_tw else "allow"},
     }

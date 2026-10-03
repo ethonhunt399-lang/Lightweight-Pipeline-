@@ -80,6 +80,7 @@ class Crossing:
     domain: str = ""
     attached: set = field(default_factory=set)   # strands it branches from: it reaches them wherever they go
     beams: list = field(default_factory=list)   # (v_lo, v_hi, bottom) of beams along the corridor on its path
+    beam_cap: float = np.inf                      # bottom of a crossing (oblique) beam right over the service
     s_lo: float = np.nan                          # its extent along the corridor
     s_hi: float = np.nan
     ends: list = field(default_factory=list)      # per end: (v mm, strand id it connects to or None)
@@ -323,10 +324,29 @@ def extract(package: Package, corridor: Corridor, rules: RuleSet) -> Section:
     for c in crossings:
         # The service has to come down outside the bundle before it reaches a beam: beams within a riser's
         # reach of the usable width count as well.
-        before = [b for b in across if b.s_hi <= c.s]
-        after = [b for b in across if b.s_lo >= c.s]
+        before = [b for b in across if b.s_hi <= c.s - c.height / 2]
+        after = [b for b in across if b.s_lo >= c.s + c.height / 2]
         bay = ([before[-1]] if before else []) + ([after[0]] if after else [])
         c.ceiling = min(b.top for b in bay) - slab if bay and slab > 0 else ceiling_max
+        # A crossing beam over the service itself (an oblique beam covers a stretch of the corridor): under it.
+        over = []
+        for b in across:
+            if not (b.s_lo - c.height / 2 <= c.s <= b.s_hi + c.height / 2):
+                continue
+            # Where the beam's centre line meets the service: only there does the service pass under it, and
+            # only if that is over the width the bundle can use (outside, the service keeps its level).
+            sol = package.elements[b.key].solid
+            k_long = int(np.argmax(sol.half * (1 - np.abs(sol.axes[:, 2]))))
+            ax_ = sol.axes[k_long]
+            du = float(np.dot(ax_, corridor.u))
+            if abs(du) < 1e-3:
+                continue
+            t_ = (c.s - corridor.s_of(sol.center)) / du
+            v_x = corridor.v_of(sol.center + ax_ * t_)
+            reach = RISER_REACH + c.height
+            if c.v_lo - 1 <= v_x <= c.v_hi + 1 and v_lo - reach <= v_x <= v_hi + reach:
+                over.append(b.bottom)
+        c.beam_cap = min(over) if over else np.inf
         # Beams running along the corridor that the service passes under: it can be raised over the bundle
         # only where it can come down again before such a beam (the solver keeps strands clear of it, or keeps
         # the service under it).
@@ -359,7 +379,7 @@ def extract(package: Package, corridor: Corridor, rules: RuleSet) -> Section:
             continue
         lo, hi = e.solid.aabb()
         s0_, s1_, v0_, v1_ = _plan_extent(e, corridor)
-        if s1_ < corridor.s0 or s0_ > corridor.s1 or v1_ < v_lo or v0_ > v_hi:
+        if s1_ < corridor.s0 - overhang or s0_ > corridor.s1 + overhang or v1_ < v_lo or v0_ > v_hi:
             continue
         if hi[2] < floor_z + rules.headroom.min_clear_mm or lo[2] > ceiling_max:
             continue

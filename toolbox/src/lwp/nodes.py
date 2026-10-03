@@ -521,6 +521,17 @@ def crossing_hump(package: Package, elements: dict[str, Element], sec: Section, 
     t_of = lambda v: (v - va) / (vb - va) * L
     t0, t1 = sorted((t_of(lo_v), t_of(hi_v)))
     t0, t1 = max(t0, 0.0), min(t1, L)
+    # A service branching from a strand reaches that strand wherever it moved: the end joining it is raised
+    # too (the run is stretched to the strand at the raised level afterwards).
+    cr = next((x for x in sec.crossings if x.key == key), None)
+    if cr is not None and cr.attached:
+        for v_end, sid in cr.ends:
+            if sid is None:
+                continue
+            t_att = 0.0 if abs(v_end - va) < abs(v_end - vb) else L
+            if t1 - t0 < 50:
+                t0, t1 = (0.0, min(L, m)) if t_att == 0.0 else (max(0.0, L - m), L)
+            t0, t1 = min(t0, t_att), max(t1, t_att)
     if t0 <= 50 and t1 >= L - 50:
         return None
     if t1 - t0 < 50:
