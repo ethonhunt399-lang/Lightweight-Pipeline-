@@ -42,86 +42,37 @@
  },
  "headroom": {
   "name": "净高最优",
-  "hard": 39,
-  "hard_preexisting": 14,
-  "n2_unresolved": 12,
-  "hard_node": 3,
+  "hard": 20,
+  "hard_preexisting": 9,
+  "n2_unresolved": 4,
+  "hard_node": 1,
   "nodes": {
-   "横穿翻弯": 3
+   "横穿翻弯": 1
   },
-  "clearance": 107,
-  "hard_structure": 3,
-  "water_parallel_tray": 2,
+  "clearance": 114,
+  "hard_structure": 6,
+  "water_parallel_tray": 1,
   "water_crossing_tray": 15,
   "water_leak_tray": 0,
   "stations": 31,
-  "lowest_mm": 2500,
-  "median_lowest_mm": 2500,
+  "lowest_mm": 2350,
+  "median_lowest_mm": 2350,
   "median_levels": 1.0,
-  "max_levels": 2,
+  "max_levels": 3,
   "zones": {
    "lane": {
-    "min_mm": 2486,
-    "median_mm": 2500,
+    "min_mm": 2300,
+    "median_mm": 2350,
     "levels_mm": [
-     2500
+     2350
     ],
-    "cells": 460
+    "cells": 444
    },
    "stall": {
-    "min_mm": 2486,
+    "min_mm": 2336,
     "median_mm": 2600,
     "levels_mm": [
-     2450,
-     2500,
-     2600,
-     3050
-    ],
-    "cells": 188
-   }
-  },
-  "n2_nodes": 38,
-  "n0_pieces": 32,
-  "n0_repairs": 57,
-  "open_joints": 0,
-  "turns": 107,
-  "unbuildable": 4,
-  "offsets": 3,
-  "doubling_back": 0,
-  "reroute": 0
- },
- "changes": {
-  "name": "改动最少",
-  "hard": 23,
-  "hard_preexisting": 10,
-  "n2_unresolved": 5,
-  "hard_node": 2,
-  "nodes": {
-   "横穿翻弯": 2
-  },
-  "clearance": 104,
-  "hard_structure": 5,
-  "water_parallel_tray": 1,
-  "water_crossing_tray": 10,
-  "water_leak_tray": 0,
-  "stations": 31,
-  "lowest_mm": 2500,
-  "median_lowest_mm": 2500,
-  "median_levels": 1.0,
-  "max_levels": 2,
-  "zones": {
-   "lane": {
-    "min_mm": 2486,
-    "median_mm": 2500,
-    "levels_mm": [
-     2500
-    ],
-    "cells": 487
-   },
-   "stall": {
-    "min_mm": 2450,
-    "median_mm": 2600,
-    "levels_mm": [
+     2350,
      2450,
      2500,
      2600,
@@ -131,28 +82,79 @@
    }
   },
   "n2_nodes": 39,
-  "n0_pieces": 38,
-  "n0_repairs": 55,
+  "n0_pieces": 34,
+  "n0_repairs": 51,
   "open_joints": 0,
-  "turns": 115,
-  "unbuildable": 4,
+  "turns": 113,
+  "unbuildable": 0,
   "offsets": 6,
+  "doubling_back": 0,
+  "reroute": 0
+ },
+ "changes": {
+  "name": "改动最少",
+  "hard": 16,
+  "hard_preexisting": 10,
+  "n2_unresolved": 3,
+  "hard_node": 1,
+  "nodes": {
+   "横穿翻弯": 1
+  },
+  "clearance": 72,
+  "hard_structure": 5,
+  "water_parallel_tray": 1,
+  "water_crossing_tray": 14,
+  "water_leak_tray": 0,
+  "stations": 31,
+  "lowest_mm": 2350,
+  "median_lowest_mm": 2350,
+  "median_levels": 1.0,
+  "max_levels": 2,
+  "zones": {
+   "lane": {
+    "min_mm": 2336,
+    "median_mm": 2350,
+    "levels_mm": [
+     2350
+    ],
+    "cells": 469
+   },
+   "stall": {
+    "min_mm": 2300,
+    "median_mm": 2600,
+    "levels_mm": [
+     2350,
+     2450,
+     2500,
+     2600,
+     3050
+    ],
+    "cells": 190
+   }
+  },
+  "n2_nodes": 38,
+  "n0_pieces": 36,
+  "n0_repairs": 53,
+  "open_joints": 0,
+  "turns": 111,
+  "unbuildable": 0,
+  "offsets": 4,
   "doubling_back": 0,
   "reroute": 0
  },
  "supports": {
   "name": "支吊架最省",
-  "hard": 33,
+  "hard": 30,
   "hard_preexisting": 9,
-  "n2_unresolved": 10,
-  "hard_node": 3,
+  "n2_unresolved": 11,
+  "hard_node": 1,
   "nodes": {
-   "横穿翻弯": 3
+   "横穿翻弯": 1
   },
-  "clearance": 155,
+  "clearance": 125,
   "hard_structure": 3,
-  "water_parallel_tray": 1,
-  "water_crossing_tray": 11,
+  "water_parallel_tray": 2,
+  "water_crossing_tray": 13,
   "water_leak_tray": 0,
   "stations": 31,
   "lowest_mm": 2400,
@@ -166,7 +168,7 @@
     "levels_mm": [
      2400
     ],
-    "cells": 444
+    "cells": 442
    },
    "stall": {
     "min_mm": 2498,
@@ -188,7 +190,7 @@
   "unbuildable": 1,
   "offsets": 5,
   "doubling_back": 0,
-  "reroute": 4
+  "reroute": 5
  },
  "gold": {
   "name": "人工方案",
@@ -232,7 +234,7 @@
  },
  "review": {
   "findings": [
-   "人工方案净高比自动方案高 116 mm（自动方案在此项不如人工）",
+   "人工方案净高比自动方案高 216 mm（自动方案在此项不如人工）",
    "人工方案管底有 5 个不同标高；净高最优方案只需 1 层，支吊架层数可减少、排布更规整",
    "人工方案在走廊内仍有 3 处硬碰撞（见下表）",
    "人工方案有 199 处净距低于规则要求（按已确认的校准净距）"

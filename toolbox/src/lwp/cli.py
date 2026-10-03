@@ -85,6 +85,7 @@ def main(argv=None) -> int:
     s.add_argument("--effort", type=float, default=2.0, help="每阶段求解的确定性时间上限（默认 2）")
     s.add_argument("--out", help="输出目录")
     s.add_argument("--drawings", help="lwp drawings 输出的图纸 JSON（车位 / 车道分区）")
+    s.add_argument("--rounds", type=int, default=4, help="迭代求解轮数：求解—生成节点—碰撞检测—加约束（默认 4；1 为不迭代）")
     s.set_defaults(func=cmd_solve)
     dr = sub.add_parser("drawings", help="解析施工图 DXF：与模型轴网对齐，提取车位、车道、人防墙、设计说明中的排布要求")
     dr.add_argument("package", help="导出包（提供轴网用于对齐）")

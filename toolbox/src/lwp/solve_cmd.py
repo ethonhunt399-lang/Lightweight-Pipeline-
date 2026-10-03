@@ -17,6 +17,7 @@ from .plan import apply, evaluate, plan_json, review_human, write_json
 from .rules import RuleSet, load_rules
 from .section import Section, extract
 from .section_svg import draw
+from .iterate import solve_iterative
 from .solver import SCHEME_ORDER, SCHEMES, Layout, solve
 from .viewer import build_data, write_viewer
 
@@ -105,14 +106,17 @@ def cmd_solve(args) -> int:
     region = _region(corridor)
     for scheme in schemes:
         t = time.perf_counter()
-        layout = solve(sec, rules, scheme, seconds=args.effort)
+        print(f"  {SCHEMES[scheme]}：")
+        layout, result, _ = solve_iterative(package, sec, rules, scheme, seconds=args.effort,
+                                            rounds=getattr(args, "rounds", 4))
         layouts[scheme] = layout
-        print(f"  {SCHEMES[scheme]}：{layout.status}，{time.perf_counter() - t:.1f} s，{layout.metrics}")
-        if not layout.placements:
+        print(f"  {SCHEMES[scheme]}：{layout.status}，{time.perf_counter() - t:.1f} s，"
+              f"{ {k: v for k, v in layout.metrics.items() if k != 'iterations'} }")
+        if not layout.placements or result is None:
             for d in layout.diagnosis:
                 print("    " + d)
             continue
-        moved, moves, nodes, links = apply(package, sec, layout, rules)
+        moved, moves, nodes, links = result
         geo = links.geometry.to_dict() if links.geometry is not None else {}
         link_counts[scheme] = {"n0_pieces": links.pieces, "n0_repairs": len(links.repairs), "open_joints": len(links.open),
                                "turns": geo.get("turns", 0), "unbuildable": len(geo.get("unbuildable", [])),

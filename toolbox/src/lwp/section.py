@@ -133,6 +133,7 @@ class Section:
     leaks: list = field(default_factory=list)       # leak-prone water items not on a strand (LeakItem)
     bands: list = field(default_factory=list)       # across the corridor: drive lane / stall intervals (drawings)
     obstacles: list = field(default_factory=list)   # MEP that stays: (key, s_lo, s_hi, v_lo, v_hi, z_lo, z_hi, group)
+    cuts: list = field(default_factory=list)        # constraints learned from node clashes (iterate.Cut)
 
     crossing_limit: float = 250.0
 

@@ -31,17 +31,15 @@
  },
  "headroom": {
   "name": "净高最优",
-  "hard": 23,
-  "hard_preexisting": 6,
-  "n2_unresolved": 9,
-  "hard_node": 3,
-  "nodes": {
-   "横穿翻弯": 3
-  },
-  "clearance": 62,
+  "hard": 7,
+  "hard_preexisting": 1,
+  "n2_unresolved": 2,
+  "hard_node": 0,
+  "nodes": {},
+  "clearance": 58,
   "hard_structure": 0,
-  "water_parallel_tray": 3,
-  "water_crossing_tray": 8,
+  "water_parallel_tray": 2,
+  "water_crossing_tray": 7,
   "water_leak_tray": 0,
   "stations": 23,
   "lowest_mm": 2534,
@@ -53,7 +51,6 @@
     "min_mm": 2500,
     "median_mm": 2550,
     "levels_mm": [
-     2500,
      2550,
      2600
     ],
@@ -61,54 +58,54 @@
    }
   },
   "n2_nodes": 26,
-  "n0_pieces": 30,
+  "n0_pieces": 29,
   "n0_repairs": 30,
   "open_joints": 0,
-  "turns": 63,
+  "turns": 62,
   "unbuildable": 0,
   "offsets": 10,
   "doubling_back": 0,
-  "reroute": 1
+  "reroute": 2
  },
  "changes": {
   "name": "改动最少",
-  "hard": 22,
-  "hard_preexisting": 4,
-  "n2_unresolved": 8,
+  "hard": 8,
+  "hard_preexisting": 0,
+  "n2_unresolved": 2,
   "hard_node": 1,
   "nodes": {
    "横穿翻弯": 1
   },
-  "clearance": 85,
+  "clearance": 71,
   "hard_structure": 2,
   "water_parallel_tray": 1,
-  "water_crossing_tray": 16,
+  "water_crossing_tray": 12,
   "water_leak_tray": 0,
   "stations": 23,
-  "lowest_mm": 2294,
-  "median_lowest_mm": 2300,
+  "lowest_mm": 2344,
+  "median_lowest_mm": 2350,
   "median_levels": 2.0,
   "max_levels": 3,
   "zones": {
    "lane": {
-    "min_mm": 2294,
-    "median_mm": 2300,
+    "min_mm": 2300,
+    "median_mm": 2350,
     "levels_mm": [
-     2300,
+     2350,
      2600
     ],
     "cells": 414
    }
   },
   "n2_nodes": 26,
-  "n0_pieces": 26,
-  "n0_repairs": 28,
+  "n0_pieces": 31,
+  "n0_repairs": 29,
   "open_joints": 0,
-  "turns": 59,
+  "turns": 60,
   "unbuildable": 0,
   "offsets": 8,
   "doubling_back": 0,
-  "reroute": 1
+  "reroute": 0
  },
  "supports": {
   "name": "支吊架最省",

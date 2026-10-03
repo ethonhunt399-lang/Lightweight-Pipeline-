@@ -2,7 +2,7 @@
  "schema": "lwp.layout_plan",
  "schema_version": "0.1.0",
  "tool": "lwp 0.1.0",
- "created": "2026-10-03T01:26:52",
+ "created": "2026-10-03T07:59:25",
  "source": {
   "project": "雍景致臻江东-机电（管综调整前）-地下室",
   "exported": "2026-09-30T15:07:03Z",
@@ -30,28 +30,28 @@
  "status": "FEASIBLE",
  "stages": [
   {
-   "stage": "与固定构件、大尺寸横穿、斜梁碰撞，水管跨越桥架，桥架上方易漏节点最少",
+   "stage": "与固定构件、大尺寸横穿、斜梁碰撞，节点碰撞（迭代约束），水管跨越桥架，桥架上方易漏节点最少",
    "status": "OPTIMAL",
    "value": 0,
-   "time_s": 3.13
+   "time_s": 5.1
   },
   {
    "stage": "层数最少",
    "status": "OPTIMAL",
    "value": 1,
-   "time_s": 15.81
+   "time_s": 9.58
   },
   {
    "stage": "横担总长最短",
    "status": "FEASIBLE",
    "value": 4596,
-   "time_s": 7.87
+   "time_s": 9.24
   },
   {
    "stage": "排布原则 + 改动",
    "status": "FEASIBLE",
    "value": 4088319,
-   "time_s": 16.66
+   "time_s": 8.4
   }
  ],
  "metrics": {
@@ -77,11 +77,33 @@
   "fixed_obstacle_clashes": 0,
   "fixed_obstacles": 53,
   "crossings_through_oblique_beams": 0,
+  "learned_cuts": 0,
+  "learned_cuts_violated": 0,
   "tray_water": {
    "parallel": "forbid",
    "crossing": "allow"
   },
-  "crossing_riser_relaxed": false
+  "crossing_riser_relaxed": false,
+  "iterations": [
+   {
+    "round": 1,
+    "new_hard": 6,
+    "lowest_bottom_mm": 2350,
+    "cuts": 0
+   },
+   {
+    "round": 2,
+    "new_hard": 8,
+    "lowest_bottom_mm": 2400,
+    "cuts": 4
+   },
+   {
+    "round": 3,
+    "new_hard": 11,
+    "lowest_bottom_mm": 2400,
+    "cuts": 9
+   }
+  ]
  },
  "diagnosis": [],
  "section": {

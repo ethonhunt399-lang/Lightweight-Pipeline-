@@ -384,6 +384,50 @@ class _Model:
                     else:
                         self.fixed_viol.append(o[4])
 
+        # Constraints learned from the clashes of earlier rounds (iterate.py), all soft.
+        self.cut_viol = []
+        idx = {st.id: i for i, st in enumerate(items)}
+        for ci_, cut in enumerate(sec.cuts):
+            v_ = m.NewBoolVar(f"cutv{ci_}")
+            if cut.kind == "keepout" and cut.a in idx:
+                i, st = idx[cut.a], items[idx[cut.a]]
+                s0c, s1c, v0c, v1c, z0c, z1c = cut.box
+                g = _i(cut.gap)
+                o = [m.NewBoolVar(f"cut{ci_}_{x}") for x in range(4)]
+                m.Add(self.v[i] + _i(st.width / 2) + g <= _i(v0c)).OnlyEnforceIf(o[0])
+                m.Add(self.v[i] - _i(st.width / 2) - g >= _i(v1c)).OnlyEnforceIf(o[1])
+                m.Add(self.z[i] + _i(st.height) + g <= _i(z0c)).OnlyEnforceIf(o[2])
+                m.Add(self.z[i] >= _i(z1c) + g).OnlyEnforceIf(o[3])
+                m.AddBoolOr(o + [v_])
+            elif cut.kind == "crossing_keepout" and cut.a in self.cz:
+                c = next(x for x in sec.zone_crossings if x.key == cut.a)
+                _, _, _, _, z0c, z1c = cut.box
+                g = _i(cut.gap)
+                lo_, hi_ = m.NewBoolVar(f"cut{ci_}_l"), m.NewBoolVar(f"cut{ci_}_h")
+                m.Add(self.cz[cut.a] + _i(c.height) + g <= _i(z0c)).OnlyEnforceIf(lo_)
+                m.Add(self.cz[cut.a] >= _i(z1c) + g).OnlyEnforceIf(hi_)
+                m.AddBoolOr([lo_, hi_, v_])
+            elif cut.kind == "apart" and cut.a in idx and cut.b in idx:
+                i, j = idx[cut.a], idx[cut.b]
+                o = [m.NewBoolVar(f"cut{ci_}_{x}") for x in range(4)]
+                m.Add(self.v[i] - self.v[j] >= _i(cut.need)).OnlyEnforceIf(o[0])
+                m.Add(self.v[j] - self.v[i] >= _i(cut.need)).OnlyEnforceIf(o[1])
+                m.Add(self.z[i] - self.z[j] >= _i(cut.gap)).OnlyEnforceIf(o[2])
+                m.Add(self.z[j] - self.z[i] >= _i(cut.gap)).OnlyEnforceIf(o[3])
+                m.AddBoolOr(o + [v_])
+            elif cut.kind == "crossing_above" and cut.a in self.cz and cut.b in idx:
+                ok_ = m.NewBoolVar(f"cut{ci_}_o")
+                m.Add(self.cz[cut.a] - self.z[idx[cut.b]] >= _i(cut.need)).OnlyEnforceIf(ok_)
+                m.AddBoolOr([ok_, v_])
+            elif cut.kind == "crossing_apart" and cut.a in self.cz and cut.b in self.cz:
+                o = [m.NewBoolVar(f"cut{ci_}_{x}") for x in range(2)]
+                m.Add(self.cz[cut.a] - self.cz[cut.b] >= _i(cut.need)).OnlyEnforceIf(o[0])
+                m.Add(self.cz[cut.b] - self.cz[cut.a] >= _i(cut.need)).OnlyEnforceIf(o[1])
+                m.AddBoolOr(o + [v_])
+            else:
+                continue
+            self.cut_viol.append(v_)
+
         # Leak-prone items (flanges, valves, unions, air vents) not directly above a tray: the tray keeps
         # out from under them, or runs above them. Where impossible it counts, minimised first.
         self.leak_viol = []
@@ -599,10 +643,10 @@ def solve(sec: Section, rules: RuleSet, scheme: str, seconds: float = 2.0) -> La
         lane = ("车道上方管底最高", model.lane_gain, True, 0)
         plan.insert({"headroom": 1, "changes": 1, "supports": 2}[scheme], lane)
 
-    if model.wot or model.leak_viol or model.large_viol or model.fixed_viol or model.beam_viol:
-        plan.insert(0, ("与固定构件、大尺寸横穿、斜梁碰撞，水管跨越桥架，桥架上方易漏节点最少",
+    if model.wot or model.leak_viol or model.large_viol or model.fixed_viol or model.beam_viol or model.cut_viol:
+        plan.insert(0, ("与固定构件、大尺寸横穿、斜梁碰撞，节点碰撞（迭代约束），水管跨越桥架，桥架上方易漏节点最少",
                         sum(model.wot) + sum(model.leak_viol) + sum(model.large_viol) + sum(model.fixed_viol)
-                        + sum(model.beam_viol), False, 0))
+                        + sum(model.beam_viol) + sum(model.cut_viol), False, 0))
     solver, status, hint = None, "UNKNOWN", None
     for name, objective, maximize, tol in plan:
         solver, status, value = stage(name, objective, maximize, hint)
@@ -667,6 +711,8 @@ def _layout(model: _Model, solver, scheme: str, status: str, stages: list[dict])
         "fixed_obstacle_clashes": sum(solver.Value(v) for v in model.fixed_viol),
         "fixed_obstacles": len(model.sec.obstacles),
         "crossings_through_oblique_beams": sum(solver.Value(v) for v in model.beam_viol),
+        "learned_cuts": len(model.cut_viol),
+        "learned_cuts_violated": sum(solver.Value(v) for v in model.cut_viol),
         "tray_water": {"parallel": "forbid" if model.hard_par else "soft",
                        "crossing": "forbid" if model.hard_tw else "allow"},
     }
