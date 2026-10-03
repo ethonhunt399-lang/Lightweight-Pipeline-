@@ -364,6 +364,33 @@ def _continuation(elements, start: str, member: set[str], cor, beyond, graph) ->
     return chain
 
 
+def _tree_layers(elements, start: str, stop: set[str], cor, beyond, graph, moves) -> list[list[str]]:
+    """What follows `start` away from the corridor, layer by layer (tees with all their branches); vertical runs,
+    elements beyond reach or already moved end it."""
+    end_s = cor.s0 if beyond(cor.s0 - 1) else cor.s1
+    layers, seen, frontier = [], set(stop), [start]
+    while frontier and len(layers) < END_DEPTH:
+        layer = []
+        for k in frontier:
+            if k in seen:
+                continue
+            seen.add(k)
+            e = elements.get(k)
+            if e is None or e.solid is None or not e.is_mep or k in moves:
+                continue
+            c = e.solid.center
+            if not beyond(cor.s_of(c)) or abs(cor.s_of(c) - end_s) > END_REACH:
+                continue
+            if e.origin == "mep_curve" and abs((e.record["end"][2] - e.record["start"][2]) * 1000) > 100:
+                continue
+            layer.append(k)
+        if not layer:
+            break
+        layers.append(layer)
+        frontier = [n for k in layer for n in graph.get(k, ()) if n not in seen]
+    return layers
+
+
 def end_transitions(package: Package, elements: dict[str, Element], sec: Section, moves: dict[str, np.ndarray],
                     move, graph: dict[str, set[str]]) -> list[EndTransition]:
     from .connect import _hits, _piece_solid, _section
@@ -406,32 +433,202 @@ def end_transitions(package: Package, elements: dict[str, Element], sec: Section
                     e = elements.get(n)
                     if e is None or e.solid is None or not beyond(cor.s_of(e.solid.center)):
                         continue
-                    chain = _continuation(elements, n, member | {k}, cor, beyond, graph)
-                    if not chain:
+                    layers = _tree_layers(elements, n, member | {k}, cor, beyond, graph, moves)
+                    if not layers:
                         continue
-                    skip = set(keys) | set(chain)
-                    # Candidate: carry the first d elements (d = 0: transition at the corridor end).
+                    every = {x for layer in layers for x in layer}
+                    skip = set(keys) | every
+                    from .plan import translate
+                    # Candidate: carry the first d layers of what follows (d = 0: transition at the corridor
+                    # end). Tees go with their branches; each branch end left behind gets a transition.
                     best = None
-                    for d in range(0, len(chain) + 1):
+                    for d in range(0, len(layers) + 1):
+                        carried = [x for layer in layers[:d] for x in layer]
                         moved_hits = 0
-                        for x in chain[:d]:
+                        for x in carried:
                             el = elements[x]
-                            parts = el.parts or [el.solid]
-                            from .plan import translate
-                            moved_hits += _hits([translate(p, t) for p in parts], near, boxes, skip)
-                        a = elements[chain[d - 1]] if d else elements[k]
-                        b = elements.get(chain[d]) if d < len(chain) else None
-                        if b is None:
-                            nxt = [m for m in graph.get(chain[-1], ()) if m not in skip] if d else []
-                            b = elements.get(nxt[0]) if nxt else None
-                        jh = jog_hits(a, b, t, skip) if b is not None else 0
+                            moved_hits += _hits([translate(p_, t) for p_ in (el.parts or [el.solid])], near, boxes, skip)
+                        jh = 0
+                        frontier = [(k, n)] if not d else [
+                            (x, y) for x in carried for y in graph.get(x, ())
+                            if y not in carried and y not in member and y != k and y not in moves]
+                        for x, y in frontier:
+                            if elements.get(y) is not None:
+                                jh += jog_hits(elements[x], elements[y], t, skip)
                         score = (moved_hits + jh, d)
                         if best is None or score < best[0]:
-                            best = (score, d)
-                    (hits, _), d = best
-                    base = (None, 0)
+                            best = (score, d, carried)
+                    (hits, _), d, carried = best
                     if d:
-                        for x in chain[:d]:
+                        for x in carried:
                             move(x, t)
-                        out.append(EndTransition(st.id, side, chain[:d], -1, hits))
+                        out.append(EndTransition(st.id, side, carried, -1, hits))
     return out
+
+
+# ---------------------------------------------------------------------------------------------------------
+# N1 — crossing flip: a crossing service is raised only where it passes over the bundle. It rises just before
+# the bundle, crosses at the raised level and comes down again just after it; elsewhere it keeps its level
+# (so it stays under the beams beyond the bundle and its ends stay connected where they were).
+
+HUMP_MARGIN = 50.0    # mm between the bundle's side and the riser (plus the service's own half size)
+
+
+def _piece(base: Element, key: str, p0: np.ndarray, p1: np.ndarray, sec_, links: list[str], tag: str) -> Element:
+    from .connect import M, _piece_solid
+    d0 = p1 - p0
+    d0 = d0 / max(float(np.linalg.norm(d0)), 1e-9)
+    e = copy.copy(base)
+    e.key = key
+    e.origin, e.parts, e.leg_conns, e.centre = "mep_curve", None, None, None
+    e.solid = _piece_solid(sec_, p0, p1, None)
+    rec = {k: v for k, v in base.record.items() if k != "connectors"}
+    rec.update({"start": list(p0 / M), "end": list(p1 / M), "slope": 0, "node_piece": tag, "key": key})
+    e.record = rec
+    e.connectors = [{"id": 0, "origin": list(p0 / M), "direction": list(-d0), "connected": [{"key": links[0]}]},
+                    {"id": 1, "origin": list(p1 / M), "direction": list(d0), "connected": [{"key": links[1]}]}]
+    return e
+
+
+def crossing_hump(package: Package, elements: dict[str, Element], sec: Section, layout, key: str, dz: float,
+                  moves: dict[str, np.ndarray], move, graph, extra: float = 0.0, bends=None) -> list[str] | None:
+    """Raise the crossing service `key` by dz over the bundle only. None: it lies entirely over the bundle
+    (raise it whole). Returns the keys of the pieces made."""
+    from .connect import _section
+    from .fittings import offset_angle, riser_radius
+    e = elements.get(key)
+    r = e.record if e is not None else {}
+    if e is None or not r.get("start") or not r.get("end"):
+        return None
+    cor = sec.corridor
+    a, b = np.array(r["start"]) * 1000, np.array(r["end"]) * 1000
+    L = float(np.linalg.norm(b - a))
+    va, vb = cor.v_of(a), cor.v_of(b)
+    if L < 1 or abs(vb - va) < 1:
+        return None
+    s_c = cor.s_of((a + b) / 2)
+    spans = []
+    for st in sec.strands:
+        if st.s_lo - 1 <= s_c <= st.s_hi + 1:
+            p = layout.placements.get(st.id)
+            v = p.v if p else st.v
+            spans.append((v - st.width / 2, v + st.width / 2))
+    if not spans:
+        return None
+    half = float(np.max(e.solid.half[1:])) if e.solid is not None else 50.0
+    m = HUMP_MARGIN + half + extra
+    lo_v, hi_v = min(x for x, _ in spans) - m, max(x for _, x in spans) + m
+    t_of = lambda v: (v - va) / (vb - va) * L
+    t0, t1 = sorted((t_of(lo_v), t_of(hi_v)))
+    t0, t1 = max(t0, 0.0), min(t1, L)
+    # A service branching from a strand reaches that strand wherever it moved: the end joining it is raised
+    # too (the run is stretched to the strand at the raised level afterwards).
+    cr = next((x for x in sec.crossings if x.key == key), None)
+    if cr is not None and cr.attached:
+        for v_end, sid in cr.ends:
+            if sid is None:
+                continue
+            t_att = 0.0 if abs(v_end - va) < abs(v_end - vb) else L
+            if t1 - t0 < 50:
+                t0, t1 = (0.0, min(L, m)) if t_att == 0.0 else (max(0.0, L - m), L)
+            t0, t1 = min(t0, t_att), max(t1, t_att)
+    if t0 <= 50 and t1 >= L - 50:
+        return None
+    if t1 - t0 < 50:
+        return []                                 # does not reach the bundle: stays where it is
+    u = (b - a) / L
+    up = np.array([0.0, 0.0, dz])
+    p0, p1 = a + u * t0, a + u * t1
+    conn0 = e.connectors[0] if e.connectors else {}
+    sec_ = _section(e, conn0)
+    g = copy.copy(e)
+    m0 = (p0 if t0 > 50 else a) + up
+    m1 = (p1 if t1 < L - 50 else b) + up
+    g.solid = _piece(e, key, m0, m1, sec_, [key, key], "N1").solid
+    rec = dict(r)
+    rec["start"], rec["end"] = list(m0 / 1000), list(m1 / 1000)
+    g.record = rec
+    elements[key] = g
+    moves[key] = up
+    made = []
+    conns = []
+    for idx, c in enumerate(e.connectors):
+        cid = c.get("id", idx)
+        if not c.get("origin"):
+            conns.append(c)
+            continue
+        o = np.array(c["origin"]) * 1000
+        at_a = np.linalg.norm(o - a) < np.linalg.norm(o - b)
+        lifted = (at_a and t0 <= 50) or (not at_a and t1 >= L - 50)
+        if lifted:
+            conns.append({**c, "origin": list((o + up) / 1000)})
+            continue
+        # This end stays at its level: a run at the old level and a riser take over its joint.
+        side = "a" if at_a else "b"
+        q_in, m_in = (p0, m0) if at_a else (p1, m1)
+        if bends is not None:
+            # A short rise is made as a sloped offset: start it further out so that both elbows fit.
+            ang = offset_angle(dz, riser_radius(e, sec_, bends), bends.min_straight_mm)
+            if ang is not None and ang < 90:
+                run_out = abs(dz) / math.tan(math.radians(ang))
+                out_dir = (a - p0) if at_a else (b - p1)
+                n_ = float(np.linalg.norm(out_dir))
+                if n_ > run_out + 50:
+                    q_in = q_in + out_dir / n_ * run_out
+        k_run, k_rise = f"{key}#h{side}1", f"{key}#h{side}2"
+        run = _piece(e, k_run, o, q_in, sec_, [key, key], "N1")
+        rise = _piece(e, k_rise, q_in, m_in, sec_, [key, key], "N1")
+        run.connectors = [{**run.connectors[0], "connected": c.get("connected") or []},
+                          {**run.connectors[1], "connected": [{"key": k_rise, "connector_id": 0}]}]
+        rise.connectors = [{**rise.connectors[0], "connected": [{"key": k_run, "connector_id": 1}]},
+                           {**rise.connectors[1], "connected": [{"key": key, "connector_id": cid}]}]
+        elements[k_run], elements[k_rise] = run, rise
+        made += [k_run, k_rise]
+        conns.append({**c, "origin": list(m_in / 1000), "connected": [{"key": k_rise, "connector_id": 1}]})
+        # The neighbours now meet the run instead of the service.
+        for ref in c.get("connected") or []:
+            nb = elements.get(ref.get("key"))
+            if nb is None:
+                continue
+            nb2 = copy.copy(nb)
+            nb2.connectors = [{**nc, "connected": [({"key": k_run, "connector_id": 0}
+                                                    if (rr.get("key") == key and rr.get("connector_id") in (cid, None)) else rr)
+                                                   for rr in nc.get("connected") or []]}
+                              for nc in nb.connectors]
+            elements[nb.key] = nb2
+    g.connectors = conns
+    # Everything of this line on the raised part goes up with it: fittings, and offsets of the line itself
+    # (short runs and elbows over the bundle); the rest stays.
+    v_lo_r, v_hi_r = sorted((cor.v_of(m0), cor.v_of(m1)))
+    members = {k for st in sec.strands for k in st.segments + st.fittings}
+    crossings = {c.key for c in sec.crossings}
+    queue, seen = list(graph.get(key, ())), {key}
+    while queue:
+        other = queue.pop()
+        if other in seen:
+            continue
+        seen.add(other)
+        f = elements.get(other)
+        if f is None or f.solid is None or not f.is_mep or other in members or other in crossings or other in moves:
+            continue
+        lo, hi = f.solid.aabb()
+        vs = sorted((cor.v_of(lo), cor.v_of(hi)))
+        if vs[0] < min(v_lo_r, lo_v) - 1 or vs[1] > max(v_hi_r, hi_v) + 1:
+            continue                                   # beyond the bundle: stays at its level
+        if f.origin == "mep_curve" and abs((f.record["end"][2] - f.record["start"][2]) * 1000) > 100:
+            continue                                   # a drop: it is stretched where it joins
+        move(other, up)
+        queue.extend(graph.get(other, ()))
+    return made
+
+
+def riser_offsets(sec: Section, heights: dict[str, float], clearance: float) -> dict[str, float]:
+    """Services stacked over one another rise at staggered places: the higher one further out."""
+    zone = [c for c in sec.zone_crossings if c.key in heights]
+    out = {c.key: 0.0 for c in zone}
+    for c in zone:
+        below = [o for o in zone if o is not c and abs(o.s - c.s) < (o.height + c.height) / 2 + clearance
+                 and min(o.v_hi, c.v_hi) > max(o.v_lo, c.v_lo) and heights[o.key] < heights[c.key]]
+        out[c.key] = sum(o.height + clearance for o in below)
+    return out
+

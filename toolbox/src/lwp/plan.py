@@ -17,7 +17,8 @@ from .geometry import Solid
 from .package import Package
 from .rules import RuleSet
 from .connect import reconnect
-from .nodes import end_transitions, side_exits
+from .fittings import elbowize
+from .nodes import crossing_hump, end_transitions, riser_offsets, side_exits
 from .section import Section, is_leak_prone, overlaps
 from .solver import SCHEMES, Layout
 
@@ -83,12 +84,21 @@ def apply(package: Package, sec: Section, layout: Layout, rules: RuleSet | None 
             if f is not None and f.origin == "mep_family" and f.solid is not None and in_corridor(f.solid.center, sec.corridor):
                 move(other, t)
 
+    humps: list[str] = []
     if layout.crossings:
         # Heights chosen by the solver (stacked, and under the trays where water must not run over them).
+        # N1: raised only over the bundle where the service is longer than that.
+        offsets = riser_offsets(sec, layout.crossings, rules.clearance_mm.default if rules else 30.0)
         for c in sec.zone_crossings:
             z = layout.crossings.get(c.key)
             if z is not None and abs(z - c.z_lo) > 0.5:
-                move_crossing(c.key, np.array([0.0, 0.0, z - c.z_lo]))
+                made_ = (crossing_hump(package, elements, sec, layout, c.key, z - c.z_lo, moves, move, graph,
+                                       offsets.get(c.key, 0.0), rules.layout.bends if rules else None)
+                         if nodes else None)
+                if made_ is None:
+                    move_crossing(c.key, np.array([0.0, 0.0, z - c.z_lo]))
+                else:
+                    humps += made_
     elif rules is not None and rules.layout.crossing_zone == "top" and sec.zone_crossings and layout.placements:
         clr = rules.clearance_mm.default
         cor = sec.corridor
@@ -122,10 +132,14 @@ def apply(package: Package, sec: Section, layout: Layout, rules: RuleSet | None 
     if nodes and rules is not None and layout.placements:
         made = side_exits(package, elements, sec, layout, rules, moves, move, graph)
     links = Links()
+    links.humps = humps
     if nodes and layout.placements:
         links.ends = end_transitions(package, elements, sec, moves, move, graph)
     if nodes:
         links.repairs, links.open = reconnect(package, elements, moves)
+        if rules is not None:
+            created = [k for k in elements if "#j" in k or "#h" in k]
+            links.geometry = elbowize(elements, created, rules.layout.bends)
     return _replace(package, elements), moves, made, links
 
 
@@ -135,6 +149,8 @@ class Links:
     repairs: list = field(default_factory=list)
     open: list = field(default_factory=list)
     ends: list = field(default_factory=list)       # N3 end transitions
+    humps: list = field(default_factory=list)      # N1 pieces of crossing services raised over the bundle only
+    geometry: object = None                        # elbows and buildability of the created pieces
 
     @property
     def pieces(self) -> int:
@@ -143,7 +159,9 @@ class Links:
     def to_dict(self) -> dict:
         return {"repairs": [r.to_dict() for r in self.repairs], "open": [j.to_dict() for j in self.open],
                 "pieces": self.pieces, "stretched": sum(abs(r.stretch_mm) > 1 for r in self.repairs),
-                "end_transitions": [e.to_dict() for e in self.ends]}
+                "end_transitions": [e.to_dict() for e in self.ends], "n1_pieces": len(self.humps),
+                "node_geometry": self.geometry.to_dict() if self.geometry is not None else None,
+                "reroute": [r.to_dict() for r in self.repairs if r.reroute]}
 
 
 def _replace(package: Package, elements: dict) -> Package:
@@ -324,6 +342,8 @@ def evaluate(before: Package, planned: dict[str, Package], gold: Package | None,
     For schemes, hard clashes that are node work by construction are counted separately (hard_node).
     """
     rows = {}
+    base = lambda k: k.split("#")[0]
+    before_hard = {frozenset((c.a, c.b)) for c in corridor_conflicts(before, rules, sec.corridor) if c.type == HARD}
     subjects = [("original", "原模型", before)] + [(k, SCHEMES[k], p) for k, p in planned.items()]
     if gold is not None:
         subjects.append(("gold", "人工方案", gold))
@@ -340,6 +360,8 @@ def evaluate(before: Package, planned: dict[str, Package], gold: Package | None,
         rows[key] = {
             "name": name,
             "hard": len(hard),
+            # Clashes the original model already had between the same elements (not introduced by the plan).
+            "hard_preexisting": sum(frozenset((base(c.a), base(c.b))) in before_hard for c in hard) if key != "original" else len(hard),
             "n2_unresolved": sum(c.a in fittings_with_node or c.b in fittings_with_node for c in hard),
             "hard_node": sum(nodes.values()),
             "nodes": nodes,

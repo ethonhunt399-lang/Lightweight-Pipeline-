@@ -106,6 +106,15 @@ class TrayWater(_Strict):
     confirmed: bool = False
 
 
+class Construct(_Strict):
+    """Bend radii and straight lengths for checking that created transitions can be built."""
+    pipe_bend_factor: float = 1.5        # R = factor × outside diameter
+    duct_bend_factor: float = 1.0        # R = factor × side in the plane of the bend
+    tray_bend_radius_mm: float = 300     # minimum bend radius of a tray (cable bending)
+    min_straight_mm: float = 50          # straight length needed between two fittings
+    confirmed: bool = False
+
+
 class Layout(_Strict):
     max_layers: int = 4
     support_reserve_mm: float = 100
@@ -115,6 +124,7 @@ class Layout(_Strict):
     crossing_zone: str = "top"
     crossing_zone_max_mm: float = 250
     tray_water: TrayWater = TrayWater()
+    bends: Construct = Construct()
     tray_top_clearance_mm: float = 50     # tray top to beam / slab / the layer above (cable laying space)
     elevation_step_mm: float = 50         # layer bottoms on a grid relative to the floor (0: free)
     lane_priority_max_mm: float = 300     # lanes may be kept up to this much higher than the lowest bottom

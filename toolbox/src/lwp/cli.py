@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -83,6 +84,11 @@ def cmd_struct(args) -> int:
 
 
 def main(argv=None) -> int:
+    # Reproducible plans: the solver model is built by iterating sets of keys, whose order depends on the
+    # string hash seed. Fix it (re-run the command once with a fixed seed).
+    if argv is None and os.environ.get("PYTHONHASHSEED") != "0":
+        os.environ["PYTHONHASHSEED"] = "0"
+        os.execv(sys.executable, [sys.executable, "-m", "lwp.cli", *sys.argv[1:]])
     parser = argparse.ArgumentParser(prog="lwp", description="管综工具箱")
     sub = parser.add_subparsers(dest="command", required=True)
     p = sub.add_parser("check", help="体检 + 碰撞、净距、净高检测")
@@ -124,6 +130,7 @@ def main(argv=None) -> int:
     s.add_argument("--effort", type=float, default=2.0, help="每阶段求解的确定性时间上限（默认 2）")
     s.add_argument("--out", help="输出目录")
     s.add_argument("--drawings", help="lwp drawings 输出的图纸 JSON（车位 / 车道分区）")
+    s.add_argument("--rounds", type=int, default=4, help="迭代求解轮数：求解—生成节点—碰撞检测—加约束（默认 4；1 为不迭代）")
     s.set_defaults(func=cmd_solve)
     dr = sub.add_parser("drawings", help="解析施工图 DXF：与模型轴网对齐，提取车位、车道、人防墙、设计说明中的排布要求")
     dr.add_argument("package", help="导出包（提供轴网用于对齐）")

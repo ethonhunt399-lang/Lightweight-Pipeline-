@@ -112,6 +112,12 @@ layout:
   elevation_step_mm: 50        # 2026-10-01 确认：层底标高按 50 mm 一档（相对楼面）
   tray_top_clearance_mm: 50    # 桥架顶距梁底 / 楼板 / 上层管线。GB 51348 为“不宜小于 0.3 m”，取值待工程师确定
   tray_bottom_preferred_mm: 2500   # 2026-10-02 确认（电气设计说明）：桥架底边不宜低于 2.5 m（软）；不应低于 2.2 m（硬，同净高下限）
+  bends:                       # 节点可施工检查（默认值，待确认）
+    pipe_bend_factor: 1.5      # 水管弯头弯曲半径 = 1.5 × 外径
+    duct_bend_factor: 1.0      # 风管弯头弯曲半径 = 1.0 × 弯曲平面内的边长
+    tray_bend_radius_mm: 300   # 桥架弯通最小弯曲半径（电缆弯曲）
+    min_straight_mm: 50        # 两个管件之间最少直段
+    confirmed: false
   tray_water:                  # 2026-10-01 工程师确认：电上水下
     parallel_over_tray: forbid     # 不允许水管长距离平行覆盖在桥架正上方
     parallel_max_mm: 500           # 平面上沿桥架方向重叠超过该长度视为平行覆盖

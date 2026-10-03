@@ -2,7 +2,7 @@
  "schema": "lwp.layout_plan",
  "schema_version": "0.1.0",
  "tool": "lwp 0.1.0",
- "created": "2026-10-02T11:58:11",
+ "created": "2026-10-03T07:52:46",
  "source": {
   "project": "雍景致臻江东-机电（管综调整前）-地下室",
   "exported": "2026-09-30T15:07:03Z",
@@ -30,41 +30,92 @@
  "status": "FEASIBLE",
  "stages": [
   {
+   "stage": "与固定构件、大尺寸横穿、斜梁碰撞，节点碰撞（迭代约束），水管跨越桥架，桥架上方易漏节点最少",
+   "status": "OPTIMAL",
+   "value": 0,
+   "time_s": 7.12
+  },
+  {
    "stage": "最低层底标高最高",
-   "status": "FEASIBLE",
-   "value": 4450,
-   "time_s": 12.41
+   "status": "OPTIMAL",
+   "value": 4150,
+   "time_s": 9.69
   },
   {
    "stage": "排布原则 + 改动",
    "status": "FEASIBLE",
-   "value": 371913,
-   "time_s": 21.85
+   "value": 3236920,
+   "time_s": 20.11
   }
  ],
  "metrics": {
-  "layers": 1,
-  "lowest_bottom_above_floor_mm": 2850,
-  "headroom_under_supports_mm": 2750,
-  "support_length_mm": 4756,
+  "layers": 2,
+  "lowest_bottom_above_floor_mm": 2550,
+  "headroom_under_supports_mm": 2450,
+  "support_length_mm": 5297,
   "moved": 20,
-  "sum_dz_mm": 4257,
-  "sum_dv_mm": 34384,
+  "sum_dz_mm": 2497,
+  "sum_dv_mm": 45945,
   "tray_below_water": 0,
   "trays_below_preferred": 0,
   "system_splits": 0,
-  "exit_side_violations": 8,
+  "exit_side_violations": 32,
   "crossings_over_bundle": 25,
-  "crossings_lifted": 23,
+  "crossings_lifted": 21,
   "lane_lowest_bottom_above_floor_mm": null,
   "strands_over_lanes": 0,
   "water_crossing_over_tray": 0,
   "leak_prone_over_tray": 0,
-  "beams_beyond_ends": 0,
+  "beams_beyond_ends": 34,
+  "large_crossing_clashes": 0,
+  "fixed_obstacle_clashes": 0,
+  "fixed_obstacles": 53,
+  "crossings_through_oblique_beams": 0,
+  "learned_cuts": 17,
+  "learned_cuts_violated": 0,
   "tray_water": {
    "parallel": "forbid",
    "crossing": "allow"
-  }
+  },
+  "crossing_riser_relaxed": false,
+  "iterations": [
+   {
+    "round": 1,
+    "new_hard": 17,
+    "lowest_bottom_mm": 2550,
+    "cuts": 0
+   },
+   {
+    "round": 2,
+    "new_hard": 9,
+    "lowest_bottom_mm": 2550,
+    "cuts": 11
+   },
+   {
+    "round": 3,
+    "new_hard": 10,
+    "lowest_bottom_mm": 2550,
+    "cuts": 15
+   },
+   {
+    "round": 4,
+    "new_hard": 6,
+    "lowest_bottom_mm": 2550,
+    "cuts": 17
+   },
+   {
+    "round": 5,
+    "new_hard": 7,
+    "lowest_bottom_mm": 2550,
+    "cuts": 19
+   },
+   {
+    "round": 6,
+    "new_hard": 7,
+    "lowest_bottom_mm": 2550,
+    "cuts": 20
+   }
+  ]
  },
  "diagnosis": [],
  "section": {
@@ -85,15 +136,25 @@
    "bottom": 4450,
    "top": 4950,
    "height": 500,
+   "left": 205734.0,
+   "right": 206234.0,
+   "strands": [
+    "S05",
+    "S06"
+   ]
+  },
+  {
+   "index": 1,
+   "bottom": 4150,
+   "top": 4350,
+   "height": 200,
    "left": 205620.0,
-   "right": 210376.0,
+   "right": 210417.0,
    "strands": [
     "S01",
     "S02",
     "S03",
     "S04",
-    "S05",
-    "S06",
     "S07",
     "S08",
     "S09",
@@ -127,12 +188,13 @@
     "z_mm": 4570
    },
    "to": {
-    "layer": 0,
-    "v_mm": 207624,
-    "z_mm": 4450
+    "layer": 1,
+    "v_mm": 209649,
+    "z_mm": 4150
    },
    "segments": [
-    "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fef1"
+    "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fef1",
+    "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043feeb"
    ],
    "fittings": [
     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400aa"
@@ -153,9 +215,9 @@
     "z_mm": 4516
    },
    "to": {
-    "layer": 0,
-    "v_mm": 206084,
-    "z_mm": 4450
+    "layer": 1,
+    "v_mm": 208685,
+    "z_mm": 4150
    },
    "segments": [
     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fef7",
@@ -183,9 +245,9 @@
     "z_mm": 4516
    },
    "to": {
-    "layer": 0,
-    "v_mm": 207480,
-    "z_mm": 4450
+    "layer": 1,
+    "v_mm": 209793,
+    "z_mm": 4150
    },
    "segments": [
     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff06"
@@ -210,9 +272,9 @@
     "z_mm": 4516
    },
    "to": {
-    "layer": 0,
-    "v_mm": 206282,
-    "z_mm": 4450
+    "layer": 1,
+    "v_mm": 209793,
+    "z_mm": 4150
    },
    "segments": [
     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff60"
@@ -237,14 +299,16 @@
    },
    "to": {
     "layer": 0,
-    "v_mm": 207856,
+    "v_mm": 206001,
     "z_mm": 4450
    },
    "segments": [
-    "HOST|b9a7ad3e-4218-4282-b14c-9f4609a66269-00429c84"
+    "HOST|b9a7ad3e-4218-4282-b14c-9f4609a66269-00429c84",
+    "HOST|b9a7ad3e-4218-4282-b14c-9f4609a66269-00429c82"
    ],
    "fittings": [
-    "HOST|67ad0596-bc51-4985-999d-8098ebb6cb2e-0042b351"
+    "HOST|67ad0596-bc51-4985-999d-8098ebb6cb2e-0042b351",
+    "HOST|67ad0596-bc51-4985-999d-8098ebb6cb2e-0042b350"
    ]
   },
   {
@@ -263,7 +327,7 @@
    },
    "to": {
     "layer": 0,
-    "v_mm": 207946,
+    "v_mm": 205984,
     "z_mm": 4450
    },
    "segments": [
@@ -288,9 +352,9 @@
     "z_mm": 4200
    },
    "to": {
-    "layer": 0,
-    "v_mm": 206576,
-    "z_mm": 4450
+    "layer": 1,
+    "v_mm": 209409,
+    "z_mm": 4150
    },
    "segments": [
     "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426bc3"
@@ -314,9 +378,9 @@
     "z_mm": 4200
    },
    "to": {
-    "layer": 0,
-    "v_mm": 205800,
-    "z_mm": 4450
+    "layer": 1,
+    "v_mm": 206300,
+    "z_mm": 4150
    },
    "segments": [
     "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426def"
@@ -340,9 +404,9 @@
     "z_mm": 4200
    },
    "to": {
-    "layer": 0,
-    "v_mm": 207516,
-    "z_mm": 4450
+    "layer": 1,
+    "v_mm": 210087,
+    "z_mm": 4150
    },
    "segments": [
     "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426bc8"
@@ -367,9 +431,9 @@
     "z_mm": 4200
    },
    "to": {
-    "layer": 0,
-    "v_mm": 208786,
-    "z_mm": 4450
+    "layer": 1,
+    "v_mm": 206610,
+    "z_mm": 4150
    },
    "segments": [
     "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294b6"
@@ -394,9 +458,9 @@
     "z_mm": 4200
    },
    "to": {
-    "layer": 0,
-    "v_mm": 205670,
-    "z_mm": 4450
+    "layer": 1,
+    "v_mm": 206430,
+    "z_mm": 4150
    },
    "segments": [
     "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426df0"
@@ -420,9 +484,9 @@
     "z_mm": 4200
    },
    "to": {
-    "layer": 0,
-    "v_mm": 208556,
-    "z_mm": 4450
+    "layer": 1,
+    "v_mm": 206840,
+    "z_mm": 4150
    },
    "segments": [
     "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429474"
@@ -447,9 +511,9 @@
     "z_mm": 4200
    },
    "to": {
-    "layer": 0,
-    "v_mm": 207261,
-    "z_mm": 4450
+    "layer": 1,
+    "v_mm": 210342,
+    "z_mm": 4150
    },
    "segments": [
     "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f77"
@@ -473,9 +537,9 @@
     "z_mm": 4200
    },
    "to": {
-    "layer": 0,
-    "v_mm": 209016,
-    "z_mm": 4450
+    "layer": 1,
+    "v_mm": 206120,
+    "z_mm": 4150
    },
    "segments": [
     "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429485"
@@ -500,9 +564,9 @@
     "z_mm": 4200
    },
    "to": {
-    "layer": 0,
-    "v_mm": 206956,
-    "z_mm": 4450
+    "layer": 1,
+    "v_mm": 209029,
+    "z_mm": 4150
    },
    "segments": [
     "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-0042916e"
@@ -526,9 +590,9 @@
     "z_mm": 4200
    },
    "to": {
-    "layer": 0,
-    "v_mm": 208326,
-    "z_mm": 4450
+    "layer": 1,
+    "v_mm": 207073,
+    "z_mm": 4150
    },
    "segments": [
     "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294a6"
@@ -552,9 +616,9 @@
     "z_mm": 4200
    },
    "to": {
-    "layer": 0,
-    "v_mm": 210076,
-    "z_mm": 4450
+    "layer": 1,
+    "v_mm": 207521,
+    "z_mm": 4150
    },
    "segments": [
     "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-0042779c"
@@ -576,9 +640,9 @@
     "z_mm": 4200
    },
    "to": {
-    "layer": 0,
-    "v_mm": 209446,
-    "z_mm": 4450
+    "layer": 1,
+    "v_mm": 208151,
+    "z_mm": 4150
    },
    "segments": [
     "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004273b1"
@@ -600,9 +664,9 @@
     "z_mm": 4170
    },
    "to": {
-    "layer": 0,
-    "v_mm": 205940,
-    "z_mm": 4450
+    "layer": 1,
+    "v_mm": 209649,
+    "z_mm": 4150
    },
    "segments": [
     "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432c78"
@@ -627,9 +691,9 @@
     "z_mm": 4116
    },
    "to": {
-    "layer": 0,
-    "v_mm": 206612,
-    "z_mm": 4450
+    "layer": 1,
+    "v_mm": 205704,
+    "z_mm": 4150
    },
    "segments": [
     "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042dbd9"
@@ -646,16 +710,16 @@
    "fitting": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400ac",
    "side": "right",
    "s_mm": 98796,
-   "rise_mm": 300,
+   "rise_mm": 400,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
    "routed": false,
    "bends": 2,
    "location_mm": [
-    206084.0,
+    208685.0,
     98795.9,
-    4834.1
+    4634.1
    ]
   },
   {
@@ -664,16 +728,16 @@
    "fitting": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400ae",
    "side": "right",
    "s_mm": 102288,
-   "rise_mm": 300,
+   "rise_mm": 366,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
-   "routed": false,
+   "routed": true,
    "bends": 2,
    "location_mm": [
-    206084.0,
+    208685.0,
     102288.1,
-    4834.1
+    4600.0
    ]
   },
   {
@@ -682,16 +746,16 @@
    "fitting": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400c0",
    "side": "right",
    "s_mm": 104503,
-   "rise_mm": 300,
+   "rise_mm": 366,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
-   "routed": false,
+   "routed": true,
    "bends": 2,
    "location_mm": [
-    206084.0,
+    208685.0,
     104503.4,
-    4834.1
+    4600.0
    ]
   },
   {
@@ -700,16 +764,16 @@
    "fitting": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400cf",
    "side": "right",
    "s_mm": 106950,
-   "rise_mm": 198,
+   "rise_mm": 366,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
-   "routed": false,
+   "routed": true,
    "bends": 2,
    "location_mm": [
-    206084.0,
+    208685.0,
     106949.9,
-    4732.1
+    4600.0
    ]
   },
   {
@@ -718,16 +782,16 @@
    "fitting": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400b2",
    "side": "left",
    "s_mm": 102288,
-   "rise_mm": 300,
+   "rise_mm": 366,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
    "routed": true,
    "bends": 2,
    "location_mm": [
-    207480.0,
+    209793.0,
     102288.1,
-    4834.1
+    4600.0
    ]
   },
   {
@@ -736,16 +800,16 @@
    "fitting": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400b9",
    "side": "left",
    "s_mm": 104503,
-   "rise_mm": 300,
+   "rise_mm": 366,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
-   "routed": true,
+   "routed": false,
    "bends": 2,
    "location_mm": [
-    207480.0,
+    209793.0,
     104503.4,
-    4834.1
+    4600.0
    ]
   },
   {
@@ -754,16 +818,34 @@
    "fitting": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400de",
    "side": "left",
    "s_mm": 106950,
-   "rise_mm": 198,
+   "rise_mm": 366,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
    "routed": false,
    "bends": 2,
    "location_mm": [
-    206282.0,
+    209793.0,
     106949.9,
-    4732.1
+    4600.0
+   ]
+  },
+  {
+   "kind": "N2",
+   "strand": "S05",
+   "fitting": "HOST|67ad0596-bc51-4985-999d-8098ebb6cb2e-0042b350",
+   "side": "left",
+   "s_mm": 112779,
+   "rise_mm": 280,
+   "reason": "支管为横穿管，按其标高引出",
+   "branch": [],
+   "drops": 0,
+   "routed": true,
+   "bends": 2,
+   "location_mm": [
+    206001.0,
+    112778.6,
+    4855.0
    ]
   },
   {
@@ -779,7 +861,7 @@
    "routed": false,
    "bends": 2,
    "location_mm": [
-    207946.0,
+    205984.0,
     103428.5,
     4475.0
    ]
@@ -790,16 +872,16 @@
    "fitting": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426ca5",
    "side": "right",
    "s_mm": 106856,
-   "rise_mm": 426,
+   "rise_mm": 594,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
-   "routed": false,
+   "routed": true,
    "bends": 2,
    "location_mm": [
-    206576.0,
+    209409.0,
     106855.8,
-    4926.0
+    4794.0
    ]
   },
   {
@@ -815,9 +897,9 @@
    "routed": false,
    "bends": 2,
    "location_mm": [
-    205800.1,
+    206300.1,
     106514.8,
-    4630.0
+    4330.0
    ]
   },
   {
@@ -826,16 +908,16 @@
    "fitting": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426c3a",
    "side": "left",
    "s_mm": 119968,
-   "rise_mm": 420,
+   "rise_mm": 520,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
    "routed": false,
    "bends": 2,
    "location_mm": [
-    207516.0,
+    210087.0,
     119968.3,
-    4920.0
+    4720.0
    ]
   },
   {
@@ -844,16 +926,16 @@
    "fitting": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426cab",
    "side": "left",
    "s_mm": 106856,
-   "rise_mm": 426,
+   "rise_mm": 594,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
    "routed": false,
    "bends": 2,
    "location_mm": [
-    207516.0,
+    210087.0,
     106855.8,
-    4926.0
+    4794.0
    ]
   },
   {
@@ -862,16 +944,16 @@
    "fitting": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294ba",
    "side": "left",
    "s_mm": 98601,
-   "rise_mm": 668,
+   "rise_mm": 768,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
    "routed": false,
    "bends": 2,
    "location_mm": [
-    208786.0,
+    206610.0,
     98600.7,
-    5168.0
+    4968.0
    ]
   },
   {
@@ -880,16 +962,16 @@
    "fitting": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294bb",
    "side": "left",
    "s_mm": 115978,
-   "rise_mm": 450,
+   "rise_mm": 630,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
    "routed": false,
    "bends": 2,
    "location_mm": [
-    208786.0,
+    206610.0,
     115978.2,
-    4950.0
+    4830.0
    ]
   },
   {
@@ -902,12 +984,12 @@
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
-   "routed": true,
+   "routed": false,
    "bends": 2,
    "location_mm": [
-    205670.0,
+    206430.0,
     106514.8,
-    4630.0
+    4330.0
    ]
   },
   {
@@ -916,16 +998,16 @@
    "fitting": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294f1",
    "side": "left",
    "s_mm": 117578,
-   "rise_mm": 400,
+   "rise_mm": 580,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
    "routed": true,
    "bends": 2,
    "location_mm": [
-    208556.0,
+    206840.0,
     117578.2,
-    4950.0
+    4830.0
    ]
   },
   {
@@ -934,16 +1016,16 @@
    "fitting": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294f2",
    "side": "left",
    "s_mm": 97919,
-   "rise_mm": 400,
+   "rise_mm": 459,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
-   "routed": false,
+   "routed": true,
    "bends": 2,
    "location_mm": [
-    208556.0,
+    206840.0,
     97919.3,
-    4950.0
+    4709.0
    ]
   },
   {
@@ -952,16 +1034,16 @@
    "fitting": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429490",
    "side": "left",
    "s_mm": 117978,
-   "rise_mm": 450,
+   "rise_mm": 368,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
    "routed": true,
-   "bends": 3,
+   "bends": 2,
    "location_mm": [
-    208557.0,
+    206120.0,
     117977.7,
-    4950.0
+    4568.0
    ]
   },
   {
@@ -970,16 +1052,16 @@
    "fitting": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429491",
    "side": "left",
    "s_mm": 97460,
-   "rise_mm": 850,
+   "rise_mm": 280,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
-   "routed": false,
+   "routed": true,
    "bends": 2,
    "location_mm": [
-    209016.0,
+    206120.0,
     97459.9,
-    5350.0
+    4480.0
    ]
   },
   {
@@ -988,16 +1070,16 @@
    "fitting": "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-004292ac",
    "side": "right",
    "s_mm": 97628,
-   "rise_mm": 500,
+   "rise_mm": 603,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
    "routed": false,
    "bends": 2,
    "location_mm": [
-    206956.0,
+    209029.0,
     97627.8,
-    5000.0
+    4803.0
    ]
   },
   {
@@ -1006,16 +1088,16 @@
    "fitting": "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-004292ac",
    "side": "left",
    "s_mm": 97628,
-   "rise_mm": 400,
+   "rise_mm": 970,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
    "routed": false,
    "bends": 2,
    "location_mm": [
-    206956.0,
+    209029.0,
     97627.8,
-    4900.0
+    5170.0
    ]
   },
   {
@@ -1024,16 +1106,16 @@
    "fitting": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294b2",
    "side": "left",
    "s_mm": 118378,
-   "rise_mm": 450,
+   "rise_mm": 368,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
    "routed": true,
    "bends": 2,
    "location_mm": [
-    208326.0,
+    207073.0,
     118378.2,
-    4950.0
+    4568.0
    ]
   },
   {
@@ -1042,16 +1124,16 @@
    "fitting": "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432c80",
    "side": "left",
    "s_mm": 119878,
-   "rise_mm": 300,
+   "rise_mm": 400,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
-   "routed": false,
+   "routed": true,
    "bends": 2,
    "location_mm": [
-    205940.0,
+    209649.0,
     119878.3,
-    4780.2
+    4580.2
    ]
   },
   {
@@ -1060,16 +1142,16 @@
    "fitting": "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432c82",
    "side": "left",
    "s_mm": 106678,
-   "rise_mm": 300,
+   "rise_mm": 830,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
    "routed": true,
    "bends": 2,
    "location_mm": [
-    205940.0,
+    209649.0,
     106678.3,
-    4780.2
+    5010.2
    ]
   },
   {
@@ -1078,829 +1160,814 @@
    "fitting": "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042f399",
    "side": "left",
    "s_mm": 107278,
-   "rise_mm": 300,
+   "rise_mm": 198,
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
-   "routed": true,
+   "routed": false,
    "bends": 2,
    "location_mm": [
-    206612.0,
+    205704.0,
     107278.4,
-    4834.1
+    4432.1
    ]
   }
  ],
  "crossings": {
-  "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429486": 5250,
-  "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00429156": 4950,
-  "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-0042917d": 4850,
-  "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429473": 4850,
-  "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f15": 4850,
-  "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f18": 4950,
-  "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294b5": 5068,
-  "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fee2": 4850,
-  "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043feee": 4750,
-  "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fefd": 4750,
-  "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff1b": 4750,
-  "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426df7": 4580,
-  "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432c7b": 4750,
-  "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426bc9": 4876,
-  "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff4b": 4648,
-  "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042dc57": 4750,
+  "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429486": 4380,
+  "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00429156": 4753,
+  "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-0042917d": 5120,
+  "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429473": 4609,
+  "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f15": 4650,
+  "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f18": 4724,
+  "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294b5": 4868,
+  "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fee2": 4550,
+  "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043feee": 4550,
+  "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fefd": 4516,
+  "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff1b": 4516,
+  "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426df7": 4280,
+  "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432c7b": 4980,
+  "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426bc9": 4744,
+  "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff4b": 4516,
+  "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042dc57": 4348,
   "HOST|b9a7ad3e-4218-4282-b14c-9f4609a66269-00429c24": 4350,
-  "HOST|b9a7ad3e-4218-4282-b14c-9f4609a66269-00429c6c": 4350,
-  "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00433674": 4750,
-  "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294b7": 4850,
-  "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429475": 4850,
-  "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429484": 4850,
-  "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294a7": 4850,
-  "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432c75": 4750,
-  "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426b76": 4870
+  "HOST|b9a7ad3e-4218-4282-b14c-9f4609a66269-00429c6c": 4730,
+  "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00433674": 4348,
+  "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294b7": 4730,
+  "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429475": 4730,
+  "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429484": 4468,
+  "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294a7": 4468,
+  "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432c75": 4550,
+  "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426b76": 4670
  },
  "links": {
   "repairs": [
    {
     "host": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426b76",
     "other": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426c3a",
-    "stretch_mm": 1840,
+    "stretch_mm": 4411,
     "pieces": [],
-    "gap_mm": 0
+    "gap_mm": 1,
+    "reroute": false
    },
    {
     "host": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426bc3",
     "other": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426c2c",
-    "stretch_mm": 0,
+    "stretch_mm": -1000,
     "pieces": [
      "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426bc3#j1",
-     "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426bc3#j2"
+     "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426bc3#j2",
+     "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426bc3#j3"
     ],
-    "gap_mm": 3330
-   },
-   {
-    "host": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426bc9",
-    "other": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426ca5",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426bc9#j3"
-    ],
-    "gap_mm": 60
-   },
-   {
-    "host": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426bc9",
-    "other": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426cab",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426bc9#j4"
-    ],
-    "gap_mm": 60
+    "gap_mm": 6154,
+    "reroute": false
    },
    {
     "host": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426df0",
     "other": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426e0d",
     "stretch_mm": -300,
     "pieces": [
+     "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426df0#j4",
      "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426df0#j5",
-     "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426df0#j6",
-     "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426df0#j7"
+     "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426df0#j6"
     ],
-    "gap_mm": 401
-   },
-   {
-    "host": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426df7",
-    "other": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426e0c",
-    "stretch_mm": -600,
-    "pieces": [
-     "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426df7#j8"
-    ],
-    "gap_mm": 730
-   },
-   {
-    "host": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426df7",
-    "other": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426e0a",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426df7#j9"
-    ],
-    "gap_mm": 730
+    "gap_mm": 449,
+    "reroute": false
    },
    {
     "host": "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004273b1",
     "other": "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004273c8",
     "stretch_mm": 0,
     "pieces": [
-     "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004273b1#j10",
-     "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004273b1#j11"
+     "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004273b1#j7",
+     "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004273b1#j8"
     ],
-    "gap_mm": 1358
+    "gap_mm": 64,
+    "reroute": false
    },
    {
     "host": "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004273b1",
     "other": "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-00427435",
     "stretch_mm": 0,
     "pieces": [
-     "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004273b1#j12",
-     "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004273b1#j13"
+     "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004273b1#j9",
+     "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004273b1#j10"
     ],
-    "gap_mm": 1358
+    "gap_mm": 64,
+    "reroute": false
    },
    {
     "host": "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-0042779c",
     "other": "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004278ea",
     "stretch_mm": 0,
     "pieces": [
-     "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-0042779c#j14",
-     "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-0042779c#j15"
+     "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-0042779c#j11"
     ],
-    "gap_mm": 2732
-   },
-   {
-    "host": "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f15",
-    "other": "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f2e",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f15#j16"
-    ],
-    "gap_mm": 650
+    "gap_mm": 160,
+    "reroute": false
    },
    {
     "host": "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f18",
     "other": "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f2f",
     "stretch_mm": 0,
     "pieces": [
-     "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f18#j17"
+     "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f18#j12"
     ],
-    "gap_mm": 100
-   },
-   {
-    "host": "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00429156",
-    "other": "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-0042926e",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00429156#j18"
-    ],
-    "gap_mm": 750
+    "gap_mm": 74,
+    "reroute": false
    },
    {
     "host": "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-0042916e",
     "other": "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00429272",
     "stretch_mm": 0,
     "pieces": [
-     "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-0042916e#j19",
-     "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-0042916e#j20"
+     "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-0042916e#j13",
+     "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-0042916e#j14"
     ],
-    "gap_mm": 311
+    "gap_mm": 2259,
+    "reroute": false
    },
    {
     "host": "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-0042917d",
-    "other": "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-004292cc",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-0042917d#j21"
-    ],
-    "gap_mm": 650
+    "other": "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-004292ac",
+    "stretch_mm": 2258,
+    "pieces": [],
+    "gap_mm": 0,
+    "reroute": false
    },
    {
     "host": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429473",
     "other": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294f2",
-    "stretch_mm": 2275,
+    "stretch_mm": 559,
     "pieces": [],
-    "gap_mm": 0
+    "gap_mm": 0,
+    "reroute": false
    },
    {
     "host": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429475",
     "other": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294f1",
-    "stretch_mm": 2275,
+    "stretch_mm": 559,
     "pieces": [],
-    "gap_mm": 0
+    "gap_mm": 0,
+    "reroute": false
    },
    {
     "host": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429484",
     "other": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429490",
-    "stretch_mm": 2145,
+    "stretch_mm": -642,
     "pieces": [],
-    "gap_mm": 0
+    "gap_mm": 0,
+    "reroute": false
    },
    {
     "host": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429486",
-    "other": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429492",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429486#j22"
-    ],
-    "gap_mm": 1100
+    "other": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429491",
+    "stretch_mm": -642,
+    "pieces": [],
+    "gap_mm": 0,
+    "reroute": true
    },
    {
     "host": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294a6",
     "other": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294b1",
     "stretch_mm": 0,
     "pieces": [
-     "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294a6#j23",
-     "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294a6#j24"
+     "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294a6#j15"
     ],
-    "gap_mm": 1170
+    "gap_mm": 123,
+    "reroute": false
    },
    {
     "host": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294a7",
     "other": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294b2",
-    "stretch_mm": 1130,
+    "stretch_mm": -123,
     "pieces": [],
-    "gap_mm": 0
+    "gap_mm": 0,
+    "reroute": false
    },
    {
     "host": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294b5",
-    "other": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294b9",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294b5#j25"
-    ],
-    "gap_mm": 918
+    "other": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294ba",
+    "stretch_mm": 762,
+    "pieces": [],
+    "gap_mm": 0,
+    "reroute": false
    },
    {
     "host": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294b7",
     "other": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294bb",
-    "stretch_mm": 2938,
+    "stretch_mm": 762,
     "pieces": [],
-    "gap_mm": 0
+    "gap_mm": 0,
+    "reroute": false
    },
    {
-    "host": "HOST|b9a7ad3e-4218-4282-b14c-9f4609a66269-00429c82",
-    "other": "HOST|b9a7ad3e-4218-4282-b14c-9f4609a66269-00429c84",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|b9a7ad3e-4218-4282-b14c-9f4609a66269-00429c82#j26",
-     "HOST|b9a7ad3e-4218-4282-b14c-9f4609a66269-00429c82#j27"
-    ],
-    "gap_mm": 3138
+    "host": "HOST|b9a7ad3e-4218-4282-b14c-9f4609a66269-00429c6c",
+    "other": "HOST|67ad0596-bc51-4985-999d-8098ebb6cb2e-0042b350",
+    "stretch_mm": 1282,
+    "pieces": [],
+    "gap_mm": 0,
+    "reroute": false
    },
    {
     "host": "HOST|67ad0596-bc51-4985-999d-8098ebb6cb2e-0042b605",
     "other": "HOST|67ad0596-bc51-4985-999d-8098ebb6cb2e-0042b60e",
-    "stretch_mm": 3326,
+    "stretch_mm": 1364,
     "pieces": [],
-    "gap_mm": 0
+    "gap_mm": 0,
+    "reroute": false
    },
    {
     "host": "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042dbd9",
     "other": "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042f33d",
     "stretch_mm": 0,
     "pieces": [
-     "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042dbd9#j28",
-     "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042dbd9#j29"
+     "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042dbd9#j16",
+     "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042dbd9#j17"
     ],
-    "gap_mm": 393
+    "gap_mm": 1116,
+    "reroute": false
    },
    {
     "host": "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042dc57",
     "other": "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042f399",
-    "stretch_mm": -208,
+    "stretch_mm": -1116,
     "pieces": [],
-    "gap_mm": 0
+    "gap_mm": 0,
+    "reroute": false
    },
    {
     "host": "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432c75",
-    "other": "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432c7e",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432c75#j30"
-    ],
-    "gap_mm": 580
+    "other": "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432c80",
+    "stretch_mm": 3450,
+    "pieces": [],
+    "gap_mm": 0,
+    "reroute": false
    },
    {
     "host": "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432c7b",
     "other": "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432c82",
-    "stretch_mm": -259,
+    "stretch_mm": 3450,
     "pieces": [],
-    "gap_mm": 0
-   },
-   {
-    "host": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fee2",
-    "other": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0044009a",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fee2#j31"
-    ],
-    "gap_mm": 334
-   },
-   {
-    "host": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fee8",
-    "other": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400a5",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fee8#j32"
-    ],
-    "gap_mm": 334
+    "gap_mm": 0,
+    "reroute": false
    },
    {
     "host": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043feeb",
     "other": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400a5",
     "stretch_mm": 0,
     "pieces": [
-     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043feeb#j33"
+     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043feeb#j18",
+     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043feeb#j19"
     ],
-    "gap_mm": 334
-   },
-   {
-    "host": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043feeb",
-    "other": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400aa",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043feeb#j34",
-     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043feeb#j35"
-    ],
-    "gap_mm": 120
+    "gap_mm": 2079,
+    "reroute": false
    },
    {
     "host": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043feee",
-    "other": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400a5",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043feee#j36"
-    ],
-    "gap_mm": 100
+    "other": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400ac",
+    "stretch_mm": -5262,
+    "pieces": [],
+    "gap_mm": 0,
+    "reroute": true
    },
    {
     "host": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fefa",
-    "other": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400b0",
-    "stretch_mm": -300,
+    "other": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400ac",
+    "stretch_mm": -1500,
     "pieces": [
-     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fefa#j37",
-     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fefa#j38",
-     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fefa#j39"
+     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fefa#j20",
+     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fefa#j21",
+     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fefa#j22"
     ],
-    "gap_mm": 2662
+    "gap_mm": 5275,
+    "reroute": false
    },
    {
-    "host": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff4b",
-    "other": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400cf",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff4b#j40"
-    ],
-    "gap_mm": 106
-   },
-   {
-    "host": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff4b",
-    "other": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400de",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff4b#j41"
-    ],
-    "gap_mm": 106
-   },
-   {
-    "host": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff7e",
+    "host": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff60",
     "other": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400e4",
-    "stretch_mm": 424,
+    "stretch_mm": 0,
     "pieces": [
-     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff7e#j42"
+     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff60#j23",
+     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff60#j24"
     ],
-    "gap_mm": 66
+    "gap_mm": 3952,
+    "reroute": false
    },
    {
     "host": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426c3c",
     "other": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426c3a",
     "stretch_mm": 0,
     "pieces": [
-     "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426c3c#j43",
-     "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426c3c#j44"
+     "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426c3c#j25",
+     "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426c3c#j26"
     ],
-    "gap_mm": 1857
+    "gap_mm": 4411,
+    "reroute": false
    },
    {
     "host": "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f8c",
     "other": "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f8e",
     "stretch_mm": 0,
     "pieces": [
-     "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f8c#j45",
-     "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f8c#j46"
+     "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f8c#j27",
+     "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f8c#j28"
     ],
-    "gap_mm": 838
+    "gap_mm": 3881,
+    "reroute": false
    },
    {
     "host": "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-004292ac",
     "other": "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-004292ad",
     "stretch_mm": 0,
     "pieces": [
-     "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-004292ac#j47"
+     "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-004292ac#j29"
     ],
-    "gap_mm": 185
-   },
-   {
-    "host": "HOST|67ad0596-bc51-4985-999d-8098ebb6cb2e-0042b350",
-    "other": "HOST|67ad0596-bc51-4985-999d-8098ebb6cb2e-0042b351",
-    "stretch_mm": 0,
-    "pieces": [
-     "HOST|67ad0596-bc51-4985-999d-8098ebb6cb2e-0042b350#j48",
-     "HOST|67ad0596-bc51-4985-999d-8098ebb6cb2e-0042b350#j49"
-    ],
-    "gap_mm": 3138
+    "gap_mm": 2258,
+    "reroute": false
    }
   ],
   "open": [],
-  "pieces": 49,
-  "stretched": 13,
-  "end_transitions": [
+  "pieces": 29,
+  "stretched": 18,
+  "end_transitions": [],
+  "n1_pieces": 36,
+  "node_geometry": {
+   "turns": 62,
+   "unbuildable": [],
+   "offset": [
+    {
+     "piece": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429486#ha2",
+     "length_mm": 360,
+     "needed_mm": 1250,
+     "needed_45_mm": 978,
+     "fix": "30°"
+    },
+    {
+     "piece": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426bc3#j1",
+     "length_mm": 50,
+     "needed_mm": 650,
+     "needed_45_mm": 299,
+     "fix": "15°"
+    },
+    {
+     "piece": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426df0#j4",
+     "length_mm": 50,
+     "needed_mm": 650,
+     "needed_45_mm": 299,
+     "fix": "15°"
+    },
+    {
+     "piece": "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426df0#j5",
+     "length_mm": 446,
+     "needed_mm": 650,
+     "needed_45_mm": 299,
+     "fix": "60°"
+    },
+    {
+     "piece": "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004273b1#j7",
+     "length_mm": 50,
+     "needed_mm": 650,
+     "needed_45_mm": 299,
+     "fix": "15°"
+    },
+    {
+     "piece": "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004273b1#j9",
+     "length_mm": 50,
+     "needed_mm": 650,
+     "needed_45_mm": 299,
+     "fix": "15°"
+    },
+    {
+     "piece": "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-0042916e#j13",
+     "length_mm": 50,
+     "needed_mm": 650,
+     "needed_45_mm": 299,
+     "fix": "15°"
+    },
+    {
+     "piece": "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042dbd9#j16",
+     "length_mm": 34,
+     "needed_mm": 555,
+     "needed_45_mm": 259,
+     "fix": "15°"
+    },
+    {
+     "piece": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fefa#j21",
+     "length_mm": 366,
+     "needed_mm": 555,
+     "needed_45_mm": 259,
+     "fix": "60°"
+    },
+    {
+     "piece": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff60#j23",
+     "length_mm": 366,
+     "needed_mm": 555,
+     "needed_45_mm": 259,
+     "fix": "60°"
+    }
+   ],
+   "doubling_back": []
+  },
+  "reroute": [
    {
-    "strand": "S02",
-    "end": "start",
-    "carried": [
-     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fefa"
-    ],
-    "hits_before": -1,
-    "hits_after": 5
+    "host": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429486",
+    "other": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429491",
+    "stretch_mm": -642,
+    "pieces": [],
+    "gap_mm": 0,
+    "reroute": true
    },
    {
-    "strand": "S04",
-    "end": "end",
-    "carried": [
-     "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400e4"
-    ],
-    "hits_before": -1,
-    "hits_after": 0
+    "host": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043feee",
+    "other": "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400ac",
+    "stretch_mm": -5262,
+    "pieces": [],
+    "gap_mm": 0,
+    "reroute": true
    }
   ]
  },
  "moves": {
   "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fef1": [
-   4.0,
+   2029.0,
    0.0,
-   -119.8
+   -419.8
+  ],
+  "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043feeb": [
+   2029.0,
+   0.0,
+   -419.8
   ],
   "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400aa": [
-   4.0,
+   2029.0,
    0.0,
-   -119.8
+   -419.8
   ],
   "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fef7": [
-   2660.9,
+   5261.9,
    0.0,
-   -65.9
+   -365.9
   ],
   "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff30": [
-   2660.9,
+   5261.9,
    0.0,
-   -65.9
+   -365.9
   ],
   "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400ac": [
-   2660.9,
+   5261.9,
    0.0,
-   -65.9
+   -365.9
   ],
   "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400ae": [
-   2660.9,
+   5261.9,
    0.0,
-   -65.9
+   -365.9
   ],
   "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400c0": [
-   2660.9,
+   5261.9,
    0.0,
-   -65.9
+   -365.9
   ],
   "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400cf": [
-   2660.9,
+   5261.9,
    0.0,
-   -65.9
+   -365.9
   ],
   "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff06": [
-   3185.2,
+   5498.2,
    0.0,
-   -65.9
+   -365.9
   ],
   "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400b2": [
-   3185.2,
+   5498.2,
    0.0,
-   -65.9
+   -365.9
   ],
   "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400b9": [
-   3185.2,
+   5498.2,
    0.0,
-   -65.9
+   -365.9
   ],
   "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff60": [
-   423.7,
+   3934.7,
    0.0,
-   -65.9
+   -365.9
   ],
   "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400de": [
-   423.7,
+   3934.7,
    0.0,
-   -65.9
+   -365.9
   ],
   "HOST|b9a7ad3e-4218-4282-b14c-9f4609a66269-00429c84": [
-   3136.6,
+   1281.6,
+   0.0,
+   100.0
+  ],
+  "HOST|b9a7ad3e-4218-4282-b14c-9f4609a66269-00429c82": [
+   1281.6,
    0.0,
    100.0
   ],
   "HOST|67ad0596-bc51-4985-999d-8098ebb6cb2e-0042b351": [
-   3136.6,
+   1281.6,
+   0.0,
+   100.0
+  ],
+  "HOST|67ad0596-bc51-4985-999d-8098ebb6cb2e-0042b350": [
+   1281.6,
    0.0,
    100.0
   ],
   "HOST|67ad0596-bc51-4985-999d-8098ebb6cb2e-0042b5fc": [
-   3325.8,
+   1363.8,
    0.0,
    225.0
   ],
   "HOST|67ad0596-bc51-4985-999d-8098ebb6cb2e-0042b60e": [
-   3325.8,
+   1363.8,
    0.0,
    225.0
   ],
   "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426bc3": [
-   3320.4,
+   6153.4,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426ca5": [
-   3320.4,
+   6153.4,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426def": [
-   2074.0,
+   2574.0,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426e0a": [
-   2074.0,
+   2574.0,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426bc8": [
-   1840.2,
+   4411.2,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426c3a": [
-   1840.2,
+   4411.2,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426cab": [
-   1840.2,
+   4411.2,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294b6": [
-   2938.0,
+   762.0,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294ba": [
-   2938.0,
+   762.0,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294bb": [
-   2938.0,
+   762.0,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426df0": [
-   -313.8,
+   446.2,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426e0c": [
-   -313.8,
+   446.2,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429474": [
-   2275.1,
+   559.1,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294f1": [
-   2275.1,
+   559.1,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294f2": [
-   2275.1,
+   559.1,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f77": [
-   800.1,
+   3881.1,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f8e": [
-   800.1,
+   3881.1,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429485": [
-   2253.9,
+   -642.1,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429490": [
-   2253.9,
+   -642.1,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429491": [
-   2253.9,
+   -642.1,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-0042916e": [
-   185.1,
+   2258.1,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-004292ac": [
-   185.1,
+   2258.1,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294a6": [
-   1130.5,
+   -122.5,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294b2": [
-   1130.5,
+   -122.5,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-0042779c": [
-   2715.1,
+   160.1,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|d2b4e1d9-a6bd-4972-ad58-d633223dbc33-004273b1": [
-   1335.1,
+   40.1,
    0.0,
-   250.0
+   -50.0
   ],
   "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432c78": [
-   -259.1,
+   3449.9,
    0.0,
-   280.2
+   -19.8
   ],
   "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432c80": [
-   -259.1,
+   3449.9,
    0.0,
-   280.2
+   -19.8
   ],
   "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432c82": [
-   -259.1,
+   3449.9,
    0.0,
-   280.2
+   -19.8
   ],
   "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042dbd9": [
-   -207.7,
+   -1115.7,
    0.0,
-   334.1
+   34.1
   ],
   "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042f399": [
-   -207.7,
+   -1115.7,
    0.0,
-   334.1
+   34.1
   ],
   "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426b76": [
    0.0,
    0.0,
-   670.0
+   470.0
   ],
   "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426bc9": [
    0.0,
    0.0,
-   676.0
+   544.0
   ],
   "HOST|f1ee44a8-d6b7-44f8-a975-ba63f5267869-00426df7": [
    0.0,
    0.0,
-   380.0
+   80.0
   ],
   "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f15": [
    0.0,
    0.0,
-   650.0
+   450.0
   ],
   "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f2f": [
    0.0,
    0.0,
-   650.0
+   450.0
   ],
   "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00428f18": [
    0.0,
    0.0,
-   750.0
+   524.0
   ],
   "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-00429156": [
    0.0,
    0.0,
-   750.0
+   553.0
   ],
   "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-004292ad": [
    0.0,
    0.0,
-   750.0
+   553.0
   ],
   "HOST|bbc3d4ad-1208-4e21-a7d1-08509a70deb6-0042917d": [
    0.0,
    0.0,
-   650.0
+   920.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429473": [
    0.0,
    0.0,
-   650.0
+   409.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429475": [
    0.0,
    0.0,
-   650.0
+   530.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429484": [
    0.0,
    0.0,
-   650.0
+   268.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429486": [
    0.0,
    0.0,
-   1050.0
+   180.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294a7": [
    0.0,
    0.0,
-   650.0
+   268.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294b5": [
    0.0,
    0.0,
-   868.0
+   668.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294b7": [
    0.0,
    0.0,
-   650.0
+   530.0
+  ],
+  "HOST|b9a7ad3e-4218-4282-b14c-9f4609a66269-00429c6c": [
+   0.0,
+   0.0,
+   380.0
   ],
   "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-0042dc57": [
    0.0,
    0.0,
-   634.1
+   232.1
   ],
   "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432c75": [
    0.0,
    0.0,
-   580.2
+   380.2
   ],
   "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00432c7b": [
    0.0,
    0.0,
-   580.2
+   810.2
   ],
   "HOST|b0b455a0-75fc-4bd8-9082-7500d328c982-00433674": [
    0.0,
    0.0,
-   616.5
+   214.5
   ],
   "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fee2": [
    0.0,
    0.0,
-   334.1
+   34.1
   ],
   "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400a5": [
    0.0,
    0.0,
-   334.1
+   34.1
+  ],
+  "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fee8": [
+   0.0,
+   0.0,
+   34.1
   ],
   "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043feee": [
    0.0,
    0.0,
-   234.1
-  ],
-  "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fefd": [
-   0.0,
-   0.0,
-   234.1
-  ],
-  "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff1b": [
-   0.0,
-   0.0,
-   234.1
-  ],
-  "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043ff4b": [
-   0.0,
-   0.0,
-   132.1
-  ],
-  "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-0043fefa": [
-   2660.9,
-   0.0,
-   -65.9
-  ],
-  "HOST|9a22e6d5-3754-41d3-8d40-77bb566609cc-004400e4": [
-   423.7,
-   0.0,
-   -65.9
+   34.1
   ]
  }
 }

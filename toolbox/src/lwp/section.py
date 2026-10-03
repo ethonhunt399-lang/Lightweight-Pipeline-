@@ -16,6 +16,7 @@ PARALLEL = 0.995          # |cos| between run direction and corridor axis
 MIN_OVERLAP = 2000.0      # mm of a run inside the corridor to take part
 MERGE_TOL = 30.0          # mm: collinear segments within this in v and z form one strand
 SIDE_EXTENSION = 2000.0   # mm the corridor may widen beyond the band before hitting walls/columns
+RISER_REACH = 300.0       # mm beside the usable width a raised crossing service needs to come down
 
 
 @dataclass
@@ -78,6 +79,10 @@ class Crossing:
     group: str = "other"
     domain: str = ""
     attached: set = field(default_factory=set)   # strands it branches from: it reaches them wherever they go
+    beams: list = field(default_factory=list)   # (v_lo, v_hi, bottom) of beams along the corridor on its path
+    beam_cap: float = np.inf                      # bottom of a crossing (oblique) beam right over the service
+    s_lo: float = np.nan                          # its extent along the corridor
+    s_hi: float = np.nan
     ends: list = field(default_factory=list)      # per end: (v mm, strand id it connects to or None)
 
     @property
@@ -127,6 +132,8 @@ class Section:
     ceiling_max: float = np.inf   # highest crossing-beam bottom: upper bound for any layer
     leaks: list = field(default_factory=list)       # leak-prone water items not on a strand (LeakItem)
     bands: list = field(default_factory=list)       # across the corridor: drive lane / stall intervals (drawings)
+    obstacles: list = field(default_factory=list)   # MEP that stays: (key, s_lo, s_hi, v_lo, v_hi, z_lo, z_hi, group)
+    cuts: list = field(default_factory=list)        # constraints learned from node clashes (iterate.Cut)
 
     crossing_limit: float = 250.0
 
@@ -203,7 +210,7 @@ def extract(package: Package, corridor: Corridor, rules: RuleSet) -> Section:
             if corridor.s0 <= sc <= corridor.s1 and v_lo < corridor.v1 and v_hi > corridor.v0:
                 lo, hi = e.solid.aabb()
                 crossings.append(Crossing(e.key, sc, v_lo, v_hi, float(lo[2]), float(hi[2]), e.label(),
-                                          group=e.group, domain=e.domain))
+                                          group=e.group, domain=e.domain, s_lo=s_lo, s_hi=s_hi))
 
     # Split each (kind, system, size) group into strands of collinear segments.
     strands: list[Strand] = []
@@ -239,6 +246,7 @@ def extract(package: Package, corridor: Corridor, rules: RuleSet) -> Section:
         s.id = f"S{i:02d}"
 
     _attach_fittings(package, corridor, strands)
+    _adopt_orphans(package, corridor, strands)
     graph = connection_graph(package)
     owner = {k: st.id for st in strands for k in st.fittings + st.segments}
     for c in crossings:
@@ -315,16 +323,36 @@ def extract(package: Package, corridor: Corridor, rules: RuleSet) -> Section:
     inside = [b for b in beams if not (b.s_hi < corridor.s0 or b.s_lo > corridor.s1)]
     across = sorted((b for b in inside if b.crossing and np.isfinite(b.top)), key=lambda b: b.s_lo)
     for c in crossings:
-        lo_v, hi_v = max(c.v_lo, v_lo), min(c.v_hi, v_hi)
-        under = [b.bottom for b in inside if not b.crossing and overlaps(b.v_lo, b.v_hi, lo_v, hi_v)
-                 and b.s_lo - 1 <= c.s <= b.s_hi + 1]
-        if under:
-            c.ceiling = min(under)
-            continue
-        before = [b for b in across if b.s_hi <= c.s]
-        after = [b for b in across if b.s_lo >= c.s]
+        # The service has to come down outside the bundle before it reaches a beam: beams within a riser's
+        # reach of the usable width count as well.
+        before = [b for b in across if b.s_hi <= c.s - c.height / 2]
+        after = [b for b in across if b.s_lo >= c.s + c.height / 2]
         bay = ([before[-1]] if before else []) + ([after[0]] if after else [])
         c.ceiling = min(b.top for b in bay) - slab if bay and slab > 0 else ceiling_max
+        # A crossing beam over the service itself (an oblique beam covers a stretch of the corridor): under it.
+        over = []
+        for b in across:
+            if not (b.s_lo - c.height / 2 <= c.s <= b.s_hi + c.height / 2):
+                continue
+            # Where the beam's centre line meets the service: only there does the service pass under it, and
+            # only if that is over the width the bundle can use (outside, the service keeps its level).
+            sol = package.elements[b.key].solid
+            k_long = int(np.argmax(sol.half * (1 - np.abs(sol.axes[:, 2]))))
+            ax_ = sol.axes[k_long]
+            du = float(np.dot(ax_, corridor.u))
+            if abs(du) < 1e-3:
+                continue
+            t_ = (c.s - corridor.s_of(sol.center)) / du
+            v_x = corridor.v_of(sol.center + ax_ * t_)
+            reach = RISER_REACH + c.height
+            if c.v_lo - 1 <= v_x <= c.v_hi + 1 and v_lo - reach <= v_x <= v_hi + reach:
+                over.append(b.bottom)
+        c.beam_cap = min(over) if over else np.inf
+        # Beams running along the corridor that the service passes under: it can be raised over the bundle
+        # only where it can come down again before such a beam (the solver keeps strands clear of it, or keeps
+        # the service under it).
+        c.beams = [(b.v_lo, b.v_hi, b.bottom) for b in inside if not b.crossing
+                   and overlaps(b.v_lo, b.v_hi, c.v_lo, c.v_hi) and b.s_lo - 1 <= c.s <= b.s_hi + 1]
     members = {k for st in strands for k in st.segments + st.fittings}
     pattern = rules.layout.tray_water.leak_prone_pattern
     zone_keys = {c.key for c in crossings}
@@ -339,10 +367,28 @@ def extract(package: Package, corridor: Corridor, rules: RuleSet) -> Section:
         _, _, lv, hv = _plan_extent(e, corridor)
         on = next((k for k in graph.get(e.key, ()) if k in zone_keys), None)
         leaks.append(LeakItem(e.key, corridor.s_of(cpt), lv, hv, float(lo[2]), float(hi[2]), on))
+    # MEP elements that stay where they are (not in a strand, not a crossing service and not one of their own
+    # branches or fittings): obstacles the strands keep clear of.
+    near_moving = set(members) | {c.key for c in crossings}
+    for k in list(near_moving):
+        for n in graph.get(k, ()):
+            near_moving.add(n)
+            near_moving.update(graph.get(n, ()))
+    obstacles = []
+    for e in package.mep():
+        if e.key in near_moving or e.solid is None:
+            continue
+        lo, hi = e.solid.aabb()
+        s0_, s1_, v0_, v1_ = _plan_extent(e, corridor)
+        if s1_ < corridor.s0 - overhang or s0_ > corridor.s1 + overhang or v1_ < v_lo or v0_ > v_hi:
+            continue
+        if hi[2] < floor_z + rules.headroom.min_clear_mm or lo[2] > ceiling_max:
+            continue
+        obstacles.append((e.key, s0_, s1_, v0_, v1_, float(lo[2]), float(hi[2]), e.group))
     sec = Section(corridor=corridor, floor_z=floor_z, floor_name=floor.name if floor else "", ceiling=ceiling,
                   ceiling_key=ceiling_key, v_lo=v_lo, v_hi=v_hi, strands=strands, beams=beams,
                   crossings=crossings, blocked=blocked, notes=notes, crossing_limit=rules.layout.crossing_zone_max_mm,
-                  ceiling_max=ceiling_max, leaks=leaks)
+                  ceiling_max=ceiling_max, leaks=leaks, obstacles=obstacles)
     if sec.large_crossings:
         sec.notes.append(f"{len(sec.large_crossings)} 根横穿管高度超过 {rules.layout.crossing_zone_max_mm:.0f} mm"
                          f"（{'、'.join(sorted({c.label for c in sec.large_crossings}))}），不从管线束上方通过，按节点冲突处理")
@@ -424,3 +470,35 @@ def _branch_side(package: Package, corridor: Corridor, key: str, v_from: float, 
                     nxt.append(n2)
         frontier = nxt
     return None
+
+
+def _adopt_orphans(package: Package, corridor: Corridor, strands: list[Strand]) -> None:
+    """Pieces of a strand's run left out of it (short runs, slightly offset segments, couplings, reducers) that
+    continue it along the corridor become part of it."""
+    graph = connection_graph(package)
+    owner = {k: s for s in strands for k in s.segments + s.fittings}
+    for st in strands:
+        queue = [n for k in st.segments + st.fittings for n in graph.get(k, ()) if n not in owner]
+        while queue:
+            n = queue.pop()
+            if n in owner:
+                continue
+            e = package.elements.get(n)
+            if e is None or e.solid is None or not e.is_mep:
+                continue
+            c = e.solid.center
+            if not (corridor.s0 - 1 <= corridor.s_of(c) <= corridor.s1 + 1) or abs(corridor.v_of(c) - st.v) > 600:
+                continue
+            if e.origin == "mep_curve":
+                r = e.record
+                d = (np.array(r["end"]) - np.array(r["start"])) * 1000
+                n_ = float(np.linalg.norm(d))
+                if n_ < 1 or abs(d[2]) > 0.1 * n_ or abs(float(np.dot(d / n_, corridor.u))) < 0.95:
+                    continue        # a branch (N2) or a drop
+                st.segments.append(n)
+            elif len([cc for cc in e.connectors if cc.get("connected")]) > 2:
+                continue            # a tee off the run: its branches are N2's
+            else:
+                st.fittings.append(n)
+            owner[n] = st
+            queue.extend(m for m in graph.get(n, ()) if m not in owner)

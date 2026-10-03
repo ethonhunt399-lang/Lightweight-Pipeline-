@@ -17,6 +17,7 @@ from .plan import apply, evaluate, plan_json, review_human, write_json
 from .rules import RuleSet, load_rules
 from .section import Section, extract
 from .section_svg import draw
+from .iterate import solve_iterative
 from .solver import SCHEME_ORDER, SCHEMES, Layout, solve
 from .viewer import build_data, write_viewer
 
@@ -105,15 +106,22 @@ def cmd_solve(args) -> int:
     region = _region(corridor)
     for scheme in schemes:
         t = time.perf_counter()
-        layout = solve(sec, rules, scheme, seconds=args.effort)
+        print(f"  {SCHEMES[scheme]}：")
+        layout, result, _ = solve_iterative(package, sec, rules, scheme, seconds=args.effort,
+                                            rounds=getattr(args, "rounds", 4))
         layouts[scheme] = layout
-        print(f"  {SCHEMES[scheme]}：{layout.status}，{time.perf_counter() - t:.1f} s，{layout.metrics}")
-        if not layout.placements:
+        print(f"  {SCHEMES[scheme]}：{layout.status}，{time.perf_counter() - t:.1f} s，"
+              f"{ {k: v for k, v in layout.metrics.items() if k != 'iterations'} }")
+        if not layout.placements or result is None:
             for d in layout.diagnosis:
                 print("    " + d)
             continue
-        moved, moves, nodes, links = apply(package, sec, layout, rules)
-        link_counts[scheme] = {"n0_pieces": links.pieces, "n0_repairs": len(links.repairs), "open_joints": len(links.open)}
+        moved, moves, nodes, links = result
+        geo = links.geometry.to_dict() if links.geometry is not None else {}
+        link_counts[scheme] = {"n0_pieces": links.pieces, "n0_repairs": len(links.repairs), "open_joints": len(links.open),
+                               "turns": geo.get("turns", 0), "unbuildable": len(geo.get("unbuildable", [])),
+                               "offsets": len(geo.get("offset", [])), "doubling_back": len(geo.get("doubling_back", [])),
+                               "reroute": sum(r.reroute for r in links.repairs)}
         node_counts[scheme] = len(nodes)
         handled[scheme] = {n.fitting for n in nodes}
         planned[scheme] = moved
@@ -165,7 +173,8 @@ def _page(sec: Section, rules: RuleSet, layouts: dict[str, Layout], ev: dict, ha
         m = lay.metrics if lay else {}
         rows.append("<tr>" + "".join(f"<td>{x}</td>" for x in [
             f"<b>{escape(r['name'])}</b>",
-            r["hard"], (f"{r['hard'] - r['hard_node']} / {r['hard_node']}" if key in layouts else "—"),
+            f"{r['hard']}（原有 {r.get('hard_preexisting', '—')}）" if key not in ("original",) else r["hard"],
+            (f"{r['hard'] - r['hard_node']} / {r['hard_node']}" if key in layouts else "—"),
             r["hard_structure"], r["clearance"], f"{r.get('water_parallel_tray', '—')} / {r.get('water_leak_tray', '—')} / {r.get('water_crossing_tray', '—')}",
             (f"{r['n2_nodes']} / {r['n0_repairs']}" if "n2_nodes" in r else "—"),
             _m(r.get("lowest_mm")), _m(r.get("median_lowest_mm")), r.get("median_levels", "—"),
@@ -221,6 +230,7 @@ th,td{{border:1px solid #e5e7eb;padding:4px 6px;text-align:left}} th{{background
 最下层底 ≥ 楼面 + {rules.headroom.min_clear_mm:.0f} + 横担 {lay.support_reserve_mm:.0f} mm。</p>
 {f"<ul>{notes}{diag}</ul>" if notes or diag else ""}
 {_review_html(review) if review else ""}
+{_build_html(ev, layouts)}
 <h2>断面</h2>{''.join(figs)}
 <h2>管线明细</h2><div class="wrap"><table><tr><th>编号</th><th>管线</th><th>系统</th><th>宽×高 mm</th><th>原 v (m)</th>
 <th>原底 (m)</th>{heads}<th>长度 m</th><th>备注</th></tr>{strands}</table></div>
@@ -250,6 +260,21 @@ def _pos(layout: Layout, s, sec: Section) -> str:
     if p is None:
         return "原位"
     return f"L{p.layer + 1} / {(p.v - sec.corridor.v0) / 1000:.2f} / {(p.z - sec.floor_z) / 1000:.2f}"
+
+
+def _build_html(ev: dict, layouts: dict) -> str:
+    rows = "".join(
+        f"<tr><td>{escape(ev[k]['name'])}</td><td>{ev[k].get('turns', '—')}</td><td>{ev[k].get('offsets', '—')}</td>"
+        f"<td>{ev[k].get('unbuildable', '—')}</td><td>{ev[k].get('doubling_back', '—')}</td><td>{ev[k].get('reroute', '—')}</td>"
+        f"<td>{ev[k].get('open_joints', '—')}</td></tr>"
+        for k in SCHEME_ORDER if k in ev and k in layouts)
+    if not rows:
+        return ""
+    return ("<h2>节点几何与可施工检查</h2><div class='wrap'><table><tr><th>方案</th><th>新增转折（含弯头实体）</th>"
+            "<th>需改用斜接（60°/45°/30°/15°）</th><th>不可施工</th><th>折返</th><th>需重布支管</th><th>仍断开</th></tr>"
+            + rows + "</table></div><p class='sub'>新增的过渡段、翻弯段在每个转折处按弯曲半径（水管 1.5×外径、风管 1.0×弯曲平面内边长、"
+            "桥架不小于 300 mm）截短并加弯头实体，参与碰撞检测；两转折之间放不下两只弯头加 50 mm 直段的，给出可行的最陡斜接角度，"
+            "仍放不下的列为不可施工。“需重布支管”：主管移过了其支管上的下一个管件，支管改从另一侧接入该管件，需人工重布（清单见 links.reroute）。清单见方案文件 links.node_geometry。</p>")
 
 
 def _zone(z) -> str:
