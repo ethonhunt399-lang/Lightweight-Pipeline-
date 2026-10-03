@@ -1,0 +1,92 @@
+# 安装与检修空间规则（草案，C 层评审第 6 项）——2026-10-02
+#
+# 状态：草案，尚未接入检测代码，也不被 load_rules 读取。
+# 来源：网上可查到的规范汇总文章（二手）。规范原文网页这次都没能打开，所以每条都是 confirmed: false，
+#       source 写的是汇总文章里引用的规范；verify 写明需要核对的原文。数值有冲突的已在 note 里标出。
+# 口径：净距按外轮廓（含保温）计；"上方净空"指构件顶到上方最近障碍物（梁底、板底、其他管线底）的竖向距离。
+#
+# 用法设想（待实现）：
+#   - tray_top_clear：沿桥架每 1 m 取断面，查上方最近障碍物；
+#   - wall_clear：管道、风管、桥架与墙、柱、梁侧面的水平净距（与 clearance_mm 的"机电与结构 50 mm"分开，这里是安装空间）；
+#   - valve_clear：阀门、附件包围盒四周的净空（手轮朝向未知，先按四周最小值）；
+#   - room_equipment：机房内设备间距（需要房间或排除区域信息）。
+
+version: 0.1.0-draft
+confirmed: false
+
+rules:
+  tray_top_clear:
+    value_mm: 300
+    what: 电缆桥架（梯架、托盘、线槽）顶部至顶棚、楼板、梁等障碍物的净距不宜小于 300 mm，用于敷设、更换电缆
+    source: GB 50054-2011《低压配电设计规范》（汇总文章引用）
+    verify: GB 50054-2011 电缆桥架布线一节原文与条号
+    refs: ["https://www.sohu.com/a/427381535_120789452", "https://fire114.cn/index/article/detail?i=128437"]
+    confirmed: false
+
+  tray_layer_gap:
+    value_mm: {control: 200, power: 300, power_to_nonpower: 500, power_to_nonpower_with_shield: 300}
+    what: 多层桥架层间垂直净距
+    source: GB 50054-2011（汇总文章引用）
+    verify: 原文数值。另一篇汇总给的是控制电缆 150、电力电缆 250，两者冲突，必须以原文为准
+    refs: ["https://www.sohu.com/a/427381535_120789452", "https://fire114.cn/index/article/detail?i=128437"]
+    confirmed: false
+
+  tray_to_equipment:
+    value_mm: 500
+    what: 桥架与用电设备之间净距
+    source: 行业汇总（未注明规范条号）
+    verify: 出处
+    refs: ["https://fire114.cn/index/article/detail?i=128437"]
+    confirmed: false
+
+  pipe_to_wall:
+    value_mm: 100
+    what: 管道外表面（含保温）与梁、柱、墙的最小净距，用于安装和保温施工
+    source: 管井布置要求、暖通专业汇总（未注明规范条号）
+    verify: 出处（可能来自 GB 50015 / GB 50242 或图集）
+    refs: ["https://www.sohu.com/a/898622780_121123856", "https://fire114.cn/index/article/detail?i=128437"]
+    confirmed: false
+
+  pipe_to_pipe_no_flange:
+    value_mm: 50
+    what: 无法兰管道外壁之间净距
+    source: 管井布置要求（未注明规范条号）
+    note: 与 clearance_mm 中已确认的"其余 30 mm"不同；本条是安装空间，用于判断能否施工，不改净距规则
+    refs: ["https://www.sohu.com/a/898622780_121123856"]
+    confirmed: false
+
+  flange_clear:
+    value_mm: {to_adjacent_pipe: 25, to_structure: 50}
+    what: 法兰外缘至相邻管道外壁、至梁柱墙的净距
+    source: 管井布置要求（未注明规范条号）
+    refs: ["https://www.sohu.com/a/898622780_121123856"]
+    confirmed: false
+
+  valve_clear:
+    value_mm: {handwheel_to_handwheel: 100, parallel_valves: 200, general_access: 500}
+    what: 阀门手轮外缘间距 100；阀门并列安装净距 200；阀门、检修口、设备前的一般安装维修空间 500
+    source: 管井布置要求（100）；水专业汇总（200）；行业汇总"安装、维修空间 ≥ 500 mm"（均未注明规范条号）
+    note: 三个数值口径不同，检测时分别用：同排阀门之间用 200（100 为管井内下限），操作面一侧用 500
+    refs: ["https://www.sohu.com/a/898622780_121123856", "https://fire114.cn/index/article/detail?i=128437"]
+    confirmed: false
+
+  room_equipment:
+    hvac_plant:
+      unit_to_wall_mm: 1000
+      unit_to_unit_mm: 1200
+      unit_to_switchboard_mm: 1500
+      unit_to_overhead_pipe_or_tray_mm: 1000
+      main_aisle_mm: 1500
+      source: GB 50736《民用建筑供暖通风与空气调节设计规范》（汇总文章引用）
+    fire_pump_room:
+      pump_clear_by_motor_kw: [[22, 600], [55, 800], [255, 1200], [999999, 1500]]   # 电机功率上限 kW → 机组之间及至墙净距 mm（"不宜小于"）
+      main_aisle_mm: 1200
+      tank_to_wall_mm: {no_pipe: 700, with_pipe: 1000}
+      source: GB 50974《消防给水及消火栓系统技术规范》（汇总文章引用）
+    water_tank:
+      top_to_slab_mm: 800
+      bottom_to_floor_mm: 500
+      source: 12S101《矩形给水箱》图集（汇总文章引用）
+    verify: 各条原文与条号；机房检测需要房间边界（manifest.rooms）
+    refs: ["https://www.sohu.com/a/898622780_121123856"]
+    confirmed: false
