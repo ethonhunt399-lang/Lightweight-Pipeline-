@@ -45,18 +45,126 @@
  },
  "headroom": {
   "name": "净高最优",
-  "hard": 46,
-  "hard_preexisting": 11,
-  "n2_unresolved": 10,
-  "hard_node": 17,
+  "hard": 27,
+  "hard_preexisting": 10,
+  "n2_unresolved": 7,
+  "hard_node": 10,
   "nodes": {
-   "横穿翻弯": 5,
-   "大尺寸横穿": 12
+   "横穿翻弯": 3,
+   "大尺寸横穿": 7
   },
-  "clearance": 42,
-  "hard_structure": 4,
+  "clearance": 56,
+  "hard_structure": 7,
   "water_parallel_tray": 2,
-  "water_crossing_tray": 43,
+  "water_crossing_tray": 47,
+  "water_leak_tray": 0,
+  "stations": 36,
+  "lowest_mm": 2400,
+  "median_lowest_mm": 2400,
+  "median_levels": 2.0,
+  "max_levels": 3,
+  "zones": {
+   "lane": {
+    "min_mm": 2498,
+    "median_mm": 2600,
+    "levels_mm": [
+     2450,
+     2500,
+     2600,
+     2750,
+     3050,
+     3150
+    ],
+    "cells": 36
+   },
+   "stall": {
+    "min_mm": 2350,
+    "median_mm": 2400,
+    "levels_mm": [
+     2400,
+     3050
+    ],
+    "cells": 749
+   }
+  },
+  "n2_nodes": 30,
+  "n0_pieces": 21,
+  "n0_repairs": 43,
+  "open_joints": 0,
+  "turns": 103,
+  "unbuildable": 0,
+  "offsets": 7,
+  "doubling_back": 0,
+  "reroute": 1
+ },
+ "changes": {
+  "name": "改动最少",
+  "hard": 31,
+  "hard_preexisting": 9,
+  "n2_unresolved": 7,
+  "hard_node": 8,
+  "nodes": {
+   "横穿翻弯": 3,
+   "大尺寸横穿": 5
+  },
+  "clearance": 37,
+  "hard_structure": 5,
+  "water_parallel_tray": 2,
+  "water_crossing_tray": 42,
+  "water_leak_tray": 0,
+  "stations": 36,
+  "lowest_mm": 2300,
+  "median_lowest_mm": 2300,
+  "median_levels": 2.0,
+  "max_levels": 3,
+  "zones": {
+   "lane": {
+    "min_mm": 2498,
+    "median_mm": 2600,
+    "levels_mm": [
+     2450,
+     2500,
+     2600,
+     2750,
+     3050,
+     3150
+    ],
+    "cells": 36
+   },
+   "stall": {
+    "min_mm": 2250,
+    "median_mm": 2300,
+    "levels_mm": [
+     2300,
+     3050
+    ],
+    "cells": 741
+   }
+  },
+  "n2_nodes": 30,
+  "n0_pieces": 21,
+  "n0_repairs": 42,
+  "open_joints": 0,
+  "turns": 93,
+  "unbuildable": 2,
+  "offsets": 5,
+  "doubling_back": 0,
+  "reroute": 1
+ },
+ "supports": {
+  "name": "支吊架最省",
+  "hard": 28,
+  "hard_preexisting": 8,
+  "n2_unresolved": 6,
+  "hard_node": 10,
+  "nodes": {
+   "横穿翻弯": 3,
+   "大尺寸横穿": 7
+  },
+  "clearance": 38,
+  "hard_structure": 5,
+  "water_parallel_tray": 1,
+  "water_crossing_tray": 49,
   "water_leak_tray": 0,
   "stations": 36,
   "lowest_mm": 2300,
@@ -88,123 +196,14 @@
    }
   },
   "n2_nodes": 30,
-  "n0_pieces": 21,
-  "n0_repairs": 43,
+  "n0_pieces": 20,
+  "n0_repairs": 42,
   "open_joints": 0,
-  "turns": 93,
+  "turns": 92,
   "unbuildable": 1,
   "offsets": 6,
   "doubling_back": 0,
   "reroute": 1
- },
- "changes": {
-  "name": "改动最少",
-  "hard": 32,
-  "hard_preexisting": 11,
-  "n2_unresolved": 8,
-  "hard_node": 13,
-  "nodes": {
-   "大尺寸横穿": 8,
-   "横穿翻弯": 5
-  },
-  "clearance": 105,
-  "hard_structure": 5,
-  "water_parallel_tray": 2,
-  "water_crossing_tray": 23,
-  "water_leak_tray": 0,
-  "stations": 36,
-  "lowest_mm": 2350,
-  "median_lowest_mm": 2350,
-  "median_levels": 1.5,
-  "max_levels": 2,
-  "zones": {
-   "lane": {
-    "min_mm": 2498,
-    "median_mm": 2600,
-    "levels_mm": [
-     2450,
-     2500,
-     2600,
-     2750,
-     3050,
-     3150
-    ],
-    "cells": 36
-   },
-   "stall": {
-    "min_mm": 2300,
-    "median_mm": 2350,
-    "levels_mm": [
-     2350,
-     3050
-    ],
-    "cells": 737
-   }
-  },
-  "n2_nodes": 28,
-  "n0_pieces": 22,
-  "n0_repairs": 43,
-  "open_joints": 0,
-  "turns": 108,
-  "unbuildable": 2,
-  "offsets": 5,
-  "doubling_back": 0,
-  "reroute": 0
- },
- "supports": {
-  "name": "支吊架最省",
-  "hard": 34,
-  "hard_preexisting": 8,
-  "n2_unresolved": 10,
-  "hard_node": 15,
-  "nodes": {
-   "大尺寸横穿": 10,
-   "横穿翻弯": 4,
-   "出线引出": 1
-  },
-  "clearance": 61,
-  "hard_structure": 4,
-  "water_parallel_tray": 2,
-  "water_crossing_tray": 36,
-  "water_leak_tray": 0,
-  "stations": 36,
-  "lowest_mm": 2400,
-  "median_lowest_mm": 2400,
-  "median_levels": 1.0,
-  "max_levels": 2,
-  "zones": {
-   "lane": {
-    "min_mm": 2498,
-    "median_mm": 2600,
-    "levels_mm": [
-     2450,
-     2500,
-     2600,
-     2750,
-     3050,
-     3150
-    ],
-    "cells": 36
-   },
-   "stall": {
-    "min_mm": 2350,
-    "median_mm": 2400,
-    "levels_mm": [
-     2400,
-     3050
-    ],
-    "cells": 746
-   }
-  },
-  "n2_nodes": 30,
-  "n0_pieces": 23,
-  "n0_repairs": 43,
-  "open_joints": 0,
-  "turns": 101,
-  "unbuildable": 4,
-  "offsets": 8,
-  "doubling_back": 0,
-  "reroute": 2
  },
  "gold": {
   "name": "人工方案",

@@ -25,7 +25,7 @@ from .package import Element, Package
 
 M = 1000.0
 OPEN_MM = 1.0          # connectors farther apart than this are an open joint
-SHIFTS_MM = (300.0, 600.0, 1000.0, 1500.0, 2000.0)   # set-backs tried for a transition (N3)
+SHIFTS_MM = (300.0, 600.0, 1000.0, 1500.0, 2000.0, 3000.0)   # set-backs tried for a transition (N3)
 MIN_RUN_MM = 1.0       # a run may be shortened down to this (two strands now side by side)
 
 
@@ -246,77 +246,23 @@ def reconnect(package: Package, elements: dict[str, Element], moves: dict[str, n
             moved = key in moves and float(np.linalg.norm(moves[key])) > 0.5
             return (_axis(e) is None, moved)
         cand.sort(key=rank)
-        host_key, hconn, end, other_key, target = cand[0]
-        host = elements[host_key]
-        sec = _section(host, hconn)
-        stretch = 0.0
-        axis = _axis(host)
-        run_axis = None
-        if axis is not None:
-            s0, s1 = axis
-            at_end = np.linalg.norm(end - s1) < np.linalg.norm(end - s0)
-            out = (s1 - s0) / max(float(np.linalg.norm(s1 - s0)), 1e-9)
-            run_axis = out
-            if not at_end:
-                out = -out
-            d_ax = float(np.dot(target - end, out))
-            length = float(np.linalg.norm(s1 - s0))
-            if abs(d_ax) > OPEN_MM and length + d_ax >= MIN_RUN_MM:
-                stretch = d_ax
-                new_end = end + out * d_ax
-                host = _set_axis(host, s0 if at_end else new_end, new_end if at_end else s1)
-                elements[host_key] = host
-                seen(host)
-                end = new_end
-            elif abs(d_ax) > OPEN_MM and length + d_ax <= -MIN_RUN_MM:
-                # The joint moved past the far end of this run (a strand moved beyond the next fitting of its
-                # branch): the run now reaches that fitting from the other side. No piece doubling back along
-                # it; the branch has to be re-laid there (reported).
-                stretch = d_ax
-                new_end = end + out * d_ax
-                host = _set_axis(host, s0 if at_end else new_end, new_end if at_end else s1)
-                elements[host_key] = host
-                seen(host)
-                end = new_end
-                rerouted = True
-        d = target - end
+        # The preferred host first; when its transition runs into something, the other run (if straight)
+        # is tried as host too and the one with fewer clashes is taken.
+        best_plan = None
+        for ci, c in enumerate(cand):
+            if ci and (_axis(elements[c[0]]) is None or best_plan is None or best_plan[0][0] == 0):
+                break
+            plan_ = _plan(elements, c, near, boxes, moves)
+            key_ = (plan_[0][0], ci)
+            if best_plan is None or key_ < (best_plan[0][0], best_plan[-1]):
+                best_plan = plan_ + (ci,)
+        (_, pts, solids, shift), host_key, hconn, other_key, host, end, stretch, run_axis, sec, rerouted, _ci = best_plan
+        if host is not elements[host_key]:
+            elements[host_key] = host
+            seen(host)
+        target = cand[_ci][4]
         pieces: list[str] = []
-        if float(np.linalg.norm(d)) > OPEN_MM:
-            # Where along the run the transition is made (N3): at the joint, or set back along the run so that
-            # it falls where nothing is in the way; then the order of the vertical and horizontal pieces.
-            shifts = [0.0]
-            if axis is not None:
-                s0_, s1_ = _axis(host)
-                room = float(np.linalg.norm(s1_ - s0_)) - 100.0
-                shifts += [x for x in SHIFTS_MM if x < room]
-                out_dir = (end - (s0_ if np.linalg.norm(end - s1_) < 1 else s1_))
-                out_dir = out_dir / max(float(np.linalg.norm(out_dir)), 1e-9)
-            best = None
-            for shift in shifts:
-                start = end - out_dir * shift if shift else end
-                dd = target - start
-                ax = float(np.dot(dd, out_dir)) if shift else 0.0
-                perp = dd - (out_dir * ax if shift else 0.0)
-                dz = np.array([0.0, 0.0, perp[2]])
-                dh = perp - dz
-                if np.linalg.norm(dz) > OPEN_MM and np.linalg.norm(dh) > OPEN_MM:
-                    orders = [[start, start + dz, start + perp], [start, start + dh, start + perp]]
-                else:
-                    orders = [[start, start + perp]]
-                for pts in orders:
-                    if shift:
-                        pts = pts + [target]
-                    pts = [p for i, p in enumerate(pts) if i == 0 or float(np.linalg.norm(p - pts[i - 1])) > OPEN_MM]
-                    if len(pts) < 2:
-                        continue
-                    solids = [_piece_solid(sec, pts[i], pts[i + 1], run_axis) for i in range(len(pts) - 1)]
-                    hits = _hits(solids, near, boxes, {host_key, other_key})
-                    rank_ = (hits, shift, len(solids))
-                    if best is None or rank_ < best[0]:
-                        best = (rank_, pts, solids, shift)
-                if best is not None and best[0][0] == 0:
-                    break
-            _, pts, solids, shift = best
+        if pts is not None:
             if shift:
                 s0_, s1_ = _axis(host)
                 at_end_ = np.linalg.norm(end - s1_) < np.linalg.norm(end - s0_)
@@ -363,6 +309,108 @@ def reconnect(package: Package, elements: dict[str, Element], moves: dict[str, n
         if frozenset((j.a, j.b)) not in bridged and worse(j):
             left.append(j)
     return repairs, left
+
+
+def _plan(elements, c, near, boxes, moves):
+    """Transition for joint end `c` = (host key, its connector, its end, other key, target): stretch the host
+    along its axis, then the set-back and order of the jog pieces with the fewest clashes.
+    Returns ((hits, pts, solids, shift), host_key, hconn, other_key, host, end, stretch, run_axis, sec, rerouted)."""
+    host_key, hconn, end, other_key, target = c
+    host = elements[host_key]
+    sec = _section(host, hconn)
+    stretch = 0.0
+    rerouted = False
+    axis = _axis(host)
+    run_axis = None
+    if axis is not None:
+        s0, s1 = axis
+        at_end = np.linalg.norm(end - s1) < np.linalg.norm(end - s0)
+        out = (s1 - s0) / max(float(np.linalg.norm(s1 - s0)), 1e-9)
+        run_axis = out
+        if not at_end:
+            out = -out
+        d_ax = float(np.dot(target - end, out))
+        length = float(np.linalg.norm(s1 - s0))
+        if abs(d_ax) > OPEN_MM and (length + d_ax >= MIN_RUN_MM or length + d_ax <= -MIN_RUN_MM):
+            # A joint moved past the far end of this run (a strand moved beyond the next fitting of its
+            # branch): the run now reaches that fitting from the other side, no piece doubling back along
+            # it; the branch has to be re-laid there (reported).
+            rerouted = length + d_ax <= -MIN_RUN_MM
+            stretch = d_ax
+            new_end = end + out * d_ax
+            host = _set_axis(host, s0 if at_end else new_end, new_end if at_end else s1)
+            end = new_end
+    d = target - end
+    if float(np.linalg.norm(d)) <= OPEN_MM:
+        return ((0, None, [], 0.0), host_key, hconn, other_key, host, end, stretch, run_axis, sec, rerouted)
+    # Where along the run the transition is made (N3): at the joint, or set back along the run so that it
+    # falls where nothing is in the way; then the order of the vertical and horizontal pieces.
+    shifts = [0.0]
+    out_dir = None
+    if _axis(host) is not None:
+        s0_, s1_ = _axis(host)
+        room = float(np.linalg.norm(s1_ - s0_)) - 100.0
+        shifts += [x for x in SHIFTS_MM if x < room]
+        out_dir = (end - (s0_ if np.linalg.norm(end - s1_) < 1 else s1_))
+        out_dir = out_dir / max(float(np.linalg.norm(out_dir)), 1e-9)
+    best = None
+    for shift in shifts:
+        start = end - out_dir * shift if shift else end
+        dd = target - start
+        ax = float(np.dot(dd, out_dir)) if shift else 0.0
+        perp = dd - (out_dir * ax if shift else 0.0)
+        dz = np.array([0.0, 0.0, perp[2]])
+        dh = perp - dz
+        if np.linalg.norm(dz) > OPEN_MM and np.linalg.norm(dh) > OPEN_MM:
+            orders = [[start, start + dz, start + perp], [start, start + dh, start + perp]]
+        else:
+            orders = [[start, start + perp]]
+        if np.linalg.norm(dh) > OPEN_MM:
+            # A sideways jog through the neighbours at their own level: lift it over them instead
+            # (up, across above them, down).
+            z_over = _over_level(start, start + dh, sec, near, boxes, {host_key, other_key})
+            if z_over is not None and z_over > max(start[2], target[2]) + OPEN_MM:
+                a_ = np.array([start[0], start[1], z_over])
+                b_ = np.array([start[0] + dh[0], start[1] + dh[1], z_over])
+                orders.append([start, a_, b_, start + perp])
+        for pts in orders:
+            if shift:
+                pts = pts + [target]
+            pts = [p for i, p in enumerate(pts) if i == 0 or float(np.linalg.norm(p - pts[i - 1])) > OPEN_MM]
+            if len(pts) < 2:
+                continue
+            solids = [_piece_solid(sec, pts[i], pts[i + 1], run_axis) for i in range(len(pts) - 1)]
+            hits = _hits(solids, near, boxes, {host_key, other_key})
+            rank_ = (hits, shift, len(solids))
+            if best is None or rank_ < best[0]:
+                best = (rank_, pts, solids, shift)
+        if best is not None and best[0][0] == 0:
+            break
+    (hits, _, _), pts, solids, shift = best
+    return ((hits, pts, solids, shift), host_key, hconn, other_key, host, end, stretch, run_axis, sec, rerouted)
+
+
+OVER_CLEARANCE_MM = 50.0
+
+
+def _over_level(p0: np.ndarray, p1: np.ndarray, sec, near: list[Element], boxes: np.ndarray, skip: set[str]
+                ) -> float | None:
+    """Centre level for a horizontal piece from p0 to p1 that passes just over what it would cut through at
+    its own level (MEP only; structure above stays a clash and is counted by the caller)."""
+    half_w, half_h = sec[1], sec[2]
+    z = max(p0[2], p1[2])
+    for _ in range(12):
+        sol = _piece_solid(sec, np.array([p0[0], p0[1], z]), np.array([p1[0], p1[1], z]), None)
+        lo, hi = sol.aabb()
+        lo, hi = lo - OVER_CLEARANCE_MM, hi + OVER_CLEARANCE_MM
+        if not len(boxes):
+            return None
+        mask = np.all(boxes[:, :3] <= hi, axis=1) & np.all(boxes[:, 3:] >= lo, axis=1)
+        tops = [boxes[i, 5] for i in np.nonzero(mask)[0] if near[i].key not in skip and near[i].is_mep]
+        if not tops:
+            return z
+        z = max(tops) + OVER_CLEARANCE_MM + half_h
+    return None
 
 
 def cb_id(j: Joint, other_key: str):

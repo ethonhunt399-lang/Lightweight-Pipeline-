@@ -536,6 +536,9 @@ def crossing_hump(package: Package, elements: dict[str, Element], sec: Section, 
         return None
     if t1 - t0 < 50:
         return []                                 # does not reach the bundle: stays where it is
+    # The risers go where their vertical path is free (another service crossing next to this one, a large
+    # duct, an earlier riser): moved outward along the service, step by step.
+    t0, t1 = _free_risers(elements, e, key, graph, a, b, L, t0, t1, dz)
     u = (b - a) / L
     up = np.array([0.0, 0.0, dz])
     p0, p1 = a + u * t0, a + u * t1
@@ -620,6 +623,78 @@ def crossing_hump(package: Package, elements: dict[str, Element], sec: Section, 
         move(other, up)
         queue.extend(graph.get(other, ()))
     return made
+
+
+RISER_STEP = 100.0       # mm, outward steps tried for a riser whose vertical path is taken
+RISER_SEARCH = 2500.0    # mm, how far out
+
+
+def _free_risers(elements: dict[str, Element], e: Element, key: str, graph, a: np.ndarray, b: np.ndarray, L: float,
+                 t0: float, t1: float, dz: float) -> tuple[float, float]:
+    from .connect import _section
+    from .geometry import distance
+    own = {key} | set(graph.get(key, ()))
+    half = float(np.max(e.solid.half[1:])) if e.solid is not None else 50.0
+    u = (b - a) / L
+    z0 = min(a[2], b[2]) - half
+    z1 = max(a[2], b[2]) + max(dz, 0.0) + half
+    z0 += min(dz, 0.0)
+    lo = np.minimum(a, b) - RISER_SEARCH - half
+    hi = np.maximum(a, b) + RISER_SEARCH + half
+    near = []
+    for k, o in elements.items():
+        if o.solid is None or k.split("#")[0] in own:
+            continue
+        olo, ohi = o.solid.aabb()
+        if np.all(olo[:2] <= hi[:2]) and np.all(ohi[:2] >= lo[:2]) and olo[2] <= z1 and ohi[2] >= z0:
+            near.append(o)
+    if not near:
+        return t0, t1
+    sec_ = _section(e, e.connectors[0] if e.connectors else {})
+
+    # A short rise is made as a sloped offset reaching outward (up to about its own height): check that
+    # reach as well as the vertical line.
+    reach = min(abs(dz), 600.0)
+
+    def free_at(t: float) -> bool:
+        p = a + u * t
+        sol = _piece_solid_v(sec_, np.array([p[0], p[1], z0 + half]), np.array([p[0], p[1], z1 - half]))
+        slo, shi = sol.aabb()
+        for o in near:
+            olo, ohi = o.solid.aabb()
+            if np.any(olo > shi) or np.any(ohi < slo):
+                continue
+            if min(distance(sol, q)[0] for q in (o.parts or [o.solid])) < 0:
+                return False
+        return True
+
+    def free(t: float, side: float = 0.0) -> bool:
+        ts = [t] + ([t + side * reach / 2, t + side * reach] if side else [])
+        return all(free_at(min(max(x, 0.0), L)) for x in ts)
+
+    def search(t: float, step: float, limit: float) -> float:
+        # A free vertical line (the sloped reach of a short rise is not checked: requiring it free too
+        # moved risers less often and left more clashes on the three test corridors).
+        for side in (0.0,):
+            x = t
+            for _ in range(int(RISER_SEARCH // RISER_STEP) + 1):
+                if (step < 0 and x < limit) or (step > 0 and x > limit):
+                    break
+                if free(x, side):
+                    return x
+                x += step
+        return t
+
+    if t0 > 50:
+        t0 = search(t0, -RISER_STEP, 100.0)
+    if t1 < L - 50:
+        t1 = search(t1, RISER_STEP, L - 100.0)
+    return t0, t1
+
+
+def _piece_solid_v(sec_, p0: np.ndarray, p1: np.ndarray):
+    from .connect import _piece_solid
+    return _piece_solid(sec_, p0, p1, None)
 
 
 def riser_offsets(sec: Section, heights: dict[str, float], clearance: float) -> dict[str, float]:

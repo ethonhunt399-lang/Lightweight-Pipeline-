@@ -309,12 +309,10 @@ class _Model:
                 m.AddAbsEquality(dz, zc - _i(c.z_lo))
                 self.cdz.append(dz)
             # Crossing services next to each other (overlapping along and across) are stacked.
+            # Extent along the corridor: the service's own (its width for a tray or duct, more when oblique).
             for a_i, a in enumerate(zone):
                 for b in zone[a_i + 1:]:
-                    if b.s - b.height / 2 > a.s + a.height / 2 + clear.default + 600:
-                        break
-                    if not (overlaps(a.s - a.height / 2, a.s + a.height / 2, b.s - b.height / 2, b.s + b.height / 2, clear.default)
-                            and overlaps(a.v_lo, a.v_hi, b.v_lo, b.v_hi)):
+                    if not (overlaps(*_s_ext(a), *_s_ext(b), clear.default) and overlaps(a.v_lo, a.v_hi, b.v_lo, b.v_hi)):
                         continue
                     cc = _i(clear.required(a.group, b.group)[0])
                     below = m.NewBoolVar(f"cs{a.key}_{b.key}")
@@ -377,6 +375,17 @@ class _Model:
                     m.Add(self.z[i] >= zlo + _i(c.height) + cc).OnlyEnforceIf(o[3])
                     m.AddBoolOr(o)
                     self.large_viol.append(o[4])
+                # Crossing services next to it pass over or under it (or the clash counts, minimised first).
+                for zc_ in sec.zone_crossings:
+                    if zc_.key not in self.cz or not (overlaps(*_s_ext(zc_), s0c, s1c, clear.default)
+                                                      and overlaps(zc_.v_lo, zc_.v_hi, c.v_lo, c.v_hi)):
+                        continue
+                    cc = _i(clear.required(zc_.group, c.group)[0])
+                    o = [m.NewBoolVar(f"lz{li}_{zc_.key}_{x}") for x in range(3)]
+                    m.Add(self.cz[zc_.key] + _i(zc_.height) + cc <= zlo).OnlyEnforceIf(o[0])
+                    m.Add(self.cz[zc_.key] >= zlo + _i(c.height) + cc).OnlyEnforceIf(o[1])
+                    m.AddBoolOr(o)
+                    self.large_viol.append(o[2])
 
         # MEP that stays in place (offsets of other lines, equipment connections, risers): strands pass beside,
         # under or over it; a clash that cannot be avoided counts (minimised first).
@@ -640,6 +649,12 @@ class _Model:
         vs = [*self.used, *self.top, *self.bot, *self.H, *self.gap, *self.layer, *self.v, *self.z, *self.cz.values()]
         vs += [b for row in self.x for b in row]
         return [(v, solver.Value(v)) for v in vs]
+
+
+def _s_ext(c) -> tuple[float, float]:
+    if np.isfinite(c.s_lo) and np.isfinite(c.s_hi):
+        return c.s_lo, c.s_hi
+    return c.s - c.height / 2, c.s + c.height / 2
 
 
 def solve(sec: Section, rules: RuleSet, scheme: str, seconds: float = 2.0) -> Layout:

@@ -2,7 +2,7 @@
  "schema": "lwp.layout_plan",
  "schema_version": "0.1.0",
  "tool": "lwp 0.1.0",
- "created": "2026-10-03T12:35:15",
+ "created": "2026-10-03T13:08:54",
  "source": {
   "project": "雍景致臻江东-机电（管综调整前）-地下室",
   "exported": "2026-09-30T15:07:03Z",
@@ -33,31 +33,31 @@
    "stage": "车道主档净高（不足量最小）",
    "status": "OPTIMAL",
    "value": 0,
-   "time_s": 12.25
+   "time_s": 11.03
   },
   {
    "stage": "与固定构件、大尺寸横穿、斜梁碰撞，节点碰撞（迭代约束），水管跨越桥架，桥架上方易漏节点最少",
    "status": "OPTIMAL",
    "value": 2,
-   "time_s": 9.8
+   "time_s": 9.83
   },
   {
    "stage": "层数最少",
    "status": "OPTIMAL",
    "value": 2,
-   "time_s": 10.97
+   "time_s": 5.77
   },
   {
    "stage": "横担总长最短",
    "status": "FEASIBLE",
    "value": 5808,
-   "time_s": 8.9
+   "time_s": 14.79
   },
   {
    "stage": "排布原则 + 改动",
    "status": "FEASIBLE",
    "value": 4713833,
-   "time_s": 15.64
+   "time_s": 24.49
   }
  ],
  "metrics": {
@@ -102,15 +102,15 @@
    },
    {
     "round": 2,
-    "new_hard": 19,
+    "new_hard": 14,
     "lowest_bottom_mm": 2600,
-    "cuts": 9
+    "cuts": 11
    },
    {
     "round": 3,
-    "new_hard": 17,
+    "new_hard": 13,
     "lowest_bottom_mm": 2600,
-    "cuts": 16
+    "cuts": 18
    }
   ]
  },
@@ -429,7 +429,7 @@
    },
    "to": {
     "layer": 1,
-    "v_mm": 207438,
+    "v_mm": 206978,
     "z_mm": 4200
    },
    "segments": [
@@ -482,7 +482,7 @@
    },
    "to": {
     "layer": 1,
-    "v_mm": 206978,
+    "v_mm": 207668,
     "z_mm": 4200
    },
    "segments": [
@@ -535,7 +535,7 @@
    },
    "to": {
     "layer": 1,
-    "v_mm": 207668,
+    "v_mm": 207438,
     "z_mm": 4200
    },
    "segments": [
@@ -948,7 +948,7 @@
    "routed": false,
    "bends": 2,
    "location_mm": [
-    207438.0,
+    206978.0,
     98600.7,
     5018.0
    ]
@@ -963,10 +963,10 @@
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
-   "routed": false,
-   "bends": 2,
+   "routed": true,
+   "bends": 3,
    "location_mm": [
-    207438.0,
+    206571.0,
     115978.2,
     4930.0
    ]
@@ -999,10 +999,10 @@
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
-   "routed": true,
-   "bends": 3,
+   "routed": false,
+   "bends": 2,
    "location_mm": [
-    206571.0,
+    207668.0,
     117578.2,
     4930.0
    ]
@@ -1017,10 +1017,10 @@
    "reason": "支管为横穿管，按其标高引出",
    "branch": [],
    "drops": 0,
-   "routed": true,
+   "routed": false,
    "bends": 2,
    "location_mm": [
-    206978.0,
+    207668.0,
     97919.3,
     4700.0
    ]
@@ -1036,9 +1036,9 @@
    "branch": [],
    "drops": 0,
    "routed": true,
-   "bends": 3,
+   "bends": 2,
    "location_mm": [
-    207439.0,
+    207438.0,
     117977.7,
     4860.0
    ]
@@ -1056,7 +1056,7 @@
    "routed": false,
    "bends": 2,
    "location_mm": [
-    207668.0,
+    207438.0,
     97459.9,
     4700.0
    ]
@@ -1290,7 +1290,7 @@
    {
     "host": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429473",
     "other": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294f2",
-    "stretch_mm": 697,
+    "stretch_mm": 1387,
     "pieces": [],
     "gap_mm": 0,
     "reroute": false
@@ -1298,7 +1298,7 @@
    {
     "host": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429475",
     "other": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294f1",
-    "stretch_mm": 640,
+    "stretch_mm": 1387,
     "pieces": [],
     "gap_mm": 0,
     "reroute": false
@@ -1306,7 +1306,7 @@
    {
     "host": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429484",
     "other": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429490",
-    "stretch_mm": 906,
+    "stretch_mm": 676,
     "pieces": [],
     "gap_mm": 0,
     "reroute": false
@@ -1314,7 +1314,7 @@
    {
     "host": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429486",
     "other": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429491",
-    "stretch_mm": 906,
+    "stretch_mm": 676,
     "pieces": [],
     "gap_mm": 0,
     "reroute": false
@@ -1333,7 +1333,7 @@
    {
     "host": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294b5",
     "other": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294ba",
-    "stretch_mm": 1590,
+    "stretch_mm": 1130,
     "pieces": [],
     "gap_mm": 0,
     "reroute": false
@@ -1341,7 +1341,7 @@
    {
     "host": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294b7",
     "other": "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294bb",
-    "stretch_mm": 1590,
+    "stretch_mm": 1073,
     "pieces": [],
     "gap_mm": 0,
     "reroute": false
@@ -1656,17 +1656,17 @@
    0.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294b6": [
-   1590.0,
+   1130.0,
    0.0,
    0.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294ba": [
-   1590.0,
+   1130.0,
    0.0,
    0.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294bb": [
-   1590.0,
+   1130.0,
    0.0,
    0.0
   ],
@@ -1681,17 +1681,17 @@
    0.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429474": [
-   697.1,
+   1387.1,
    0.0,
    0.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294f1": [
-   697.1,
+   1387.1,
    0.0,
    0.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-004294f2": [
-   697.1,
+   1387.1,
    0.0,
    0.0
   ],
@@ -1706,17 +1706,17 @@
    0.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429485": [
-   905.9,
+   675.9,
    0.0,
    0.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429490": [
-   905.9,
+   675.9,
    0.0,
    0.0
   ],
   "HOST|ae4e7c8c-0d68-4762-8af4-9f7661a5c1f8-00429491": [
-   905.9,
+   675.9,
    0.0,
    0.0
   ],
