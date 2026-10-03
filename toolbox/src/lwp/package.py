@@ -52,6 +52,9 @@ class Element:
     centre: np.ndarray | None = None      # fittings: point where the connector axes meet (mm)
     connectors: list[dict] = field(default_factory=list)
     record: dict = field(default_factory=dict, repr=False)
+    basis: str = ""                       # where the element's geometry comes from (drawing, inferred rule, ...)
+    inferred: bool = False                # dimensions inferred rather than given (reported separately)
+    footprint: list[np.ndarray] | None = None   # slabs: plan rings in mm, [outer, hole, hole, ...]
 
     @property
     def is_mep(self) -> bool:

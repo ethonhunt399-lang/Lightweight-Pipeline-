@@ -1,13 +1,17 @@
-"""Command line: lwp check <package> [--rules FILE] [--out DIR]."""
+"""Command line: lwp check <package> [--rules FILE] [--out DIR]; lwp struct <structure.json> …"""
 
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 import time
 from pathlib import Path
 
+import numpy as np
+
+from . import headroom_map
 from .detect import detect_conflicts, detect_headroom
 from .health import check
 from .package import load_package
@@ -15,6 +19,7 @@ from .report import write_outputs
 from .rules import load_rules
 from .viewer import build_data, write_viewer
 from .solve_cmd import cmd_corridors, cmd_drawings, cmd_solve
+from .structjson import load_structure
 
 
 def cmd_check(args) -> int:
@@ -48,6 +53,36 @@ def cmd_view(args) -> int:
     return 0
 
 
+def cmd_struct(args) -> int:
+    """Clear-height estimate from a structure drawn up from construction drawings (no MEP yet)."""
+    rules = load_rules(args.rules)
+    if args.min_clear is not None:
+        rules = rules.model_copy(update={
+            "version": f"{rules.version} · 分档基准 {args.min_clear / 1000:.1f} m",
+            "headroom": rules.headroom.model_copy(update={"min_clear_mm": args.min_clear})})
+    package = load_structure(args.structure, rules, title=args.title or "", floor_name=args.floor,
+                             upper_name=args.upper)
+    out = Path(args.out) if args.out else Path(args.structure).with_suffix(".lwp")
+    out.mkdir(parents=True, exist_ok=True)
+    viewer = write_viewer(out / "view.html", build_data(package, rules), title=args.title or None)
+    floor = package.host_levels()[0].elevation
+    hmap = headroom_map.build(package, floor, args.cell)
+    stats = headroom_map.summary(hmap, package, rules.headroom.min_clear_mm)
+    beams = [e for e in package.elements.values() if e.kind == "beam"]
+    stats = {"title": package.manifest["project_name"], "structure": Path(args.structure).name,
+             "note": "净高 = 梁底 / 板底 − 下层楼面（结构面），未扣机电、吊顶、面层",
+             "beams": len(beams), "beams_inferred": sum(e.inferred for e in beams), **stats}
+    (out / "headroom.json").write_text(json.dumps(stats, ensure_ascii=False, indent=2), encoding="utf-8")
+    np.savez_compressed(out / "headroom_grid.npz", clear=hmap.clear, source=hmap.source, x0=hmap.x0, y0=hmap.y0,
+                        cell=hmap.cell, keys=np.array(hmap.keys),
+                        inferred=np.array([package.elements[k].inferred for k in hmap.keys], dtype=bool))
+    low = stats["lowest"]
+    print(f"viewer: {viewer}")
+    print(f"beams {stats['beams']} (inferred {stats['beams_inferred']})  covered {stats['covered_m2']} m²  "
+          + (f"lowest {low['clear_mm'] / 1000:.2f} m  {low['element']}" if low else "no headroom cells"))
+    return 0
+
+
 def main(argv=None) -> int:
     # Reproducible plans: the solver model is built by iterating sets of keys, whose order depends on the
     # string hash seed. Fix it (re-run the command once with a fixed seed).
@@ -71,6 +106,16 @@ def main(argv=None) -> int:
     v.add_argument("--compare", help="对比参照包（如管综调整前的导出包）")
     v.add_argument("--compare-name", default="调整前", help="参照包在预览中的名称")
     v.set_defaults(func=cmd_view)
+    st = sub.add_parser("struct", help="施工图翻模结构（structure JSON）→ 结构净高预估分区图 + 三维预览")
+    st.add_argument("structure", help="structure JSON（梁、柱墙、板、轴网，单位 mm）")
+    st.add_argument("--rules", help="规则文件")
+    st.add_argument("--out", help="输出目录（默认：<structure>.lwp）")
+    st.add_argument("--title", help="预览标题")
+    st.add_argument("--floor", default="1F", help="下层（楼面）名称")
+    st.add_argument("--upper", default="2F", help="上层（梁板）名称")
+    st.add_argument("--min-clear", type=float, help="分区图分档基准 mm（默认取规则文件的最小净高）")
+    st.add_argument("--cell", type=float, default=500.0, help="分区图网格 mm")
+    st.set_defaults(func=cmd_struct)
     c = sub.add_parser("corridors", help="列出平行管线密集的直线走廊候选")
     c.add_argument("package")
     c.add_argument("--rules")

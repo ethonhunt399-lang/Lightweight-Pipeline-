@@ -19,7 +19,7 @@ OVERLAP = "overlap"          # same system, overlapping but not connected: model
 MODEL_ISSUES = (JOINT, OVERLAP)
 
 TOLERANCE_MM = 1.0
-IGNORED_KINDS = {"support"}  # supports touch what they carry by design
+IGNORED_KINDS = {"support", "slab"}  # supports touch what they carry by design; slabs only bound the headroom map
 
 
 @dataclass

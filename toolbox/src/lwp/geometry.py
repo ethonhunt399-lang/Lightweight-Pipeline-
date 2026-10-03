@@ -193,3 +193,17 @@ def _perpendiculars(axis: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     u = np.cross(ref, axis)
     u /= np.linalg.norm(u)
     return u, np.cross(axis, u)
+
+
+def points_in_rings(X: np.ndarray, Y: np.ndarray, rings: list[np.ndarray]) -> np.ndarray:
+    """Even-odd test of points (X, Y arrays of any shape) against plan rings [outer, hole, ...] in mm."""
+    x, y = np.asarray(X, float).ravel()[:, None], np.asarray(Y, float).ravel()[:, None]
+    inside = np.zeros(x.shape[0], bool)
+    for ring in rings:
+        a = np.asarray(ring, float)[:, :2]
+        b = np.roll(a, -1, axis=0)
+        cross = (a[:, 1] > y) != (b[:, 1] > y)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            xi = a[:, 0] + (y - a[:, 1]) * (b[:, 0] - a[:, 0]) / (b[:, 1] - a[:, 1])
+        inside ^= (np.count_nonzero(cross & (x < xi), axis=1) % 2) == 1
+    return inside.reshape(np.shape(X))

@@ -25,7 +25,9 @@ COLORS = {
     "weak_tray": "#14b8a6", "unknown": "#9ca3af",
     "beam": "#b9b4aa", "column": "#b9b4aa", "foundation": "#b9b4aa", "wall": "#d6d3cd",
 }
-OBSTACLE_LABELS = {"beam": "梁", "column": "柱", "foundation": "基础", "wall": "墙"}
+OBSTACLE_LABELS = {"beam": "梁", "column": "柱", "foundation": "基础", "wall": "墙", "slab": "板"}
+INFERRED_SUFFIX = "_inferred"     # obstacles whose dimensions were inferred get their own layer
+INFERRED_COLOR = "#e6c86e"
 
 
 MOVED_MM = 20.0   # displacement below this counts as unchanged in the comparison
@@ -43,7 +45,8 @@ def build_data(package: Package, rules: RuleSet, conflicts: list[Conflict] | Non
         lo, hi = e.solid.aabb()
         return hi[0] >= region[0] and lo[0] <= region[2] and hi[1] >= region[1] and lo[1] <= region[3]
 
-    elements = [e for e in package.elements.values() if e.solid is not None and inside(e)]
+    # Slabs (plan footprints) only bound the headroom map; they are not drawn.
+    elements = [e for e in package.elements.values() if e.solid is not None and e.footprint is None and inside(e)]
     if not elements:
         raise ValueError("package has no geometry")
     lows = np.array([e.solid.aabb()[0] for e in elements])
@@ -71,7 +74,7 @@ def build_data(package: Package, rules: RuleSet, conflicts: list[Conflict] | Non
     items = []
     for e in elements:
         s = e.solid
-        cls = e.cls if e.is_mep else e.kind
+        cls = e.cls if e.is_mep else e.kind + (INFERRED_SUFFIX if e.inferred else "")
         geom = shape(e)
         lo, hi = s.aabb()
         level = floor_level(package, rules, float(lo[2]))
@@ -83,6 +86,10 @@ def build_data(package: Package, rules: RuleSet, conflicts: list[Conflict] | Non
             "lv": level.name if level else "", "clr": round(float(lo[2]) - level.elevation) if level else None,
             "ex": s.exact, "o": {"mep_curve": "c", "mep_family": "f"}.get(e.origin, "x"),
         })
+        if e.basis:
+            items[-1]["bs"] = e.basis
+        if e.inferred:
+            items[-1]["inf"] = 1
         if reference is not None and e.is_mep:
             items[-1].update(_compare(e, reference.elements.get(e.key), matcher))
         if node_marks and e.key in node_marks:
@@ -90,11 +97,15 @@ def build_data(package: Package, rules: RuleSet, conflicts: list[Conflict] | Non
 
     classes = {}
     for cls, count in _count(items).items():
+        color = COLORS.get(cls, "#9ca3af")
         if cls in rules.system_classes:
             label, kind = rules.system_classes[cls].label, "mep"
+        elif cls.endswith(INFERRED_SUFFIX):
+            base = cls[: -len(INFERRED_SUFFIX)]
+            label, kind, color = OBSTACLE_LABELS.get(base, base) + "（推定）", "obstacle", INFERRED_COLOR
         else:
             label, kind = OBSTACLE_LABELS.get(cls, cls), "obstacle"
-        classes[cls] = {"label": label, "color": COLORS.get(cls, "#9ca3af"), "count": count, "kind": kind}
+        classes[cls] = {"label": label, "color": color, "count": count, "kind": kind}
 
     locator = GridLocator(package.grids)
     out_conflicts = []
@@ -112,15 +123,36 @@ def build_data(package: Package, rules: RuleSet, conflicts: list[Conflict] | Non
     hmap = headroom_map.build(package, floor_z)
     lowest = hmap.lowest()
     clear_cells = np.where(np.isnan(hmap.clear), -1, np.round(hmap.clear / 10)).astype(int)   # centimetres
+    # Cells controlled by an element that is not drawn (slabs) point to a label: src = -2 - k → others[k].
+    others: list[str] = []
+    other_index: dict[str, int] = {}
+
+    def src_of(k: int) -> int:
+        if k < 0:
+            return -1
+        key = hmap.keys[k]
+        if key in index:
+            return index[key]
+        if key not in other_index:
+            e = package.elements[key]
+            other_index[key] = len(others)
+            others.append(e.label() + (f"（{e.basis}）" if e.basis else ""))
+        return -2 - other_index[key]
+
     hm = {
         "x0": round((hmap.x0 - origin[0]) / 1000, 4), "y0": round((hmap.y0 - origin[1]) / 1000, 4),
         "cell": hmap.cell / 1000, "nx": hmap.nx, "ny": hmap.ny, "cm": clear_cells.ravel().tolist(),
-        "src": [index.get(hmap.keys[k], -1) if k >= 0 else -1 for k in hmap.source.ravel().tolist()],
+        "src": [src_of(k) for k in hmap.source.ravel().tolist()],
+        "others": others,
         "lowest": None if lowest is None else {
             "clear": round(lowest[0]), "p": m([lowest[1], lowest[2], floor_z])[:2],
             "e": index.get(lowest[3], -1), "g": GridLocator(package.grids).describe((lowest[1], lowest[2])),
+            "t": "" if lowest[3] in index else package.elements[lowest[3]].label(),
         },
     }
+    inferred_keys = [package.elements[k].inferred for k in hmap.keys]
+    if any(inferred_keys):
+        hm["inf"] = [1 if k >= 0 and inferred_keys[k] else 0 for k in hmap.source.ravel().tolist()]
 
     ref_items = []
     if reference is not None:
