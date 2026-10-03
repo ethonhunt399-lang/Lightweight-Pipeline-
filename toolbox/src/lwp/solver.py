@@ -340,8 +340,23 @@ class _Model:
         # Large crossing services (ducts, wide trays) stay where they are: strands pass under, over or beside
         # them. A clash that cannot be avoided counts (minimised first) and is left to the node (N1).
         self.large_viol = []
+        self.lz: dict[str, cp_model.IntVar] = {}
+        self.ldrop = []
+        self.ldz = []
+        ctrl = sec.floor_z + lay.duct_control_bottom_mm if lay.duct_control_bottom_mm is not None else None
         if "crossing" not in relax:
             for li, c in enumerate(sec.large_crossings):
+                # A duct above the control level may drop to it (all such ducts at one level): the bundle
+                # then passes over it.
+                zlo = _i(c.z_lo)
+                if ctrl is not None and c.domain == "duct" and c.z_lo > ctrl + 1:
+                    drop = m.NewBoolVar(f"ldrop{li}")
+                    zlo = m.NewIntVar(_i(ctrl), _i(c.z_lo), f"lz{li}")
+                    m.Add(zlo == _i(ctrl)).OnlyEnforceIf(drop)
+                    m.Add(zlo == _i(c.z_lo)).OnlyEnforceIf(drop.Not())
+                    self.lz[c.key] = zlo
+                    self.ldrop.append(drop)
+                    self.ldz.append(_i(c.z_lo) - zlo)
                 s0c, s1c = (c.s_lo, c.s_hi) if np.isfinite(c.s_lo) else (c.s - c.height / 2, c.s + c.height / 2)
                 index_ = {st.id: i for i, st in enumerate(items)}
                 for i, st in enumerate(items):
@@ -358,8 +373,8 @@ class _Model:
                     else:
                         m.Add(self.v[i] + _i(st.width / 2) + cc <= _i(c.v_lo)).OnlyEnforceIf(o[0])
                         m.Add(self.v[i] - _i(st.width / 2) - cc >= _i(c.v_hi)).OnlyEnforceIf(o[1])
-                    m.Add(self.z[i] + _i(st.height) + cc <= _i(c.z_lo)).OnlyEnforceIf(o[2])
-                    m.Add(self.z[i] >= _i(c.z_hi) + cc).OnlyEnforceIf(o[3])
+                    m.Add(self.z[i] + _i(st.height) + cc <= zlo).OnlyEnforceIf(o[2])
+                    m.Add(self.z[i] >= zlo + _i(c.height) + cc).OnlyEnforceIf(o[3])
                     m.AddBoolOr(o)
                     self.large_viol.append(o[4])
 
@@ -496,6 +511,19 @@ class _Model:
             m.Add(self.lane_gain <= self.lane_low)
             m.Add(self.lane_gain <= self.low + _i(lay.lane_priority_max_mm))
 
+        # Lane target (net-height first): shortfall of the strands over drive lanes below the main lane level.
+        self.lane_short = []
+        if lay.lane_target_mm is not None and any(b["zone"] == "lane" for b in sec.bands):
+            target = _i(sec.floor_z + lay.lane_target_mm)
+            all_lane = all(b["zone"] == "lane" for b in sec.bands)
+            for i, s in enumerate(items):
+                sh = m.NewIntVar(0, 5000, f"lshort{i}")
+                if all_lane:
+                    m.Add(sh >= target - self.z[i])
+                else:
+                    m.Add(sh >= target - self.z[i]).OnlyEnforceIf(self.on_lane[i])
+                self.lane_short.append(sh)
+
         self.dv, self.dz, self.moved = [], [], []
         thr = _i(lay.moved_threshold_mm)
         for i, s in enumerate(items):
@@ -509,7 +537,7 @@ class _Model:
             self.dz.append(dz)
             self.moved.append(mv)
         # Lifting a crossing service counts as a change too.
-        self.change = sum(self.dv) + sum(self.dz) + sum(self.cdz)
+        self.change = sum(self.dv) + sum(self.dz) + sum(self.cdz) + sum(self.ldz)
         self.n_moved = sum(self.moved)
 
         self.span = []
@@ -643,10 +671,17 @@ def solve(sec: Section, rules: RuleSet, scheme: str, seconds: float = 2.0) -> La
         lane = ("车道上方管底最高", model.lane_gain, True, 0)
         plan.insert({"headroom": 1, "changes": 1, "supports": 2}[scheme], lane)
 
+    if model.lane_short:
+        # Net height first: the lane target comes before everything else (clashes included).
+        lane_first = ("车道主档净高（不足量最小）", sum(model.lane_short), False, 0)
+    else:
+        lane_first = None
     if model.wot or model.leak_viol or model.large_viol or model.fixed_viol or model.beam_viol or model.cut_viol:
         plan.insert(0, ("与固定构件、大尺寸横穿、斜梁碰撞，节点碰撞（迭代约束），水管跨越桥架，桥架上方易漏节点最少",
                         sum(model.wot) + sum(model.leak_viol) + sum(model.large_viol) + sum(model.fixed_viol)
                         + sum(model.beam_viol) + sum(model.cut_viol), False, 0))
+    if lane_first is not None:
+        plan.insert(0, lane_first)
     solver, status, hint = None, "UNKNOWN", None
     for name, objective, maximize, tol in plan:
         solver, status, value = stage(name, objective, maximize, hint)
@@ -711,12 +746,16 @@ def _layout(model: _Model, solver, scheme: str, status: str, stages: list[dict])
         "fixed_obstacle_clashes": sum(solver.Value(v) for v in model.fixed_viol),
         "fixed_obstacles": len(model.sec.obstacles),
         "crossings_through_oblique_beams": sum(solver.Value(v) for v in model.beam_viol),
+        "lane_target_shortfall_mm": sum(solver.Value(v) for v in model.lane_short),
+        "lane_strands_below_target": sum(solver.Value(v) > 0 for v in model.lane_short),
+        "ducts_dropped_to_control": sum(solver.Value(v) for v in model.ldrop),
         "learned_cuts": len(model.cut_viol),
         "learned_cuts_violated": sum(solver.Value(v) for v in model.cut_viol),
         "tray_water": {"parallel": "forbid" if model.hard_par else "soft",
                        "crossing": "forbid" if model.hard_tw else "allow"},
     }
     crossings = {k: float(solver.Value(v)) for k, v in model.cz.items()}
+    crossings.update({k: float(solver.Value(v)) for k, v in model.lz.items()})
     return Layout(scheme, status, placements, layers, metrics, stages, crossings=crossings)
 
 

@@ -128,6 +128,8 @@ class Layout(_Strict):
     tray_top_clearance_mm: float = 50     # tray top to beam / slab / the layer above (cable laying space)
     elevation_step_mm: float = 50         # layer bottoms on a grid relative to the floor (0: free)
     lane_priority_max_mm: float = 300     # lanes may be kept up to this much higher than the lowest bottom
+    lane_target_mm: float | None = None   # main level of MEP bottoms over drive lanes (above the floor), met first
+    duct_control_bottom_mm: float | None = None   # large ducts crossing the bundle may drop to this bottom
     slab_thickness_mm: float = 250        # roof slab: crossing services may rise between beams to its underside
     tray_bottom_preferred_mm: float = 2500   # tray bottom above the floor, preferred (hard limit: headroom)
     confirmed: bool = False
