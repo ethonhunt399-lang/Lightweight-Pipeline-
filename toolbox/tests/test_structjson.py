@@ -140,3 +140,28 @@ def test_v1_rejects_other_major_version(tmp_path):
     p.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     with pytest.raises(ValueError):
         load_structure(p, load_rules())
+
+
+def test_v1_1_cuts_and_slope(tmp_path):
+    """1.1: a zone slab cut out of the main slab, and a sloped slab (low end in top/z, rises by `rise`)."""
+    data = json.loads(V1_SAMPLE.read_text(encoding="utf-8"))
+    data["version"] = "1.1.0"
+    slab = next(m for m in data["members"] if m["type"] == "slab")
+    zone_ring = [[0, 0], [3000, 0], [3000, 3000], [0, 3000]]
+    slab["geom"]["cuts"] = [zone_ring]
+    zone = json.loads(json.dumps(slab))
+    zone["uuid"], zone["key"], zone["mark"] = "00000000-0000-5000-8000-000000000001", "zone", "LB"
+    zone["geom"].update({"outline": zone_ring, "holes": [], "cuts": [], "thickness": 300,
+                         "top": {"level": "2F", "offset": -240}, "z": [4400, 4700],
+                         "slope": {"tail": [0, 1500], "head": [3000, 1500], "rise": 600}})
+    data["members"].append(zone)
+    p = tmp_path / "v11.json"
+    p.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    pkg = load_structure(p, load_rules())
+    main = pkg.elements[slab["uuid"]]
+    assert len(main.footprint) == 1 + len(slab["geom"]["holes"]) + 1          # outline + holes + the cut
+    z = pkg.elements[zone["uuid"]]
+    assert z.solid.bottom_z() == pytest.approx(4400) and z.solid.aabb()[1][2] == pytest.approx(5300)
+    hmap = headroom_map.build(pkg, -60.0)
+    clear, key = cell_at(hmap, 1250, 1250)          # inside the zone: zone bottom (low end), not the main slab
+    assert key == zone["uuid"] and clear == pytest.approx(4460)

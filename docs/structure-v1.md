@@ -1,9 +1,19 @@
-# SLBH 结构数据格式 v1（slbh.structure 1.0）
+# SLBH 结构数据格式 v1（slbh.structure 1.1）
 
 施工图翻模的唯一输出格式。Blender 建模、Revit 导入、管综工具箱（lwp）、施工计划关联（schedule-link）都只读这一份，
 不再各自从中间文件推断。生产者是翻模线（本仓库）；下游拿到什么就用什么，不自己猜"是否推定"。
 
 文件：`projects/<id>/data/structure_<范围>.v1.json`，UTF-8。校验：`python tools/struct/slbh_struct.py validate <file>`。
+
+生产：`python tools/struct/build_floor.py --project <id> --floor L1`，按 `projects/<id>/struct_config.json` 的楼层配置
+（输入图纸、标号、人工确认项 not_holes / not_slab）推出一层（本层墙柱 + 上一层梁板）的全部结构事实。
+所有推导（板分区、折板、梁顶随板顶并分段、墙顶到梁底、柱顶随梁板、补梁、扣窄条、梁端伸到支座）都在这里做，
+下游只照做，不再各自推断。
+
+| 版本 | 变化 |
+|---|---|
+| 1.0.0 | 首版（罗湖一层迁移） |
+| 1.1.0 | 合流（2026-10-03）：板加 `cuts`、`slope`、`pieces`，墙加 `top_profile`；都是可选字段，1.0 的读法仍成立（读 1.0 的下游不认识新字段时，结果偏保守：被扣区域当成本板、斜板按低端） |
 
 ## 1. 约定
 
@@ -65,7 +75,17 @@
 | column | `shape`: `rect` / `round` / `poly`（异形，只有轮廓）；`center` [x,y]；`rect` 有 `b`、`h`、`rot`（度，b 方向相对 X 轴）；`round` 有 `d`；都带原始轮廓 `outline`；`base` / `top` = `{"level", "offset"}`；`z` = [底, 顶] |
 | wall | `shape`: `straight`（单段直墙）/ `poly`（L 形等，只有轮廓）；`straight` 有 `a`、`b`（核心层中心线端点）、`thickness`；都带原始轮廓 `outline`；`base` / `top` 同柱；`z` |
 | beam | `a`、`b`（梁中心线，按跨）、`b_w`（宽）、`h`；`top` = `{"level", "offset"}`；`z` = [梁底, 梁顶] |
-| slab | `outline`（外轮廓）、`holes`（洞口，可空）、`thickness`；`top` = `{"level", "offset"}`；`z` = [板底, 板顶] |
+| slab | `outline`（外轮廓）、`holes`（洞口，可空）、`thickness`；`top` = `{"level", "offset"}`；`z` = [板底, 板顶]。1.1 可选：`cuts`、`slope`、`pieces`（见下） |
+
+1.1 新增的可选字段：
+
+| 字段 | 说明 |
+|---|---|
+| slab `cuts` | 从本板扣掉的区域（别的板占的降板分区、折板区、压在构件上的整板窄条等）。可越出外轮廓、可相互重叠。板的实际范围 = `outline − holes − cuts` |
+| slab `slope` | 斜板：`{"tail": [x,y], "head": [x,y], "rise": mm, "slope": 比值}`。板顶在 tail 处 = `top`（低端），沿 tail→head 线性升高，到 head 处高 `rise`；`z` 按低端写 |
+| slab `pieces` | `outline − holes − cuts` 拆成的若干块 `[{"outline", "holes"}]`，给不做布尔运算的下游用；近似（10 mm 栅格，拐角吸回原始顶点，斜边偏差 ≤ 10 mm），面积 < 0.5 m² 或平均宽 < 100 mm 的碎块不列。只在有 `cuts` 的板上给 |
+| wall `top_profile` | 墙顶沿墙长有起伏时（局部到梁底、随折板），折线 `[[x, y, z绝对], …]`；`top` / `z` 取最高处 |
+| 构件 `extra` | 折板面 `extra.fold` = `{"grp", "i"}`、`extra.code` = `ZB`、`extra.name` = `预应力折板`；分区板 `extra.note`（如“卫生间”）；补的梁 `extra.supplement` = true、分段梁 `extra.piece_of` = 原梁 key |
 
 注：梁宽用 `b_w`，避免和端点 `b` 重名。柱里的型钢（钢骨）不单列构件，写在柱的 `extra.steel_core`（轮廓列表）。
 下游做不了的形状（如 Revit 导入器暂不建 L 形墙、异形柱）由下游自己跳过并记日志；这不是图纸问题，不进 `issues`。
@@ -92,8 +112,15 @@
    `inferred` 与 `inferred_fields` 一致；`status = review` 的构件都有问题引用；问题引用的 uuid 都存在；
    洞口在板外轮廓内；梁、墙长度 > 0。
 
-## 6. 迁移
+## 6. 下游怎么读 1.1
 
-- 罗湖一层：`tools/struct/convert_luohu_v1.py` 把 `structure_1F_v2.json` + `beams_2F_spans.json` + Revit 计划（墙柱编号、截面、轴网名）合成 `structure_1F.v1.json`。只用于迁移；新楼层由翻模直接写 v1。
+- Revit（`tools/revit/build_revit_plan.py`）：只读 v1.1，自己做类型名、族、板扣构件外框（mcuts）、指纹；`shape = poly` 的墙柱跳过并记录。
+- 管综 lwp（`lwp struct`）：`cuts` 当洞口（判断点在板内 = 在外轮廓内且不在任何洞口 / cuts 内），斜板的包围盒到高端，净高按低端（偏保守）。
+- schedule-link：有 `pieces` 的板按块建构件（多块时 key = 板 key + `|块n`，父键 = 板），斜板高到高端。
+- Blender（`projects/luohu/scripts/build_structure_v2.py`）：直接读 v1（不再转旧格式），板用 `pieces`，斜板按坡度抬高，带 `top_profile` 的墙按立面轮廓建。
+
+## 7. 迁移
+
+- （已停用，2026-10-03 起由 `build_floor.py` 直接生成）罗湖一层：`tools/struct/convert_luohu_v1.py` 把 `structure_1F_v2.json` + `beams_2F_spans.json` + Revit 计划（墙柱编号、截面、轴网名）合成 `structure_1F.v1.json`。只用于迁移；新楼层由翻模直接写 v1。
 - 身份：统一用 SLBH 命名空间 `6f1b2c3d-5e4f-4a1b-9c8d-7e6f5a4b3c2d`。梁原来用另一个命名空间，迁移后梁的 uuid 会变；Revit 计划生成器改读 v1 时（v0.4 验证完成后）重新导入一次。
 - 下游兼容旧格式一个版本，罗湖转换完成后删除。

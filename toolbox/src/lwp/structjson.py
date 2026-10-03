@@ -7,7 +7,8 @@ Two formats are read:
 
 * **slbh.structure v1** (current; spec in docs/structure-v1.md, copied from the SLBH repo
   tools/struct/STRUCTURE_V1.md). Identity is the member `uuid`; "inferred" is taken from the file
-  (`basis.inferred`), never guessed here.
+  (`basis.inferred`), never guessed here. 1.1 adds optional slab `cuts` / `slope` and wall `top_profile`;
+  cuts are read as openings, a sloped slab's box reaches its high end, `top_profile` is not needed here.
 * the earlier ad-hoc structure JSON (kept for one version, removed once all projects are on v1):
 
     z:          {col_bottom, col_top, slab_top, slab_th}      floor below = col_bottom
@@ -104,8 +105,13 @@ def _load_v1(path: Path, data: dict, rules: RuleSet, title: str) -> Package:
                 solid=box_from_points(pts3), **{**common, "group": "wall" if t == "wall" else "structure"})
         elif t == "slab":
             outer = np.asarray(g["outline"], float)
-            footprint = [outer] + [np.asarray(h_, float) for h_ in g.get("holes", [])]
-            pts3 = np.vstack([np.c_[outer, np.full(len(outer), z0)], np.c_[outer, np.full(len(outer), z1)]])
+            # 1.1: `cuts` are areas taken out of this slab (other slabs' zones, the folded-slab area, strips over
+            # members); they act like openings here and may reach past the outline.
+            footprint = [outer] + [np.asarray(h_, float) for h_ in g.get("holes", []) + g.get("cuts", [])]
+            # 1.1: a sloped slab gives its low end in `top` / `z`; the solid spans up to the high end. Clear height
+            # takes the box bottom, i.e. the low end everywhere (conservative).
+            z1_ = z1 + float(g["slope"]["rise"]) if g.get("slope") else z1
+            pts3 = np.vstack([np.c_[outer, np.full(len(outer), z0)], np.c_[outer, np.full(len(outer), z1_)]])
             elements[m["uuid"]] = Element(
                 kind="slab", domain="structure", family="楼板",
                 type_name=f"板厚 {float(g['thickness']):.0f}，顶 {z1 / 1000:.3f}", system_type=m["mark"],

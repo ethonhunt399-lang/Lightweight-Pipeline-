@@ -196,14 +196,22 @@ def _perpendiculars(axis: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 
 
 def points_in_rings(X: np.ndarray, Y: np.ndarray, rings: list[np.ndarray]) -> np.ndarray:
-    """Even-odd test of points (X, Y arrays of any shape) against plan rings [outer, hole, ...] in mm."""
+    """Points (X, Y arrays of any shape) inside plan rings [outer, hole, ...] in mm: inside the first ring and
+    outside every later one. For holes inside the outline this is the even-odd rule; it also stays right when the
+    later rings overlap each other or reach past the outline (slbh.structure 1.1 slab `cuts`)."""
     x, y = np.asarray(X, float).ravel()[:, None], np.asarray(Y, float).ravel()[:, None]
-    inside = np.zeros(x.shape[0], bool)
-    for ring in rings:
+
+    def in_ring(ring):
         a = np.asarray(ring, float)[:, :2]
         b = np.roll(a, -1, axis=0)
         cross = (a[:, 1] > y) != (b[:, 1] > y)
         with np.errstate(divide="ignore", invalid="ignore"):
             xi = a[:, 0] + (y - a[:, 1]) * (b[:, 0] - a[:, 0]) / (b[:, 1] - a[:, 1])
-        inside ^= (np.count_nonzero(cross & (x < xi), axis=1) % 2) == 1
+        return (np.count_nonzero(cross & (x < xi), axis=1) % 2) == 1
+
+    if not rings:
+        return np.zeros(np.shape(X), bool)
+    inside = in_ring(rings[0])
+    for ring in rings[1:]:
+        inside &= ~in_ring(ring)
     return inside.reshape(np.shape(X))
