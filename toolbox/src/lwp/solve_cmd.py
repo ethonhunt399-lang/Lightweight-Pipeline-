@@ -34,7 +34,7 @@ def cmd_corridors(args) -> int:
         sec = extract(package, c, rules)
         print(f"{c.name}: 沿 {c.axis.upper()} {c.length / 1000:.0f} m，平均 {mean:.1f} 根平行管线，"
               f"管线 {len(sec.strands)} 条（可移动 {len(sec.movable)}），横穿 {len(sec.crossings)}，{where}")
-        docs.append({"corridor": c.to_dict(), "note": f"{where}；平均 {mean:.1f} 根平行管线"})
+        docs.append({"corridor": json.loads(json.dumps(c.to_dict(), default=float)), "note": f"{where}；平均 {mean:.1f} 根平行管线"})
     if args.out:
         Path(args.out).write_text(yaml.safe_dump(docs, allow_unicode=True, sort_keys=False), encoding="utf-8")
         print(f"已写入 {args.out}")

@@ -12,7 +12,7 @@ constraints ("cuts") on the placement that produced them, and the section is sol
 
 Cuts are soft: they are minimised first, together with the other clash counts, so an unsatisfiable cut
 never makes the section infeasible. The iteration with the fewest new hard clashes is kept (then the higher
-lowest bottom); it stops when two rounds bring no improvement or after `rounds` rounds.
+lowest bottom; with a lane target, the smallest shortfall below it comes first); it stops when two rounds bring no improvement or after `rounds` rounds.
 """
 
 from __future__ import annotations
@@ -157,7 +157,8 @@ def solve_iterative(package: Package, sec: Section, rules: RuleSet, scheme: str,
         low = layout.metrics.get("lowest_bottom_above_floor_mm")
         history.append(Round(i + 1, len(hard), low, len(cuts)))
         log(f"    第 {i + 1} 轮：新增硬碰撞 {len(hard)}，最低管底 {low}，约束 {len(cuts)}")
-        score = (len(hard), -(low or 0))
+        # Net height first: the lane target shortfall (fixed by the first solve stage), then new clashes.
+        score = (layout.metrics.get("lane_target_shortfall_mm", 0), len(hard), -(low or 0))
         if best is None or score < best[0]:
             best = (score, layout, result)
             stale = 0

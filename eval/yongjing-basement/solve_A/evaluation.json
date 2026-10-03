@@ -45,22 +45,22 @@
  },
  "headroom": {
   "name": "净高最优",
-  "hard": 37,
-  "hard_preexisting": 13,
-  "n2_unresolved": 7,
+  "hard": 46,
+  "hard_preexisting": 11,
+  "n2_unresolved": 10,
   "hard_node": 17,
   "nodes": {
-   "横穿翻弯": 6,
-   "大尺寸横穿": 11
+   "横穿翻弯": 5,
+   "大尺寸横穿": 12
   },
-  "clearance": 57,
-  "hard_structure": 6,
+  "clearance": 42,
+  "hard_structure": 4,
   "water_parallel_tray": 2,
-  "water_crossing_tray": 50,
+  "water_crossing_tray": 43,
   "water_leak_tray": 0,
   "stations": 36,
-  "lowest_mm": 2450,
-  "median_lowest_mm": 2450,
+  "lowest_mm": 2300,
+  "median_lowest_mm": 2300,
   "median_levels": 2.0,
   "max_levels": 3,
   "zones": {
@@ -78,39 +78,94 @@
     "cells": 36
    },
    "stall": {
-    "min_mm": 2400,
-    "median_mm": 2450,
+    "min_mm": 2250,
+    "median_mm": 2300,
     "levels_mm": [
-     2450,
+     2300,
      3050
     ],
-    "cells": 747
+    "cells": 746
    }
   },
   "n2_nodes": 30,
-  "n0_pieces": 20,
+  "n0_pieces": 21,
   "n0_repairs": 43,
   "open_joints": 0,
-  "turns": 102,
-  "unbuildable": 0,
-  "offsets": 5,
+  "turns": 93,
+  "unbuildable": 1,
+  "offsets": 6,
   "doubling_back": 0,
   "reroute": 1
  },
  "changes": {
   "name": "改动最少",
-  "hard": 35,
-  "hard_preexisting": 10,
-  "n2_unresolved": 7,
-  "hard_node": 17,
+  "hard": 32,
+  "hard_preexisting": 11,
+  "n2_unresolved": 8,
+  "hard_node": 13,
+  "nodes": {
+   "大尺寸横穿": 8,
+   "横穿翻弯": 5
+  },
+  "clearance": 105,
+  "hard_structure": 5,
+  "water_parallel_tray": 2,
+  "water_crossing_tray": 23,
+  "water_leak_tray": 0,
+  "stations": 36,
+  "lowest_mm": 2350,
+  "median_lowest_mm": 2350,
+  "median_levels": 1.5,
+  "max_levels": 2,
+  "zones": {
+   "lane": {
+    "min_mm": 2498,
+    "median_mm": 2600,
+    "levels_mm": [
+     2450,
+     2500,
+     2600,
+     2750,
+     3050,
+     3150
+    ],
+    "cells": 36
+   },
+   "stall": {
+    "min_mm": 2300,
+    "median_mm": 2350,
+    "levels_mm": [
+     2350,
+     3050
+    ],
+    "cells": 737
+   }
+  },
+  "n2_nodes": 28,
+  "n0_pieces": 22,
+  "n0_repairs": 43,
+  "open_joints": 0,
+  "turns": 108,
+  "unbuildable": 2,
+  "offsets": 5,
+  "doubling_back": 0,
+  "reroute": 0
+ },
+ "supports": {
+  "name": "支吊架最省",
+  "hard": 34,
+  "hard_preexisting": 8,
+  "n2_unresolved": 10,
+  "hard_node": 15,
   "nodes": {
    "大尺寸横穿": 10,
-   "横穿翻弯": 7
+   "横穿翻弯": 4,
+   "出线引出": 1
   },
-  "clearance": 65,
+  "clearance": 61,
   "hard_structure": 4,
-  "water_parallel_tray": 1,
-  "water_crossing_tray": 28,
+  "water_parallel_tray": 2,
+  "water_crossing_tray": 36,
   "water_leak_tray": 0,
   "stations": 36,
   "lowest_mm": 2400,
@@ -138,72 +193,18 @@
      2400,
      3050
     ],
-    "cells": 747
-   }
-  },
-  "n2_nodes": 28,
-  "n0_pieces": 22,
-  "n0_repairs": 41,
-  "open_joints": 0,
-  "turns": 102,
-  "unbuildable": 3,
-  "offsets": 8,
-  "doubling_back": 0,
-  "reroute": 1
- },
- "supports": {
-  "name": "支吊架最省",
-  "hard": 43,
-  "hard_preexisting": 11,
-  "n2_unresolved": 10,
-  "hard_node": 19,
-  "nodes": {
-   "横穿翻弯": 7,
-   "大尺寸横穿": 12
-  },
-  "clearance": 96,
-  "hard_structure": 6,
-  "water_parallel_tray": 3,
-  "water_crossing_tray": 39,
-  "water_leak_tray": 0,
-  "stations": 36,
-  "lowest_mm": 2400,
-  "median_lowest_mm": 2400,
-  "median_levels": 1.5,
-  "max_levels": 2,
-  "zones": {
-   "lane": {
-    "min_mm": 2498,
-    "median_mm": 2600,
-    "levels_mm": [
-     2450,
-     2500,
-     2600,
-     2750,
-     3050,
-     3150
-    ],
-    "cells": 36
-   },
-   "stall": {
-    "min_mm": 2350,
-    "median_mm": 2400,
-    "levels_mm": [
-     2400,
-     3050
-    ],
-    "cells": 745
+    "cells": 746
    }
   },
   "n2_nodes": 30,
   "n0_pieces": 23,
   "n0_repairs": 43,
   "open_joints": 0,
-  "turns": 111,
-  "unbuildable": 0,
-  "offsets": 6,
+  "turns": 101,
+  "unbuildable": 4,
+  "offsets": 8,
   "doubling_back": 0,
-  "reroute": 1
+  "reroute": 2
  },
  "gold": {
   "name": "人工方案",
@@ -252,6 +253,7 @@
  },
  "review": {
   "findings": [
+   "人工方案净高比自动方案高 80 mm（自动方案在此项不如人工）",
    "人工方案管底有 11 个不同标高；净高最优方案只需 2 层，支吊架层数可减少、排布更规整",
    "人工方案在走廊内仍有 1 处硬碰撞（见下表）",
    "人工方案有 259 处净距低于规则要求（按已确认的校准净距）"

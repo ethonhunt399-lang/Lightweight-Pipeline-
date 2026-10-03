@@ -18,6 +18,7 @@ from .package import load_package
 from .report import write_outputs
 from .rules import load_rules
 from .viewer import build_data, write_viewer
+from .lanes_cmd import cmd_lanes
 from .solve_cmd import cmd_corridors, cmd_drawings, cmd_solve
 from .structjson import load_structure
 
@@ -139,6 +140,17 @@ def main(argv=None) -> int:
     dr.add_argument("--rules")
     dr.add_argument("--out", required=True, help="输出 JSON")
     dr.set_defaults(func=cmd_drawings)
+    ln = sub.add_parser("lanes", help="全地下室车道净高：按图纸车道统计每条车道的净高、分级，可与参照模型对比")
+    ln.add_argument("package", help="导出包（整个地下室）")
+    ln.add_argument("--drawings", required=True, help="lwp drawings 输出的图纸 JSON（车位、车道流线）")
+    ln.add_argument("--name", default="调整后", help="本模型名称")
+    ln.add_argument("--compare", help="参照导出包（如调整前）")
+    ln.add_argument("--compare-name", default="调整前")
+    ln.add_argument("--rules")
+    ln.add_argument("--cell", type=float, default=500.0, help="净高网格 mm")
+    ln.add_argument("--min-clear", type=float, default=2200.0, help="车道最低净高 mm（标红）")
+    ln.add_argument("--out", required=True, help="输出目录")
+    ln.set_defaults(func=cmd_lanes)
     args = parser.parse_args(argv)
     return args.func(args)
 

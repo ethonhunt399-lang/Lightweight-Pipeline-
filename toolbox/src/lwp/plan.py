@@ -89,7 +89,8 @@ def apply(package: Package, sec: Section, layout: Layout, rules: RuleSet | None 
         # Heights chosen by the solver (stacked, and under the trays where water must not run over them).
         # N1: raised only over the bundle where the service is longer than that.
         offsets = riser_offsets(sec, layout.crossings, rules.clearance_mm.default if rules else 30.0)
-        for c in sec.zone_crossings:
+        # Large ducts dropped to the control level go down over the bundle the same way (N1, downwards).
+        for c in sec.zone_crossings + [x for x in sec.large_crossings if x.key in layout.crossings]:
             z = layout.crossings.get(c.key)
             if z is not None and abs(z - c.z_lo) > 0.5:
                 made_ = (crossing_hump(package, elements, sec, layout, c.key, z - c.z_lo, moves, move, graph,
