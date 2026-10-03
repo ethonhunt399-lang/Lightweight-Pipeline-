@@ -116,7 +116,8 @@ def cmd_solve(args) -> int:
         geo = links.geometry.to_dict() if links.geometry is not None else {}
         link_counts[scheme] = {"n0_pieces": links.pieces, "n0_repairs": len(links.repairs), "open_joints": len(links.open),
                                "turns": geo.get("turns", 0), "unbuildable": len(geo.get("unbuildable", [])),
-                               "offsets": len(geo.get("offset", [])), "doubling_back": len(geo.get("doubling_back", []))}
+                               "offsets": len(geo.get("offset", [])), "doubling_back": len(geo.get("doubling_back", [])),
+                               "reroute": sum(r.reroute for r in links.repairs)}
         node_counts[scheme] = len(nodes)
         handled[scheme] = {n.fitting for n in nodes}
         planned[scheme] = moved
@@ -260,15 +261,16 @@ def _pos(layout: Layout, s, sec: Section) -> str:
 def _build_html(ev: dict, layouts: dict) -> str:
     rows = "".join(
         f"<tr><td>{escape(ev[k]['name'])}</td><td>{ev[k].get('turns', '—')}</td><td>{ev[k].get('offsets', '—')}</td>"
-        f"<td>{ev[k].get('unbuildable', '—')}</td><td>{ev[k].get('doubling_back', '—')}</td><td>{ev[k].get('open_joints', '—')}</td></tr>"
+        f"<td>{ev[k].get('unbuildable', '—')}</td><td>{ev[k].get('doubling_back', '—')}</td><td>{ev[k].get('reroute', '—')}</td>"
+        f"<td>{ev[k].get('open_joints', '—')}</td></tr>"
         for k in SCHEME_ORDER if k in ev and k in layouts)
     if not rows:
         return ""
     return ("<h2>节点几何与可施工检查</h2><div class='wrap'><table><tr><th>方案</th><th>新增转折（含弯头实体）</th>"
-            "<th>需改用斜接（60°/45°/30°/15°）</th><th>不可施工</th><th>折返（待修正）</th><th>仍断开</th></tr>"
+            "<th>需改用斜接（60°/45°/30°/15°）</th><th>不可施工</th><th>折返</th><th>需重布支管</th><th>仍断开</th></tr>"
             + rows + "</table></div><p class='sub'>新增的过渡段、翻弯段在每个转折处按弯曲半径（水管 1.5×外径、风管 1.0×弯曲平面内边长、"
             "桥架不小于 300 mm）截短并加弯头实体，参与碰撞检测；两转折之间放不下两只弯头加 50 mm 直段的，给出可行的最陡斜接角度，"
-            "仍放不下的列为不可施工。清单见方案文件 links.node_geometry。</p>")
+            "仍放不下的列为不可施工。“需重布支管”：主管移过了其支管上的下一个管件，支管改从另一侧接入该管件，需人工重布（清单见 links.reroute）。清单见方案文件 links.node_geometry。</p>")
 
 
 def _zone(z) -> str:

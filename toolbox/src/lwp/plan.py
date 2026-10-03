@@ -160,7 +160,8 @@ class Links:
         return {"repairs": [r.to_dict() for r in self.repairs], "open": [j.to_dict() for j in self.open],
                 "pieces": self.pieces, "stretched": sum(abs(r.stretch_mm) > 1 for r in self.repairs),
                 "end_transitions": [e.to_dict() for e in self.ends], "n1_pieces": len(self.humps),
-                "node_geometry": self.geometry.to_dict() if self.geometry is not None else None}
+                "node_geometry": self.geometry.to_dict() if self.geometry is not None else None,
+                "reroute": [r.to_dict() for r in self.repairs if r.reroute]}
 
 
 def _replace(package: Package, elements: dict) -> Package:

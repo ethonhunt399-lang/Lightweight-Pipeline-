@@ -53,7 +53,7 @@
    "横穿翻弯": 10,
    "大尺寸横穿": 13
   },
-  "clearance": 64,
+  "clearance": 57,
   "hard_structure": 5,
   "water_parallel_tray": 2,
   "water_crossing_tray": 39,
@@ -88,13 +88,14 @@
    }
   },
   "n2_nodes": 30,
-  "n0_pieces": 22,
+  "n0_pieces": 20,
   "n0_repairs": 42,
   "open_joints": 0,
   "turns": 98,
   "unbuildable": 2,
   "offsets": 5,
-  "doubling_back": 2
+  "doubling_back": 0,
+  "reroute": 2
  },
  "changes": {
   "name": "改动最少",
@@ -147,22 +148,23 @@
   "turns": 100,
   "unbuildable": 2,
   "offsets": 9,
-  "doubling_back": 0
+  "doubling_back": 0,
+  "reroute": 0
  },
  "supports": {
   "name": "支吊架最省",
-  "hard": 61,
+  "hard": 60,
   "hard_preexisting": 10,
   "n2_unresolved": 16,
-  "hard_node": 32,
+  "hard_node": 31,
   "nodes": {
    "大尺寸横穿": 15,
-   "横穿翻弯": 17
+   "横穿翻弯": 16
   },
-  "clearance": 63,
+  "clearance": 61,
   "hard_structure": 4,
   "water_parallel_tray": 2,
-  "water_crossing_tray": 33,
+  "water_crossing_tray": 32,
   "water_leak_tray": 0,
   "stations": 36,
   "lowest_mm": 2400,
@@ -194,13 +196,14 @@
    }
   },
   "n2_nodes": 30,
-  "n0_pieces": 24,
+  "n0_pieces": 22,
   "n0_repairs": 43,
   "open_joints": 0,
   "turns": 96,
   "unbuildable": 0,
   "offsets": 6,
-  "doubling_back": 2
+  "doubling_back": 0,
+  "reroute": 2
  },
  "gold": {
   "name": "人工方案",

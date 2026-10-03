@@ -53,10 +53,11 @@ class Repair:
     stretch_mm: float
     pieces: list[str]
     gap_mm: float
+    reroute: bool = False     # the joint moved past the run's far end: the branch has to be re-laid
 
     def to_dict(self) -> dict:
         return {"host": self.host, "other": self.other, "stretch_mm": round(self.stretch_mm),
-                "pieces": self.pieces, "gap_mm": round(self.gap_mm)}
+                "pieces": self.pieces, "gap_mm": round(self.gap_mm), "reroute": self.reroute}
 
 
 def _conn(e: Element, cid) -> dict | None:
@@ -185,24 +186,31 @@ def reconnect(package: Package, elements: dict[str, Element], moves: dict[str, n
     joints = [j for j in open_joints(elements, set(moves)) if worse(j)]
     # A run open at both ends (e.g. a short pipe between two strands that both moved) is first set along its
     # own axis to span between the two new places; jogs then only take what is left across the axis.
-    ends: dict[str, list[np.ndarray]] = {}
+    ends: dict[str, list[tuple[np.ndarray, np.ndarray]]] = {}     # run → [(its connector, where it must go)]
     for j in joints:
         for k, cid, ok, ocid in ((j.a, j.ca, j.b, j.cb), (j.b, j.cb, j.a, j.ca)):
             if _axis(elements[k]) is not None and not (k in moves and float(np.linalg.norm(moves[k][:2])) > 0.5):
-                oc = _conn(elements[ok], ocid)
-                if oc is not None and oc.get("origin"):
-                    ends.setdefault(k, []).append(np.array(oc["origin"]) * M)
-    for k, targets in ends.items():
-        if len(targets) < 2:
+                own, oc = _conn(elements[k], cid), _conn(elements[ok], ocid)
+                if own is not None and oc is not None and own.get("origin") and oc.get("origin"):
+                    ends.setdefault(k, []).append((np.array(own["origin"]) * M, np.array(oc["origin"]) * M))
+    for k, pairs in ends.items():
+        if len(pairs) < 2:
             continue
         s0, s1 = _axis(elements[k])
         length = float(np.linalg.norm(s1 - s0))
         ax = (s1 - s0) / max(length, 1e-9)
-        t = sorted(float(np.dot(p - s0, ax)) for p in targets)
-        lo, hi = t[0], t[-1]
-        if hi - lo < MIN_RUN_MM:
-            mid = (lo + hi) / 2
-            lo, hi = mid - MIN_RUN_MM / 2, mid + MIN_RUN_MM / 2
+        # Each end goes where its own joint went. When the two runs it joins have swapped sides, the run
+        # simply turns round (its start now lies beyond its end).
+        new = {}
+        for own, tgt in pairs:
+            end = 0 if np.linalg.norm(own - s0) < np.linalg.norm(own - s1) else 1
+            new[end] = float(np.dot(tgt - s0, ax))
+        if len(new) < 2:
+            continue
+        lo, hi = new[0], new[1]
+        if abs(hi - lo) < MIN_RUN_MM:
+            mid, sgn = (lo + hi) / 2, (1.0 if hi >= lo else -1.0)
+            lo, hi = mid - sgn * MIN_RUN_MM / 2, mid + sgn * MIN_RUN_MM / 2
         elements[k] = _set_axis(elements[k], s0 + ax * lo, s0 + ax * hi)
     repairs: list[Repair] = []
     left: list[Joint] = []
@@ -223,6 +231,7 @@ def reconnect(package: Package, elements: dict[str, Element], moves: dict[str, n
             boxes = np.vstack([boxes, box]) if len(boxes) else box[None, :]
     count = 0
     for j in joints:
+        rerouted = False
         ea, eb = elements[j.a], elements[j.b]
         # Current connector positions (earlier repairs may have stretched one of the two runs).
         ca, cb = _conn(ea, j.ca), _conn(eb, j.cb)
@@ -259,6 +268,17 @@ def reconnect(package: Package, elements: dict[str, Element], moves: dict[str, n
                 elements[host_key] = host
                 seen(host)
                 end = new_end
+            elif abs(d_ax) > OPEN_MM and length + d_ax <= -MIN_RUN_MM:
+                # The joint moved past the far end of this run (a strand moved beyond the next fitting of its
+                # branch): the run now reaches that fitting from the other side. No piece doubling back along
+                # it; the branch has to be re-laid there (reported).
+                stretch = d_ax
+                new_end = end + out * d_ax
+                host = _set_axis(host, s0 if at_end else new_end, new_end if at_end else s1)
+                elements[host_key] = host
+                seen(host)
+                end = new_end
+                rerouted = True
         d = target - end
         pieces: list[str] = []
         if float(np.linalg.norm(d)) > OPEN_MM:
@@ -336,7 +356,7 @@ def reconnect(package: Package, elements: dict[str, Element], moves: dict[str, n
                 seen(piece)
                 pieces.append(key)
                 prev_key, prev_cid = key, 1
-        repairs.append(Repair(host_key, other_key, stretch, pieces, float(np.linalg.norm(target - end))))
+        repairs.append(Repair(host_key, other_key, stretch, pieces, float(np.linalg.norm(target - end)), rerouted))
     # What is still open. A joint bridged by jog pieces stays "open" between its two original ends.
     bridged = {frozenset((r.host, r.other)) for r in repairs if r.pieces}
     for j in open_joints(elements, set(moves) | {r.host for r in repairs}):

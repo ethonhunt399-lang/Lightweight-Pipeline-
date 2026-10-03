@@ -42,18 +42,18 @@
  },
  "headroom": {
   "name": "净高最优",
-  "hard": 52,
-  "hard_preexisting": 18,
+  "hard": 49,
+  "hard_preexisting": 15,
   "n2_unresolved": 12,
-  "hard_node": 7,
+  "hard_node": 9,
   "nodes": {
-   "横穿翻弯": 6,
+   "横穿翻弯": 8,
    "出线引出": 1
   },
-  "clearance": 129,
+  "clearance": 123,
   "hard_structure": 15,
-  "water_parallel_tray": 4,
-  "water_crossing_tray": 18,
+  "water_parallel_tray": 3,
+  "water_crossing_tray": 19,
   "water_leak_tray": 0,
   "stations": 31,
   "lowest_mm": 2516,
@@ -84,18 +84,19 @@
    }
   },
   "n2_nodes": 38,
-  "n0_pieces": 40,
+  "n0_pieces": 37,
   "n0_repairs": 59,
   "open_joints": 0,
-  "turns": 123,
+  "turns": 122,
   "unbuildable": 1,
-  "offsets": 8,
-  "doubling_back": 2
+  "offsets": 9,
+  "doubling_back": 0,
+  "reroute": 3
  },
  "changes": {
   "name": "改动最少",
-  "hard": 31,
-  "hard_preexisting": 15,
+  "hard": 29,
+  "hard_preexisting": 13,
   "n2_unresolved": 11,
   "hard_node": 2,
   "nodes": {
@@ -103,8 +104,8 @@
   },
   "clearance": 98,
   "hard_structure": 5,
-  "water_parallel_tray": 2,
-  "water_crossing_tray": 15,
+  "water_parallel_tray": 1,
+  "water_crossing_tray": 16,
   "water_leak_tray": 0,
   "stations": 31,
   "lowest_mm": 2500,
@@ -133,27 +134,28 @@
    }
   },
   "n2_nodes": 38,
-  "n0_pieces": 34,
+  "n0_pieces": 33,
   "n0_repairs": 48,
   "open_joints": 0,
-  "turns": 115,
+  "turns": 114,
   "unbuildable": 3,
   "offsets": 4,
-  "doubling_back": 0
+  "doubling_back": 0,
+  "reroute": 1
  },
  "supports": {
   "name": "支吊架最省",
-  "hard": 59,
-  "hard_preexisting": 23,
+  "hard": 56,
+  "hard_preexisting": 20,
   "n2_unresolved": 13,
   "hard_node": 5,
   "nodes": {
    "横穿翻弯": 5
   },
-  "clearance": 138,
+  "clearance": 118,
   "hard_structure": 19,
-  "water_parallel_tray": 1,
-  "water_crossing_tray": 15,
+  "water_parallel_tray": 0,
+  "water_crossing_tray": 16,
   "water_leak_tray": 0,
   "stations": 31,
   "lowest_mm": 2516,
@@ -172,7 +174,7 @@
    },
    "stall": {
     "min_mm": 2498,
-    "median_mm": 2601,
+    "median_mm": 2600,
     "levels_mm": [
      2450,
      2500,
@@ -183,13 +185,14 @@
    }
   },
   "n2_nodes": 39,
-  "n0_pieces": 38,
+  "n0_pieces": 36,
   "n0_repairs": 58,
   "open_joints": 0,
-  "turns": 117,
+  "turns": 116,
   "unbuildable": 1,
   "offsets": 8,
-  "doubling_back": 1
+  "doubling_back": 0,
+  "reroute": 2
  },
  "gold": {
   "name": "人工方案",
